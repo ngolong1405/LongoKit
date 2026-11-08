@@ -6,3 +6,5 @@ build/
 node_modules/
 dist/
 .astro/
+.vercel
+.env*.local
