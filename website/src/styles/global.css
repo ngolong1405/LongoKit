@@ -1,0 +1,23 @@
+@import "../../../brand/tokens.css";
+
+@font-face { font-family: "Space Grotesk"; src: url("../../../brand/fonts/SpaceGrotesk.ttf"); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: "Geist"; src: url("../../../brand/fonts/Geist.ttf"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("../../../brand/fonts/JetBrainsMono.ttf"); font-weight: 100 800; font-display: swap; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { color-scheme: dark light; }
+
+body {
+  margin: 0;
+  background: var(--lk-canvas);
+  color: var(--lk-text);
+  font-family: var(--lk-font-ui);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: var(--lk-font-display); letter-spacing: -0.02em; line-height: 1.1; margin: 0; }
+a { color: inherit; }
+
+.container { width: min(1080px, 100% - 32px); margin-inline: auto; }

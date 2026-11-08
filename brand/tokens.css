@@ -1,0 +1,74 @@
+/*
+ * LongoKit color tokens ("Solar Sunset & Cyber-Violet").
+ * Same values as Theme in apps/mouse-macos/Sources/LongoMouse/Components.swift; change both together.
+ * Dark is the default; light applies with prefers-color-scheme or [data-theme="light"].
+ */
+:root {
+  --lk-solar: #ff6b35;
+  --lk-solar-light: #ffa26b;
+  --lk-violet: #8b5cf6;
+  --lk-violet-light: #a78bfa;
+  --lk-emerald: #10b981;
+  --lk-amber: #f59e0b;
+  --lk-danger: #ef4444;
+
+  --lk-canvas: #0b0c10;
+  --lk-canvas-top: #121319;
+  --lk-island: #1a1b22;
+  --lk-hover: #242632;
+  --lk-slate: #2f3242;
+  --lk-hairline: rgb(255 255 255 / 0.08);
+
+  --lk-text: #f3f4f6;
+  --lk-text-secondary: #d1d5db;
+  --lk-text-muted: #9ca3af;
+  --lk-text-faint: #6b7280;
+
+  --lk-accent-gradient: linear-gradient(135deg, var(--lk-solar), var(--lk-violet));
+  --lk-font-display: "Space Grotesk", system-ui, sans-serif;
+  --lk-font-ui: "Geist", system-ui, sans-serif;
+  --lk-font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --lk-radius: 16px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --lk-solar: #ee5a22;
+    --lk-solar-light: #d94814;
+    --lk-violet: #7c3aed;
+    --lk-violet-light: #6d28d9;
+    --lk-emerald: #059669;
+    --lk-amber: #d97706;
+    --lk-danger: #dc2626;
+    --lk-canvas: #f5f6f8;
+    --lk-canvas-top: #ffffff;
+    --lk-island: #ffffff;
+    --lk-hover: #edf0f5;
+    --lk-slate: #e1e5ed;
+    --lk-hairline: rgb(0 0 0 / 0.08);
+    --lk-text: #111827;
+    --lk-text-secondary: #374151;
+    --lk-text-muted: #4b5563;
+    --lk-text-faint: #9ca3af;
+  }
+}
+
+:root[data-theme="light"] {
+  --lk-solar: #ee5a22;
+  --lk-solar-light: #d94814;
+  --lk-violet: #7c3aed;
+  --lk-violet-light: #6d28d9;
+  --lk-emerald: #059669;
+  --lk-amber: #d97706;
+  --lk-danger: #dc2626;
+  --lk-canvas: #f5f6f8;
+  --lk-canvas-top: #ffffff;
+  --lk-island: #ffffff;
+  --lk-hover: #edf0f5;
+  --lk-slate: #e1e5ed;
+  --lk-hairline: rgb(0 0 0 / 0.08);
+  --lk-text: #111827;
+  --lk-text-secondary: #374151;
+  --lk-text-muted: #4b5563;
+  --lk-text-faint: #9ca3af;
+}
