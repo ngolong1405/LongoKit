@@ -1,6 +1,6 @@
 ---
 import logoLight from "../../../brand/logo/logo-light.png";
-import { repo, mouseDownload, mouseVersion, coffeeURL } from "../data/site";
+import { repo, mouseDownload, mouseReleaseNotes, mouseVersion, coffeeURL } from "../data/site";
 import { pick, type Lang } from "../i18n";
 
 interface Props {
@@ -21,7 +21,7 @@ const t = pick(lang, {
       ["LongoDisplay", "External display brightness and multi-display layouts."],
     ],
     coffeeTitle: "Like LongoMouse? Buy me a coffee", coffeeBody: "The app is free; every coffee buys more time for LongoKit.",
-    history: "Changelog", source: "Build from source", issues: "Bugs & ideas",
+    history: "Release notes", source: "Build from source", issues: "Bugs & ideas",
   },
   vi: {
     badge: "Miễn phí · Beta", title: "Sẵn Sàng Nâng Tầm Trải Nghiệm Chuột Của Bạn?", lead: "Không quảng cáo, không tài khoản, không thu thập dữ liệu.",
@@ -35,7 +35,7 @@ const t = pick(lang, {
       ["LongoDisplay", "Độ sáng màn hình ngoài và bố cục nhiều màn hình."],
     ],
     coffeeTitle: "Thích LongoMouse? Mời mình một ly cà phê", coffeeBody: "App miễn phí; mỗi ly cà phê giúp mình có thêm thời gian làm LongoKit.",
-    history: "Lịch sử thay đổi", source: "Tự build từ mã nguồn", issues: "Báo lỗi & góp ý",
+    history: "Ghi chú phát hành", source: "Tự build từ mã nguồn", issues: "Báo lỗi & góp ý",
   },
 });
 
@@ -151,7 +151,7 @@ const roadmap = [
     }
 
     <div class="flex flex-wrap items-center justify-center gap-space-lg pt-space-md font-code text-label-code text-on-surface-variant">
-      <a class="flex items-center gap-1 transition-colors hover:text-primary" href={`${repo}/commits/main`}>
+      <a class="flex items-center gap-1 transition-colors hover:text-primary" href={mouseReleaseNotes}>
         <span class="material-symbols-outlined text-[16px]">history</span> {t.history}
       </a>
       <span>•</span>
