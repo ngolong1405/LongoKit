@@ -1,6 +1,6 @@
 ---
 import logoLight from "../../../brand/logo/logo-light.png";
-import { repo, mouseDownload, mouseVersion } from "../data/site";
+import { repo, mouseDownload, mouseVersion, coffeeURL, licenseURL } from "../data/site";
 
 const roadmap = [
   { icon: "keyboard", tint: "text-secondary", name: "LongoKeys", body: "Đổi phím, lớp phím và phím tắt cho bàn phím." },
@@ -35,7 +35,7 @@ const roadmap = [
           </div>
           <div class="flex flex-col gap-1.5 rounded-xl bg-surface-container-lowest p-3 font-code text-[11px] text-on-surface-variant">
             <div class="flex justify-between"><span>File: LongoMouse.dmg</span><span class="text-on-surface">~4 MB</span></div>
-            <div class="flex justify-between"><span>Phiên bản: {mouseVersion} beta</span><span class="text-tertiary">Mã nguồn mở</span></div>
+            <div class="flex justify-between"><span>Phiên bản: {mouseVersion} beta</span><span class="text-tertiary">Miễn phí khi beta</span></div>
           </div>
         </div>
         <div class="flex flex-col gap-space-xs">
@@ -94,6 +94,24 @@ const roadmap = [
         ))
       }
     </div>
+
+    {
+      coffeeURL && (
+        <a
+          href={coffeeURL}
+          class="mx-auto flex w-full max-w-4xl items-center justify-between gap-space-md rounded-2xl bg-gradient-to-r from-primary-container/15 to-secondary-container/20 p-space-lg transition-all hover:from-primary-container/25"
+        >
+          <span class="flex items-center gap-space-sm">
+            <span class="material-symbols-outlined text-[28px] text-primary">local_cafe</span>
+            <span class="flex flex-col">
+              <span class="font-display font-semibold">Thích LongoMouse? Mời mình một ly cà phê</span>
+              <span class="text-body-sm text-on-surface-variant">App miễn phí; mỗi ly cà phê giúp mình có thêm thời gian làm LongoKit.</span>
+            </span>
+          </span>
+          <span class="material-symbols-outlined text-[20px] text-primary">arrow_forward</span>
+        </a>
+      )
+    }
 
     <div class="flex flex-wrap items-center justify-center gap-space-lg pt-space-md font-code text-label-code text-on-surface-variant">
       <a class="flex items-center gap-1 transition-colors hover:text-primary" href={`${repo}/commits/main`}>

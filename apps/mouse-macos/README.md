@@ -28,3 +28,7 @@ On first launch, grant **Accessibility** and **Input Monitoring** in System Sett
 - `Sources/LongoMouse/`: the app (SwiftUI + AppKit). `MouseEngine` holds the event tap and gesture logic, and `AppModel` holds the settings.
 - `Support/`: Info.plist, icons, and bundled fonts (Space Grotesk, Geist, JetBrains Mono; SIL Open Font License).
 - `scripts/`: build and signing helpers.
+
+## License
+
+Source-available under the [LongoKit License](../../LICENSE.md): build and use it yourself; don't redistribute or sell it.

@@ -1,6 +1,6 @@
 ---
 import logo from "../../../brand/logo/logo-dark.png";
-import { repo, mouseVersion } from "../data/site";
+import { repo, mouseVersion, coffeeURL, licenseURL } from "../data/site";
 
 const year = new Date().getFullYear();
 ---
@@ -43,12 +43,13 @@ const year = new Date().getFullYear();
           <li><a class="hover:text-primary" href={repo}>Mã nguồn trên GitHub</a></li>
           <li><a class="hover:text-primary" href={`${repo}/issues`}>Báo lỗi &amp; góp ý</a></li>
           <li><a class="hover:text-primary" href={`${repo}/commits/main`}>Lịch sử thay đổi</a></li>
+          {coffeeURL && <li><a class="hover:text-primary" href={coffeeURL}>Mời một ly cà phê ☕</a></li>}
         </ul>
       </div>
     </div>
     <div class="flex flex-col items-center justify-between gap-space-md pt-space-lg font-code text-label-code text-on-surface-variant md:flex-row">
       <span>© {year} LongoKit · Crafted by <span class="text-primary">Long Ngô</span></span>
-      <span>macOS · Windows sắp có</span>
+      <a class="hover:text-primary" href={licenseURL}>Source-available · Giấy phép LongoKit</a>
     </div>
   </div>
 </footer>

@@ -8,7 +8,7 @@ Tools for customizing mice, keyboards, and displays on macOS and Windows, by Lon
 | Longo Mouse | `apps/mouse-windows` | Windows | Planned |
 | Longo Keys | `apps/keys-macos`, `apps/keys-windows` | macOS, Windows | Planned |
 | Longo Display | `apps/display-macos`, `apps/display-windows` | macOS, Windows | Planned |
-| Website | [`website`](website) | Web (Astro) | Placeholder |
+| Website | [`website`](website) | Web (Astro) | Landing page |
 
 ## Repository layout
 
@@ -28,3 +28,9 @@ website/                     the LongoKit landing page
 - **Shared code** moves into `packages/` only once a second app uses it; until then it stays in the app.
 
 Each app's README has its build steps.
+
+## License
+
+LongoKit is **source-available**, not open source: you can read the code, build it, and run it for yourself, but
+redistributing or selling it needs permission. Official builds come from this repository and may later ask for a small
+"buy me a coffee" price. See [LICENSE.md](LICENSE.md).
