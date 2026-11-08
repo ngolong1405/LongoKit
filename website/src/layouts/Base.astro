@@ -1,21 +1,27 @@
 ---
 import "../styles/global.css";
+import { counterpart, type Lang } from "../i18n";
 
 interface Props {
+  lang: Lang;
   title: string;
   description: string;
 }
 
-const { title, description } = Astro.props;
+const { lang, title, description } = Astro.props;
+const other = counterpart(Astro.url.pathname);
+const site = Astro.site ?? new URL("https://longokit.vercel.app");
 ---
 
 <!doctype html>
-<html lang="vi">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="alternate" hreflang={lang} href={new URL(Astro.url.pathname, site)} />
+    <link rel="alternate" hreflang={other.lang} href={new URL(other.href, site)} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -23,13 +29,16 @@ const { title, description } = Astro.props;
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
     />
     <title>{title}</title>
-    <!-- Apply the saved theme (or the system one) before the first paint, so the page never flashes. -->
-    <script is:inline>
+    <!-- Before the first paint: apply the saved (or system) theme, and go to the language the visitor chose. -->
+    <script is:inline define:vars={{ lang, otherHref: other.href }}>
       (() => {
-        let saved = null;
-        try { saved = localStorage.getItem("theme"); } catch {}
-        const dark = saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        let theme = null, saved = null;
+        try { theme = localStorage.getItem("theme"); saved = localStorage.getItem("lang"); } catch {}
+        const dark = theme ? theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
         document.documentElement.classList.toggle("dark", dark);
+        // A saved choice wins; with none, Vietnamese browsers start on the Vietnamese pages.
+        const firstVisitVi = !saved && lang === "en" && (navigator.language || "").toLowerCase().startsWith("vi");
+        if ((saved && saved !== lang) || firstVisitVi) location.replace(otherHref + location.hash);
       })();
     </script>
   </head>

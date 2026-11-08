@@ -1,8 +1,30 @@
 ---
 import logo from "../../../brand/logo/logo-dark.png";
 import { repo, mouseVersion, coffeeURL, licenseURL } from "../data/site";
+import { localize, pick, type Lang } from "../i18n";
 
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
 const year = new Date().getFullYear();
+const t = pick(lang, {
+  en: {
+    blurb: "Small, fast tools for customizing mice, keyboards, and displays on macOS and Windows.",
+    products: "Products", mouseNote: "Buttons, gestures & smooth scrolling", soon: "Coming soon",
+    compat: "Compatibility", compatList: ["macOS 13 Ventura or later", "Apple Silicon & Intel", "Windows: coming soon"],
+    community: "Community", source: "Source on GitHub", issues: "Report a bug or idea", history: "Changelog",
+    coffee: "Buy me a coffee ☕", license: "Source-available · LongoKit License",
+  },
+  vi: {
+    blurb: "Bộ công cụ nhỏ, nhanh để tuỳ chỉnh chuột, bàn phím và màn hình trên macOS và Windows.",
+    products: "Sản phẩm", mouseNote: "Nút, cử chỉ & cuộn mượt", soon: "Sắp có",
+    compat: "Tương thích", compatList: ["macOS 13 Ventura trở lên", "Apple Silicon & Intel", "Windows: sắp có"],
+    community: "Cộng đồng", source: "Mã nguồn trên GitHub", issues: "Báo lỗi & góp ý", history: "Lịch sử thay đổi",
+    coffee: "Mời một ly cà phê ☕", license: "Source-available · Giấy phép LongoKit",
+  },
+});
 ---
 
 <footer class="mt-space-3xl w-full bg-surface-container-lowest">
@@ -13,43 +35,39 @@ const year = new Date().getFullYear();
           <img src={logo.src} alt="" class="h-8 w-8 rounded-lg object-contain shadow-sm" />
           <span class="font-display text-headline-sm">LongoKit</span>
         </div>
-        <p class="max-w-sm text-body-sm text-on-surface-variant">
-          Bộ công cụ nhỏ, nhanh để tuỳ chỉnh chuột, bàn phím và màn hình trên macOS và Windows.
-        </p>
+        <p class="max-w-sm text-body-sm text-on-surface-variant">{t.blurb}</p>
         <div class="flex items-center gap-space-xs">
           <span class="h-2 w-2 animate-pulse rounded-full bg-tertiary"></span>
           <span class="font-code text-label-code text-tertiary">LongoMouse v{mouseVersion} beta</span>
         </div>
       </div>
       <div class="flex flex-col gap-space-sm">
-        <h4 class="text-[15px] font-semibold">Sản phẩm</h4>
+        <h4 class="text-[15px] font-semibold">{t.products}</h4>
         <ul class="flex flex-col gap-space-xs text-body-sm">
-          <li class="flex flex-col"><a class="font-medium text-primary hover:underline" href="/mouse">LongoMouse</a><span class="font-code text-[11px] text-on-surface-variant">Nút, cử chỉ &amp; cuộn mượt</span></li>
-          <li class="flex flex-col"><a class="hover:text-secondary" href="/#pillars">LongoKeys</a><span class="font-code text-[11px] text-on-surface-variant">Sắp có</span></li>
-          <li class="flex flex-col"><a class="hover:text-tertiary" href="/#pillars">LongoDisplay</a><span class="font-code text-[11px] text-on-surface-variant">Sắp có</span></li>
+          <li class="flex flex-col"><a class="font-medium text-primary hover:underline" href={localize(lang, "/mouse")}>LongoMouse</a><span class="font-code text-[11px] text-on-surface-variant">{t.mouseNote}</span></li>
+          <li class="flex flex-col"><a class="hover:text-secondary" href={localize(lang, "/#pillars")}>LongoKeys</a><span class="font-code text-[11px] text-on-surface-variant">{t.soon}</span></li>
+          <li class="flex flex-col"><a class="hover:text-tertiary" href={localize(lang, "/#pillars")}>LongoDisplay</a><span class="font-code text-[11px] text-on-surface-variant">{t.soon}</span></li>
         </ul>
       </div>
       <div class="flex flex-col gap-space-sm">
-        <h4 class="text-[15px] font-semibold">Tương thích</h4>
+        <h4 class="text-[15px] font-semibold">{t.compat}</h4>
         <ul class="flex flex-col gap-space-xs text-body-sm text-on-surface-variant">
-          <li>macOS 13 Ventura trở lên</li>
-          <li>Apple Silicon &amp; Intel</li>
-          <li>Windows: sắp có</li>
+          {t.compatList.map((item) => <li>{item}</li>)}
         </ul>
       </div>
       <div class="flex flex-col gap-space-sm">
-        <h4 class="text-[15px] font-semibold">Cộng đồng</h4>
+        <h4 class="text-[15px] font-semibold">{t.community}</h4>
         <ul class="flex flex-col gap-space-xs text-body-sm text-on-surface-variant">
-          <li><a class="hover:text-primary" href={repo}>Mã nguồn trên GitHub</a></li>
-          <li><a class="hover:text-primary" href={`${repo}/issues`}>Báo lỗi &amp; góp ý</a></li>
-          <li><a class="hover:text-primary" href={`${repo}/commits/main`}>Lịch sử thay đổi</a></li>
-          {coffeeURL && <li><a class="hover:text-primary" href={coffeeURL}>Mời một ly cà phê ☕</a></li>}
+          <li><a class="hover:text-primary" href={repo}>{t.source}</a></li>
+          <li><a class="hover:text-primary" href={`${repo}/issues`}>{t.issues}</a></li>
+          <li><a class="hover:text-primary" href={`${repo}/commits/main`}>{t.history}</a></li>
+          {coffeeURL && <li><a class="hover:text-primary" href={coffeeURL}>{t.coffee}</a></li>}
         </ul>
       </div>
     </div>
     <div class="flex flex-col items-center justify-between gap-space-md pt-space-lg font-code text-label-code text-on-surface-variant md:flex-row">
       <span>© {year} LongoKit · Crafted by <span class="text-primary">Long Ngô</span></span>
-      <a class="hover:text-primary" href={licenseURL}>Source-available · Giấy phép LongoKit</a>
+      <a class="hover:text-primary" href={licenseURL}>{t.license}</a>
     </div>
   </div>
 </footer>

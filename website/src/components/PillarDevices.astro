@@ -1,12 +1,56 @@
 ---
-const devices = [
-  { name: "Logitech MX Master 3S", state: "ĐANG DÙNG (BT)", dot: "bg-primary animate-pulse", tint: "text-primary",
-    profile: "Nút riêng · Cuộn riêng", left: "Cuộn mượt", right: "800 ms", active: true },
-  { name: "Razer DeathAdder V3", state: "CHỜ (USB)", dot: "bg-secondary", tint: "text-secondary",
-    profile: "Nút riêng · Cuộn chung", left: "Cuộn mượt", right: "Tắt" },
-  { name: "Apple Magic Mouse 2", state: "CHỜ (BT)", dot: "bg-tertiary", tint: "text-tertiary",
-    profile: "Cử chỉ cảm ứng gốc", left: "Vuốt", right: "Giữ nguyên" },
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    title: "Independent Multi-Mouse Profiles (Per-Device Profiles)",
+    lead: "An MX Master at your desk and a gaming mouse when you plug into an external display? LongoMouse recognizes each mouse and uses its own settings.",
+    points: [
+      ["Switches with the mouse you're using:", "recognized by Vendor ID & Product ID, no restart needed."],
+      ["Separate buttons and scrolling per mouse:", "keep raw scrolling on the gaming mouse and smooth scrolling on the office one."],
+      ["Leaves the trackpad & Magic Mouse alone:", "their native swipe gestures stay as they are."],
+    ],
+    devices: [
+      ["IN USE (BT)", "Own buttons · Own scrolling", "Smooth scroll", "800 ms"],
+      ["STANDBY (USB)", "Own buttons · Shared scrolling", "Smooth scroll", "Off"],
+      ["STANDBY (BT)", "Native touch gestures", "Swipe", "Unchanged"],
+    ],
+    config: "Settings: Logitech MX Master 3S", b4: "Button 4 (back side):", b4Value: "Click: Back · Drag: switch Spaces",
+    b5: "Button 5 (front side):", b5Value: "Hold: Mission Control", local: "Settings stay on your Mac; nothing is sent anywhere.",
+  },
+  vi: {
+    title: "Quản Lý Đa Chuột Độc Lập (Per-Device Profiles)",
+    lead: "Dùng MX Master ở bàn làm việc và chuột gaming khi cắm màn hình ngoài? LongoMouse nhận ra từng con chuột và dùng đúng cài đặt của nó.",
+    points: [
+      ["Tự đổi cài đặt theo chuột đang dùng:", "nhận diện theo Vendor ID & Product ID, không cần khởi động lại."],
+      ["Nút và cuộn riêng từng chuột:", "chuột gaming giữ cuộn thô, chuột văn phòng bật cuộn mượt."],
+      ["Không đụng tới trackpad & Magic Mouse:", "cử chỉ vuốt cảm ứng gốc vẫn giữ nguyên."],
+    ],
+    devices: [
+      ["ĐANG DÙNG (BT)", "Nút riêng · Cuộn riêng", "Cuộn mượt", "800 ms"],
+      ["CHỜ (USB)", "Nút riêng · Cuộn chung", "Cuộn mượt", "Tắt"],
+      ["CHỜ (BT)", "Cử chỉ cảm ứng gốc", "Vuốt", "Giữ nguyên"],
+    ],
+    config: "Cấu hình: Logitech MX Master 3S", b4: "Nút 4 (bên hông sau):", b4Value: "Nhấn: Back · Kéo: chuyển Spaces",
+    b5: "Nút 5 (bên hông trước):", b5Value: "Giữ: Mission Control", local: "Cài đặt chỉ lưu trên máy của bạn, không gửi dữ liệu ra ngoài.",
+  },
+});
+
+const style = [
+  { name: "Logitech MX Master 3S", dot: "bg-primary animate-pulse", tint: "text-primary", active: true },
+  { name: "Razer DeathAdder V3", dot: "bg-secondary", tint: "text-secondary", active: false },
+  { name: "Apple Magic Mouse 2", dot: "bg-tertiary", tint: "text-tertiary", active: false },
 ];
+const devices = style.map((s, i) => {
+  const [state, profile, left, right] = t.devices[i];
+  return { ...s, state, profile, left, right };
+});
+const checks = ["text-primary", "text-secondary", "text-tertiary"];
 ---
 
 <section class="w-full bg-surface-container-low px-margin-mobile py-space-3xl md:px-margin-desktop">
@@ -17,25 +61,18 @@ const devices = [
         <span class="font-code text-label-badge tracking-wider text-tertiary uppercase">Core Pillar 03</span>
       </div>
       <div class="flex flex-col gap-space-xs">
-        <h2 class="text-headline-lg">Quản Lý Đa Chuột Độc Lập (Per-Device Profiles)</h2>
-        <p class="text-body-lg text-on-surface-variant">
-          Dùng MX Master ở bàn làm việc và chuột gaming khi cắm màn hình ngoài? LongoMouse nhận ra từng con chuột và dùng đúng
-          cài đặt của nó.
-        </p>
+        <h2 class="text-headline-lg">{t.title}</h2>
+        <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
       </div>
       <ul class="flex flex-col gap-space-sm text-body-md">
-        <li class="flex items-start gap-space-xs">
-          <span class="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-primary">check</span>
-          <span><strong>Tự đổi cài đặt theo chuột đang dùng:</strong> nhận diện theo Vendor ID &amp; Product ID, không cần khởi động lại.</span>
-        </li>
-        <li class="flex items-start gap-space-xs">
-          <span class="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-secondary">check</span>
-          <span><strong>Nút và cuộn riêng từng chuột:</strong> chuột gaming giữ cuộn thô, chuột văn phòng bật cuộn mượt.</span>
-        </li>
-        <li class="flex items-start gap-space-xs">
-          <span class="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-tertiary">check</span>
-          <span><strong>Không đụng tới trackpad &amp; Magic Mouse:</strong> cử chỉ vuốt cảm ứng gốc vẫn giữ nguyên.</span>
-        </li>
+        {
+          t.points.map(([head, rest], i) => (
+            <li class="flex items-start gap-space-xs">
+              <span class:list={["material-symbols-outlined mt-0.5 shrink-0 text-[20px]", checks[i]]}>check</span>
+              <span><strong>{head}</strong> {rest}</span>
+            </li>
+          ))
+        }
       </ul>
     </div>
 
@@ -65,29 +102,29 @@ const devices = [
         <div class="-mx-6 -mt-6 flex flex-wrap items-center justify-between gap-2 rounded-t-2xl bg-surface-container-low/40 p-4">
           <div class="flex items-center gap-space-xs">
             <span class="material-symbols-outlined text-[20px] text-primary">settings_suggest</span>
-            <span class="font-code text-body-sm font-semibold">Cấu hình: Logitech MX Master 3S</span>
+            <span class="font-code text-body-sm font-semibold">{t.config}</span>
           </div>
           <span class="rounded bg-surface-container px-2 py-0.5 font-code text-label-badge text-on-surface-variant">VID 0x046D · PID 0xB034</span>
         </div>
         <div class="grid grid-cols-1 gap-gutter md:grid-cols-2">
           <div class="flex flex-col gap-space-xs">
-            <span class="font-code text-[12px] font-medium">Nút 4 (bên hông sau):</span>
+            <span class="font-code text-[12px] font-medium">{t.b4}</span>
             <div class="flex items-center justify-between rounded-xl bg-surface-container-lowest p-2.5 font-code text-label-code">
-              <span>Nhấn: Back · Kéo: chuyển Spaces</span>
+              <span>{t.b4Value}</span>
               <span class="material-symbols-outlined text-[16px] text-primary">expand_more</span>
             </div>
           </div>
           <div class="flex flex-col gap-space-xs">
-            <span class="font-code text-[12px] font-medium">Nút 5 (bên hông trước):</span>
+            <span class="font-code text-[12px] font-medium">{t.b5}</span>
             <div class="flex items-center justify-between rounded-xl bg-surface-container-lowest p-2.5 font-code text-label-code">
-              <span>Giữ: Mission Control</span>
+              <span>{t.b5Value}</span>
               <span class="material-symbols-outlined text-[16px] text-secondary">expand_more</span>
             </div>
           </div>
         </div>
         <div class="flex items-center gap-2 pt-space-xs">
           <span class="material-symbols-outlined text-[18px] text-tertiary">verified_user</span>
-          <span class="text-body-sm text-on-surface-variant">Cài đặt chỉ lưu trên máy của bạn, không gửi dữ liệu ra ngoài.</span>
+          <span class="text-body-sm text-on-surface-variant">{t.local}</span>
         </div>
       </div>
     </div>

@@ -1,28 +1,63 @@
 ---
+import { localize, pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    title: "Three Pillars of Absolute Precision",
+    lead: "Instead of a pile of vendor helper apps: one small, native, driverless set of tools.",
+    available: "Available", soon: "Coming soon", planned: "Planned",
+    mouse: {
+      body: "The mouse wheel glides like a trackpad. Map side buttons to Mission Control, Spaces, Launchpad, or any shortcut, per mouse.",
+      points: ["Smooth scrolling with adjustable glide time", "Mouse scroll direction separate from the trackpad", "Click, double click, hold, drag, and click + scroll per button"],
+    },
+    display: {
+      body: "Planned: use your brightness keys to adjust external displays over HDMI, DisplayPort, and Thunderbolt, with extra software dimming for late-night coding.",
+      points: ["Brightness & volume over DDC/CI", "Brightness synced across displays", "Software dimming below 0%"],
+    },
+    keys: {
+      body: "Planned: turn CapsLock into the ultimate modifier — tap for Esc, hold for Hyper — and build navigation layers without flashing firmware.",
+      points: ["Dual-role keys: tap / hold", "Vim H J K L navigation layer", "Per-app profiles that switch automatically"],
+    },
+  },
+  vi: {
+    title: "Ba Trụ Cột Chính Xác Tuyệt Đối",
+    lead: "Thay cho cả chục phần mềm đi kèm của từng hãng: một bộ công cụ gọn nhẹ, native, không cần driver.",
+    available: "Có thể tải", soon: "Sắp có", planned: "Đang lên kế hoạch",
+    mouse: {
+      body: "Bánh xe chuột trượt mượt như trackpad. Gán nút hông cho Mission Control, Spaces, Launchpad hay bất kỳ phím tắt nào, riêng cho từng con chuột.",
+      points: ["Cuộn mượt với thời gian trượt tuỳ chỉnh", "Hướng cuộn riêng cho chuột, trackpad giữ nguyên", "Nhấn, nhấn đúp, giữ, kéo, click + cuộn cho mỗi nút"],
+    },
+    display: {
+      body: "Dự kiến: dùng phím độ sáng để chỉnh màn hình ngoài qua HDMI, DisplayPort và Thunderbolt, kèm làm tối thêm bằng phần mềm khi code ban đêm.",
+      points: ["Độ sáng & âm lượng qua DDC/CI", "Đồng bộ độ sáng nhiều màn hình", "Làm tối dưới mức 0% bằng phần mềm"],
+    },
+    keys: {
+      body: "Dự kiến: biến CapsLock thành phím bổ trợ mạnh nhất — nhấn là Esc, giữ là Hyper — và tạo lớp phím điều hướng mà không cần nạp firmware.",
+      points: ["Phím hai vai trò: nhấn / giữ", "Lớp điều hướng Vim H J K L", "Tự đổi cấu hình theo từng app"],
+    },
+  },
+});
+
 const pillars = [
   {
-    name: "LongoMouse", href: "/mouse", icon: "mouse", status: "Có thể tải",
+    name: "LongoMouse", href: localize(lang, "/mouse"), icon: "mouse", status: t.available,
     tint: "text-primary", iconTint: "text-primary-container", iconBg: "bg-primary-container/20", glow: "bg-primary-container/10 group-hover:bg-primary-container/20", dot: "bg-primary",
-    tagline: "Frictionless Smooth Scrolling",
-    body: "Bánh xe chuột trượt mượt như trackpad. Gán nút hông cho Mission Control, Spaces, Launchpad hay bất kỳ phím tắt nào, riêng cho từng con chuột.",
-    points: ["Cuộn mượt với thời gian trượt tuỳ chỉnh", "Hướng cuộn riêng cho chuột, trackpad giữ nguyên", "Nhấn, nhấn đúp, giữ, kéo, click + cuộn cho mỗi nút"],
-    tech: "CGEventTap + IOKit",
+    tagline: "Frictionless Smooth Scrolling", ...t.mouse, tech: "CGEventTap + IOKit",
   },
   {
-    name: "LongoDisplay", href: "#downloads", icon: "desktop_windows", status: "Sắp có",
+    name: "LongoDisplay", href: "#downloads", icon: "desktop_windows", status: t.soon,
     tint: "text-tertiary", iconTint: "text-tertiary", iconBg: "bg-tertiary/20", glow: "bg-tertiary/10 group-hover:bg-tertiary/20", dot: "bg-tertiary",
-    tagline: "DDC/CI Hardware Brightness",
-    body: "Dự kiến: dùng phím độ sáng để chỉnh màn hình ngoài qua HDMI, DisplayPort và Thunderbolt, kèm làm tối thêm bằng phần mềm khi code ban đêm.",
-    points: ["Độ sáng & âm lượng qua DDC/CI", "Đồng bộ độ sáng nhiều màn hình", "Làm tối dưới mức 0% bằng phần mềm"],
-    tech: "Đang lên kế hoạch",
+    tagline: "DDC/CI Hardware Brightness", ...t.display, tech: t.planned,
   },
   {
-    name: "LongoKeys", href: "#downloads", icon: "keyboard", status: "Sắp có",
+    name: "LongoKeys", href: "#downloads", icon: "keyboard", status: t.soon,
     tint: "text-secondary", iconTint: "text-secondary", iconBg: "bg-secondary-container/30", glow: "bg-secondary-container/20 group-hover:bg-secondary-container/30", dot: "bg-secondary",
-    tagline: "Driverless Layer Remapping",
-    body: "Dự kiến: biến CapsLock thành phím bổ trợ mạnh nhất — nhấn là Esc, giữ là Hyper — và tạo lớp phím điều hướng mà không cần nạp firmware.",
-    points: ["Phím hai vai trò: nhấn / giữ", "Lớp điều hướng Vim H J K L", "Tự đổi cấu hình theo từng app"],
-    tech: "Đang lên kế hoạch",
+    tagline: "Driverless Layer Remapping", ...t.keys, tech: t.planned,
   },
 ];
 ---
@@ -30,10 +65,8 @@ const pillars = [
 <section id="pillars" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-20 md:px-margin-desktop">
   <div class="mb-14 flex flex-col gap-3">
     <span class="font-code text-label-badge tracking-widest text-primary uppercase">Granular Subsystem Calibration</span>
-    <h2 class="text-headline-xl">Three Pillars of Absolute Precision</h2>
-    <p class="max-w-2xl text-body-lg text-on-surface-variant">
-      Thay cho cả chục phần mềm đi kèm của từng hãng: một bộ công cụ gọn nhẹ, native, không cần driver.
-    </p>
+    <h2 class="text-headline-xl">{t.title}</h2>
+    <p class="max-w-2xl text-body-lg text-on-surface-variant">{t.lead}</p>
   </div>
 
   <div class="grid grid-cols-1 gap-gutter-lg md:grid-cols-3">

@@ -1,22 +1,42 @@
 ---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    title: "Dual Native Operating Stacks",
+    lead: "No Electron, no WebViews. Each platform gets its own native app built on the operating system's own APIs.",
+    build: "Build", status: "Status", planned: "Planned", soon: "Coming soon",
+  },
+  vi: {
+    title: "Hai Nền Tảng Native Song Song",
+    lead: "Không Electron, không WebView. Mỗi nền tảng có app native riêng, dùng API gốc của hệ điều hành.",
+    build: "Bản dựng", status: "Trạng thái", planned: "Đang lên kế hoạch", soon: "Sắp có",
+  },
+});
+
 const stacks = [
   {
     icon: "laptop_mac", tint: "text-tertiary", title: "macOS Core Engine", badge: "ARM64 & x86-64",
     rows: [
       ["HID Capture", "CGEventTap + IOHIDManager"],
       ["UI Rendering", "SwiftUI + AppKit"],
-      ["Bản dựng", "Universal binary · macOS 13+"],
-      ["Trạng thái", "LongoMouse 0.2 beta"],
+      [t.build, "Universal binary · macOS 13+"],
+      [t.status, "LongoMouse 0.2 beta"],
     ],
     highlight: "text-primary-container",
   },
   {
-    icon: "window", tint: "text-secondary", title: "Windows 11 Fluent Engine", badge: "Đang lên kế hoạch",
+    icon: "window", tint: "text-secondary", title: "Windows 11 Fluent Engine", badge: t.planned,
     rows: [
       ["HID Capture", "Raw Input + low-level hooks"],
       ["Luminance Channel", "Monitor Configuration API (DDC/CI)"],
       ["UI Rendering", "WinUI 3 + Mica"],
-      ["Trạng thái", "Sắp có"],
+      [t.status, t.soon],
     ],
     highlight: "text-secondary",
   },
@@ -28,11 +48,9 @@ const stacks = [
     <div class="flex flex-col justify-between gap-6 md:flex-row md:items-end">
       <div>
         <span class="font-code text-label-badge tracking-widest text-primary uppercase">Architectural Symmetry</span>
-        <h2 class="mt-1 text-headline-xl">Dual Native Operating Stacks</h2>
+        <h2 class="mt-1 text-headline-xl">{t.title}</h2>
       </div>
-      <p class="max-w-md text-body-md text-on-surface-variant">
-        Không Electron, không WebView. Mỗi nền tảng có app native riêng, dùng API gốc của hệ điều hành.
-      </p>
+      <p class="max-w-md text-body-md text-on-surface-variant">{t.lead}</p>
     </div>
 
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">

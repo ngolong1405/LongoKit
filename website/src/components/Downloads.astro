@@ -1,10 +1,47 @@
 ---
 import logoLight from "../../../brand/logo/logo-light.png";
-import { repo, mouseDownload, mouseVersion, coffeeURL, licenseURL } from "../data/site";
+import { repo, mouseDownload, mouseVersion, coffeeURL } from "../data/site";
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Free · Beta", title: "Ready to Level Up Your Mouse?", lead: "No ads, no account, no data collection.",
+    macTitle: "LongoMouse for macOS", macBody: "A universal build for Apple Silicon and Intel, macOS 13 Ventura or later.",
+    version: "Version", freeBeta: "Free during beta", download: "Download the installer (.dmg)",
+    notarize: "This beta isn't notarized by Apple yet: the first time, right-click the app → Open.",
+    winTitle: "LongoMouse for Windows", winBody: "Planned, with a Fluent interface for Windows 11.",
+    status: "Status", soon: "Coming soon", follow: "Follow on GitHub",
+    roadmap: [
+      ["LongoKeys", "Key remapping, layers, and shortcuts for your keyboard."],
+      ["LongoDisplay", "External display brightness and multi-display layouts."],
+    ],
+    coffeeTitle: "Like LongoMouse? Buy me a coffee", coffeeBody: "The app is free; every coffee buys more time for LongoKit.",
+    history: "Changelog", source: "Build from source", issues: "Bugs & ideas",
+  },
+  vi: {
+    badge: "Miễn phí · Beta", title: "Sẵn Sàng Nâng Tầm Trải Nghiệm Chuột Của Bạn?", lead: "Không quảng cáo, không tài khoản, không thu thập dữ liệu.",
+    macTitle: "LongoMouse cho macOS", macBody: "Bản universal chạy trên chip Apple Silicon và Intel, macOS 13 Ventura trở lên.",
+    version: "Phiên bản", freeBeta: "Miễn phí khi beta", download: "Tải bản cài đặt (.dmg)",
+    notarize: "Bản beta chưa được Apple notarize: lần đầu mở, nhấn chuột phải vào app → Open.",
+    winTitle: "LongoMouse cho Windows", winBody: "Đang được lên kế hoạch, với giao diện Fluent cho Windows 11.",
+    status: "Trạng thái", soon: "Sắp có", follow: "Theo dõi trên GitHub",
+    roadmap: [
+      ["LongoKeys", "Đổi phím, lớp phím và phím tắt cho bàn phím."],
+      ["LongoDisplay", "Độ sáng màn hình ngoài và bố cục nhiều màn hình."],
+    ],
+    coffeeTitle: "Thích LongoMouse? Mời mình một ly cà phê", coffeeBody: "App miễn phí; mỗi ly cà phê giúp mình có thêm thời gian làm LongoKit.",
+    history: "Lịch sử thay đổi", source: "Tự build từ mã nguồn", issues: "Báo lỗi & góp ý",
+  },
+});
 
 const roadmap = [
-  { icon: "keyboard", tint: "text-secondary", name: "LongoKeys", body: "Đổi phím, lớp phím và phím tắt cho bàn phím." },
-  { icon: "desktop_windows", tint: "text-tertiary", name: "LongoDisplay", body: "Độ sáng màn hình ngoài và bố cục nhiều màn hình." },
+  { icon: "keyboard", tint: "text-secondary", name: t.roadmap[0][0], body: t.roadmap[0][1] },
+  { icon: "desktop_windows", tint: "text-tertiary", name: t.roadmap[1][0], body: t.roadmap[1][1] },
 ];
 ---
 
@@ -14,10 +51,10 @@ const roadmap = [
     <div class="mx-auto flex max-w-2xl flex-col items-center gap-space-xs text-center">
       <div class="inline-flex items-center gap-2 rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge text-primary uppercase">
         <img src={logoLight.src} alt="" class="h-4 w-4 rounded-sm object-cover" />
-        Miễn phí · Beta
+        {t.badge}
       </div>
-      <h2 class="text-headline-lg">Sẵn Sàng Nâng Tầm Trải Nghiệm Chuột Của Bạn?</h2>
-      <p class="text-body-lg text-on-surface-variant">Không quảng cáo, không tài khoản, không thu thập dữ liệu.</p>
+      <h2 class="text-headline-lg">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
     </div>
 
     <div class="mx-auto grid w-full max-w-4xl grid-cols-1 gap-gutter-lg md:grid-cols-2">
@@ -30,12 +67,12 @@ const roadmap = [
             <span class="rounded-full bg-primary-container/20 px-2.5 py-1 font-code text-label-badge text-primary">Apple Silicon &amp; Intel</span>
           </div>
           <div class="flex flex-col gap-1">
-            <h3 class="text-headline-md">LongoMouse cho macOS</h3>
-            <p class="text-body-sm text-on-surface-variant">Bản universal chạy trên chip Apple Silicon và Intel, macOS 13 Ventura trở lên.</p>
+            <h3 class="text-headline-md">{t.macTitle}</h3>
+            <p class="text-body-sm text-on-surface-variant">{t.macBody}</p>
           </div>
           <div class="flex flex-col gap-1.5 rounded-xl bg-surface-container-lowest p-3 font-code text-[11px] text-on-surface-variant">
             <div class="flex justify-between"><span>File: LongoMouse.dmg</span><span class="text-on-surface">~4 MB</span></div>
-            <div class="flex justify-between"><span>Phiên bản: {mouseVersion} beta</span><span class="text-tertiary">Miễn phí khi beta</span></div>
+            <div class="flex justify-between"><span>{t.version}: {mouseVersion} beta</span><span class="text-tertiary">{t.freeBeta}</span></div>
           </div>
         </div>
         <div class="flex flex-col gap-space-xs">
@@ -44,10 +81,10 @@ const roadmap = [
             class="flex items-center justify-center gap-space-xs rounded-xl bg-primary-container px-6 py-3.5 text-center font-semibold text-on-primary shadow-lg shadow-primary-container/25 transition-all hover:opacity-95"
           >
             <span class="material-symbols-outlined text-[20px]">download</span>
-            Tải bản cài đặt (.dmg)
+            {t.download}
           </a>
           <span class="text-center font-code text-[11px] text-on-surface-variant">
-            Bản beta chưa được Apple notarize: lần đầu mở, nhấn chuột phải vào app → Open.
+            {t.notarize}
           </span>
         </div>
       </div>
@@ -61,11 +98,11 @@ const roadmap = [
             <span class="rounded-full bg-secondary-container/30 px-2.5 py-1 font-code text-label-badge text-secondary">Windows 10 &amp; 11</span>
           </div>
           <div class="flex flex-col gap-1">
-            <h3 class="text-headline-md">LongoMouse cho Windows</h3>
-            <p class="text-body-sm text-on-surface-variant">Đang được lên kế hoạch, với giao diện Fluent cho Windows 11.</p>
+            <h3 class="text-headline-md">{t.winTitle}</h3>
+            <p class="text-body-sm text-on-surface-variant">{t.winBody}</p>
           </div>
           <div class="flex flex-col gap-1.5 rounded-xl bg-surface-container-lowest p-3 font-code text-[11px] text-on-surface-variant">
-            <div class="flex justify-between"><span>Trạng thái</span><span class="text-secondary">Sắp có</span></div>
+            <div class="flex justify-between"><span>{t.status}</span><span class="text-secondary">{t.soon}</span></div>
           </div>
         </div>
         <a
@@ -73,7 +110,7 @@ const roadmap = [
           class="flex items-center justify-center gap-space-xs rounded-xl bg-surface-container-high px-6 py-3.5 text-center font-semibold shadow-md transition-all hover:bg-surface-bright"
         >
           <span class="material-symbols-outlined text-[20px] text-secondary">notifications</span>
-          Theo dõi trên GitHub
+          {t.follow}
         </a>
       </div>
     </div>
@@ -86,7 +123,7 @@ const roadmap = [
             <div class="flex flex-col">
               <span class="flex items-center gap-2 font-display font-semibold">
                 {r.name}
-                <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] font-normal text-on-surface-variant">Sắp có</span>
+                <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] font-normal text-on-surface-variant">{t.soon}</span>
               </span>
               <span class="text-body-sm text-on-surface-variant">{r.body}</span>
             </div>
@@ -104,8 +141,8 @@ const roadmap = [
           <span class="flex items-center gap-space-sm">
             <span class="material-symbols-outlined text-[28px] text-primary">local_cafe</span>
             <span class="flex flex-col">
-              <span class="font-display font-semibold">Thích LongoMouse? Mời mình một ly cà phê</span>
-              <span class="text-body-sm text-on-surface-variant">App miễn phí; mỗi ly cà phê giúp mình có thêm thời gian làm LongoKit.</span>
+              <span class="font-display font-semibold">{t.coffeeTitle}</span>
+              <span class="text-body-sm text-on-surface-variant">{t.coffeeBody}</span>
             </span>
           </span>
           <span class="material-symbols-outlined text-[20px] text-primary">arrow_forward</span>
@@ -115,15 +152,15 @@ const roadmap = [
 
     <div class="flex flex-wrap items-center justify-center gap-space-lg pt-space-md font-code text-label-code text-on-surface-variant">
       <a class="flex items-center gap-1 transition-colors hover:text-primary" href={`${repo}/commits/main`}>
-        <span class="material-symbols-outlined text-[16px]">history</span> Lịch sử thay đổi
+        <span class="material-symbols-outlined text-[16px]">history</span> {t.history}
       </a>
       <span>•</span>
       <a class="flex items-center gap-1 transition-colors hover:text-primary" href={`${repo}/tree/main/apps/mouse-macos`}>
-        <span class="material-symbols-outlined text-[16px]">code</span> Tự build từ mã nguồn
+        <span class="material-symbols-outlined text-[16px]">code</span> {t.source}
       </a>
       <span>•</span>
       <a class="flex items-center gap-1 transition-colors hover:text-primary" href={`${repo}/issues`}>
-        <span class="material-symbols-outlined text-[16px]">forum</span> Báo lỗi &amp; góp ý
+        <span class="material-symbols-outlined text-[16px]">forum</span> {t.issues}
       </a>
     </div>
   </div>

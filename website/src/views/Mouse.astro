@@ -1,0 +1,41 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import PillarScroll from "../components/PillarScroll.astro";
+import PillarGestures from "../components/PillarGestures.astro";
+import PillarDevices from "../components/PillarDevices.astro";
+import TechSpecs from "../components/TechSpecs.astro";
+import Downloads from "../components/Downloads.astro";
+import Footer from "../components/Footer.astro";
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const meta = pick(lang, {
+  en: {
+    title: "LongoMouse · LongoKit",
+    description: "LongoMouse: trackpad-smooth scrolling, gestures for every mouse button, and separate settings for each mouse on macOS.",
+  },
+  vi: {
+    title: "LongoMouse · LongoKit",
+    description: "LongoMouse: cuộn mượt như trackpad, cử chỉ cho từng nút chuột và cài đặt riêng cho từng con chuột trên macOS.",
+  },
+});
+---
+
+<Base lang={lang} title={meta.title} description={meta.description}>
+  <Header lang={lang} active="mouse" />
+  <main class="relative w-full overflow-x-hidden pt-20">
+    <Hero lang={lang} />
+    <PillarScroll lang={lang} />
+    <PillarGestures lang={lang} />
+    <PillarDevices lang={lang} />
+    <TechSpecs lang={lang} />
+    <Downloads lang={lang} />
+  </main>
+  <Footer lang={lang} />
+</Base>

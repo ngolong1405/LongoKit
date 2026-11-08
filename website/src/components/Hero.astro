@@ -1,17 +1,46 @@
 ---
 import logo from "../../../brand/logo/logo-dark.png";
 import { mouseVersion, buildFromSource } from "../data/site";
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    idle: "CPU when idle", smooth: "Smooth scrolling", direction: "Scroll direction", natural: "Natural",
+    trackpadKept: "trackpad unchanged", gestures: "Gestures", assigned: "6 assigned", conflicts: "0 conflicts",
+    title: ["The Perfect Mouse,", "Down to the Pixel"],
+    lead: "Turn an ordinary mouse into a \"magic\" one: trackpad-smooth scrolling, gestures on every extra button, and separate settings for each mouse. Pure Swift, no drivers.",
+    download: "Download LongoMouse (.dmg)", soon: "Coming soon", build: "Build from source",
+    inUse: "IN USE: MX MASTER 3S", b4: "Button 4: Mission Control", b5: "Button 5: Launchpad",
+    dragHint: "Click+Drag: Mission Control", curve: "Ease-out curve", on: "On · 800 ms", reverse: "Reverse:",
+    reverseLabel: "Reverse scroll direction (demo)",
+  },
+  vi: {
+    idle: "CPU khi rảnh", smooth: "Cuộn mượt", direction: "Hướng cuộn", natural: "Tự nhiên",
+    trackpadKept: "trackpad giữ nguyên", gestures: "Cử chỉ", assigned: "6 đã gán", conflicts: "0 xung đột",
+    title: ["Trải Nghiệm Chuột Hoàn Hảo", "Từng Pixel"],
+    lead: "Biến con chuột bình thường thành chuột \"ma thuật\": cuộn mượt như trackpad MacBook, gán cử chỉ cho từng nút phụ, và cài đặt riêng cho từng con chuột. Viết bằng Swift thuần, không cần driver.",
+    download: "Tải LongoMouse (.dmg)", soon: "Sắp có", build: "Tự build từ mã nguồn",
+    inUse: "ĐANG DÙNG: MX MASTER 3S", b4: "Nút 4: Mission Control", b5: "Nút 5: Launchpad",
+    dragHint: "Click+Kéo: Mission Control", curve: "Đường cong chậm dần (ease-out)", on: "Bật · 800 ms", reverse: "Đảo chiều:",
+    reverseLabel: "Đảo chiều cuộn (minh hoạ)",
+  },
+});
 
 const facts = [
   { value: "0", label: "Driver / Kext" },
   { value: "0 byte", label: "Telemetry" },
-  { value: "~0%", label: "CPU khi rảnh" },
+  { value: "~0%", label: t.idle },
 ];
 
 const tiles = [
-  { label: "Cuộn mượt", value: "800 ms", note: "ease-out 120 Hz", tint: "text-primary" },
-  { label: "Hướng cuộn", value: "Tự nhiên", note: "trackpad giữ nguyên", tint: "text-secondary" },
-  { label: "Cử chỉ", value: "6 đã gán", note: "0 xung đột", tint: "text-tertiary" },
+  { label: t.smooth, value: "800 ms", note: "ease-out 120 Hz", tint: "text-primary" },
+  { label: t.direction, value: t.natural, note: t.trackpadKept, tint: "text-secondary" },
+  { label: t.gestures, value: t.assigned, note: t.conflicts, tint: "text-tertiary" },
 ];
 ---
 
@@ -28,14 +57,13 @@ const tiles = [
       </div>
       <div class="flex flex-col gap-space-xs">
         <h1 class="text-headline-xl tracking-tight">
-          Trải Nghiệm Chuột Hoàn Hảo{" "}
-          <span class="bg-gradient-to-r from-primary-container via-primary to-secondary bg-clip-text text-transparent">Từng Pixel</span>
+          {t.title[0]}{" "}
+          <span class="bg-gradient-to-r from-primary-container via-primary to-secondary bg-clip-text text-transparent">{t.title[1]}</span>
         </h1>
         <p class="text-headline-sm font-normal text-on-surface-variant">Smooth Scrolling &amp; Multi-Action Gesture Engine.</p>
       </div>
       <p class="max-w-xl text-body-lg text-on-surface-variant">
-        Biến con chuột bình thường thành chuột "ma thuật": cuộn mượt như trackpad MacBook, gán cử chỉ cho từng nút phụ, và
-        cài đặt riêng cho từng con chuột. Viết bằng Swift thuần, không cần driver.
+        {t.lead}
       </p>
 
       <div class="flex flex-col items-stretch gap-space-sm pt-space-xs sm:flex-row sm:items-center">
@@ -45,7 +73,7 @@ const tiles = [
         >
           <span class="material-symbols-outlined text-[20px]">laptop_mac</span>
           <span class="flex flex-col text-left leading-tight">
-            <span class="text-body-md font-semibold">Tải LongoMouse (.dmg)</span>
+            <span class="text-body-md font-semibold">{t.download}</span>
             <span class="font-code text-[11px] opacity-80">macOS 13+ · Apple Silicon &amp; Intel</span>
           </span>
         </a>
@@ -53,7 +81,7 @@ const tiles = [
           <span class="material-symbols-outlined text-[20px] text-secondary">desktop_windows</span>
           <span class="flex flex-col text-left leading-tight">
             <span class="text-body-md font-medium">Windows</span>
-            <span class="font-code text-[11px] text-on-surface-variant">Sắp có</span>
+            <span class="font-code text-[11px] text-on-surface-variant">{t.soon}</span>
           </span>
         </span>
       </div>
@@ -63,7 +91,7 @@ const tiles = [
         <div class="flex items-center justify-between px-1 font-code text-[11px] text-on-surface-variant">
           <span class="flex items-center gap-1">
             <span class="material-symbols-outlined text-[13px] text-tertiary">terminal</span>
-            Tự build từ mã nguồn
+            {t.build}
           </span>
           <span class="text-on-surface-variant/70">Source available</span>
         </div>
@@ -107,7 +135,7 @@ const tiles = [
           </div>
           <span class="inline-flex items-center gap-1 rounded-full bg-primary-container/15 px-2 py-0.5 font-code text-label-badge text-primary">
             <span class="h-1.5 w-1.5 animate-ping rounded-full bg-primary"></span>
-            ĐANG DÙNG: MX MASTER 3S
+            {t.inUse}
           </span>
         </div>
 
@@ -136,8 +164,8 @@ const tiles = [
               <div class="absolute top-5 left-3 rounded bg-primary-container/20 px-2 py-0.5 font-code text-[9px] text-primary uppercase">LMB</div>
               <div class="absolute top-5 right-3 rounded bg-surface-variant px-2 py-0.5 font-code text-[9px] text-on-surface-variant uppercase">RMB</div>
               <div class="absolute top-24 -left-5 flex h-16 w-6 flex-col items-center justify-center gap-1 rounded-l-2xl bg-surface-bright shadow-md">
-                <div class="h-4 w-3 rounded-sm bg-secondary" title="Nút 4: Mission Control"></div>
-                <div class="h-4 w-3 rounded-sm bg-secondary-container" title="Nút 5: Launchpad"></div>
+                <div class="h-4 w-3 rounded-sm bg-secondary" title={t.b4}></div>
+                <div class="h-4 w-3 rounded-sm bg-secondary-container" title={t.b5}></div>
               </div>
               <div class="mt-auto mb-2 flex items-center gap-1">
                 <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></span>
@@ -146,17 +174,17 @@ const tiles = [
             </div>
             <div class="absolute -top-1 -right-4 flex items-center gap-1.5 rounded-lg bg-surface-container-high px-3 py-1.5 font-code text-[11px] shadow-lg">
               <span class="material-symbols-outlined text-[14px] text-primary">rotate_right</span>
-              Cuộn mượt
+              {t.smooth}
             </div>
             <div class="absolute -bottom-1 -left-4 flex items-center gap-1.5 rounded-lg bg-surface-container-high px-3 py-1.5 font-code text-[11px] shadow-lg">
               <span class="material-symbols-outlined text-[14px] text-secondary">pan_tool_alt</span>
-              Click+Kéo: Mission Control
+              {t.dragHint}
             </div>
           </div>
 
           <div class="mt-4 w-full rounded-lg bg-surface-container-low/40 p-3">
             <div class="mb-1.5 flex items-center justify-between font-code text-[10px] text-on-surface-variant">
-              <span class="tracking-wide uppercase">Đường cong chậm dần (ease-out)</span>
+              <span class="tracking-wide uppercase">{t.curve}</span>
               <span class="text-primary">t = 800 ms</span>
             </div>
             <svg class="h-12 w-full text-primary" fill="none" viewBox="0 0 400 48" aria-hidden="true">
@@ -170,12 +198,12 @@ const tiles = [
 
         <div class="flex items-center justify-between gap-space-sm pt-space-xs">
           <div class="flex items-center gap-2">
-            <span class="font-code text-body-sm font-medium">Cuộn mượt:</span>
-            <span class="rounded bg-surface-container-high px-2 py-0.5 font-code text-label-badge text-primary">Bật · 800 ms</span>
+            <span class="font-code text-body-sm font-medium">{t.smooth}:</span>
+            <span class="rounded bg-surface-container-high px-2 py-0.5 font-code text-label-badge text-primary">{t.on}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="font-code text-[11px] text-on-surface-variant">Đảo chiều:</span>
-            <button id="demo-toggle" type="button" class="flex h-6 w-11 items-center justify-end rounded-full bg-primary-container px-1 transition-colors" aria-label="Đảo chiều cuộn (minh hoạ)">
+            <span class="font-code text-[11px] text-on-surface-variant">{t.reverse}</span>
+            <button id="demo-toggle" type="button" class="flex h-6 w-11 items-center justify-end rounded-full bg-primary-container px-1 transition-colors" aria-label={t.reverseLabel}>
               <span class="h-4 w-4 rounded-full bg-white shadow-md"></span>
             </button>
           </div>

@@ -1,34 +1,68 @@
 ---
-const metrics = [
-  { icon: "bolt", tint: "text-primary", tag: "NATIVE", value: "Swift", label: "Không Electron, không web view",
-    body: "Viết bằng Swift + SwiftUI, chạy trực tiếp trên macOS. Bắt sự kiện qua CGEventTap và IOKit." },
-  { icon: "memory", tint: "text-secondary", tag: "IDLE", value: "~0%", label: "CPU khi không dùng",
-    body: "Chỉ làm việc khi bạn bấm hoặc lăn chuột; lúc rảnh gần như không tốn tài nguyên." },
-  { icon: "visibility_off", tint: "text-tertiary", tag: "PRIVACY FIRST", value: "0 byte", label: "Không gửi telemetry",
-    body: "Không kết nối Internet để theo dõi thói quen dùng chuột. Mã nguồn công khai trên GitHub để bạn tự kiểm tra." },
-  { icon: "extension_off", tint: "text-primary-container", tag: "DRIVERLESS", value: "0 kext", label: "Không cài driver",
-    body: "Không cần tắt SIP, không cần quyền admin. Chỉ cần cấp quyền Trợ năng và Theo dõi đầu vào." },
-];
+import { pick, type Lang } from "../i18n";
 
-const yes = "Có";
-const rows = [
-  { label: "Cuộn mượt cho chuột thường", ours: yes, vendor: "Tuỳ hãng", os: "Không" },
-  { label: "Cài đặt riêng cho từng chuột", ours: "Tự nhận VID/PID", vendor: "Chỉ chuột cùng hãng", os: "Một cài đặt chung" },
-  { label: "Cử chỉ Click + Kéo / Click + Cuộn", ours: yes, vendor: "Một số dòng chuột", os: "Không" },
-  { label: "Hướng cuộn chuột tách khỏi trackpad", ours: yes, vendor: "Tuỳ hãng", os: "Không" },
-  { label: "Mã nguồn công khai, tự kiểm tra được", ours: yes, vendor: "Không", os: "—" },
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    title: "Light, Native & Private",
+    lead: "No Electron, no background web process. LongoMouse uses macOS's own APIs (CGEventTap, IOHIDManager); the Windows version will use Raw Input and low-level hooks.",
+    metrics: [
+      ["No Electron, no web view", "Written in Swift + SwiftUI, running natively on macOS. Events come through CGEventTap and IOKit."],
+      ["CPU when not in use", "It only works when you click or scroll; when idle it uses next to nothing."],
+      ["No telemetry", "Never connects to the Internet to track how you use your mouse. The source is public on GitHub for you to check."],
+      ["No drivers to install", "No need to disable SIP or grant admin rights. Just allow Accessibility and Input Monitoring."],
+    ],
+    compare: "Compared with the alternatives", criteria: "Criteria", vendor: "Mouse maker's software", os: "macOS default",
+    yes: "Yes", no: "No",
+    rows: [
+      ["Smooth scrolling for regular mice", "Yes", "Depends on the brand", "No"],
+      ["Separate settings per mouse", "Detects VID/PID", "Only that brand's mice", "One shared setting"],
+      ["Click + Drag / Click + Scroll gestures", "Yes", "Some models", "No"],
+      ["Mouse scroll direction separate from trackpad", "Yes", "Depends on the brand", "No"],
+      ["Public, auditable source code", "Yes", "No", "—"],
+    ],
+  },
+  vi: {
+    title: "Nhẹ, Native & Riêng Tư",
+    lead: "Không Electron, không tiến trình web chạy nền. LongoMouse dùng API gốc của macOS (CGEventTap, IOHIDManager); bản Windows sẽ dùng Raw Input và low-level hooks.",
+    metrics: [
+      ["Không Electron, không web view", "Viết bằng Swift + SwiftUI, chạy trực tiếp trên macOS. Bắt sự kiện qua CGEventTap và IOKit."],
+      ["CPU khi không dùng", "Chỉ làm việc khi bạn bấm hoặc lăn chuột; lúc rảnh gần như không tốn tài nguyên."],
+      ["Không gửi telemetry", "Không kết nối Internet để theo dõi thói quen dùng chuột. Mã nguồn công khai trên GitHub để bạn tự kiểm tra."],
+      ["Không cài driver", "Không cần tắt SIP, không cần quyền admin. Chỉ cần cấp quyền Trợ năng và Theo dõi đầu vào."],
+    ],
+    compare: "So sánh với các lựa chọn khác", criteria: "Tiêu chí", vendor: "Phần mềm hãng chuột", os: "macOS mặc định",
+    yes: "Có", no: "Không",
+    rows: [
+      ["Cuộn mượt cho chuột thường", "Có", "Tuỳ hãng", "Không"],
+      ["Cài đặt riêng cho từng chuột", "Tự nhận VID/PID", "Chỉ chuột cùng hãng", "Một cài đặt chung"],
+      ["Cử chỉ Click + Kéo / Click + Cuộn", "Có", "Một số dòng chuột", "Không"],
+      ["Hướng cuộn chuột tách khỏi trackpad", "Có", "Tuỳ hãng", "Không"],
+      ["Mã nguồn công khai, tự kiểm tra được", "Có", "Không", "—"],
+    ],
+  },
+});
+
+const style = [
+  { icon: "bolt", tint: "text-primary", tag: "NATIVE", value: "Swift" },
+  { icon: "memory", tint: "text-secondary", tag: "IDLE", value: "~0%" },
+  { icon: "visibility_off", tint: "text-tertiary", tag: "PRIVACY FIRST", value: "0 byte" },
+  { icon: "extension_off", tint: "text-primary-container", tag: "DRIVERLESS", value: "0 kext" },
 ];
+const metrics = style.map((s, i) => ({ ...s, label: t.metrics[i][0], body: t.metrics[i][1] }));
+const rows = t.rows.map(([label, ours, vendor, os]) => ({ label, ours, vendor, os }));
 ---
 
 <section class="w-full bg-surface-container-lowest px-margin-mobile py-space-3xl md:px-margin-desktop">
   <div class="mx-auto flex max-w-[1440px] flex-col gap-space-2xl">
     <div class="mx-auto flex max-w-3xl flex-col items-center gap-space-xs text-center">
       <span class="font-code text-label-badge tracking-wider text-primary uppercase">Engineering</span>
-      <h2 class="text-headline-lg">Nhẹ, Native &amp; Riêng Tư</h2>
-      <p class="text-body-lg text-on-surface-variant">
-        Không Electron, không tiến trình web chạy nền. LongoMouse dùng API gốc của macOS (CGEventTap, IOHIDManager); bản
-        Windows sẽ dùng Raw Input và low-level hooks.
-      </p>
+      <h2 class="text-headline-lg">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
     </div>
 
     <div class="grid grid-cols-1 gap-gutter sm:grid-cols-2 lg:grid-cols-4">
@@ -50,15 +84,15 @@ const rows = [
     </div>
 
     <div class="flex flex-col gap-space-md rounded-2xl bg-surface-container-low p-space-lg shadow-lg">
-      <h4 class="text-[18px] font-semibold">So sánh với các lựa chọn khác</h4>
+      <h4 class="text-[18px] font-semibold">{t.compare}</h4>
       <div class="overflow-x-auto">
         <table class="w-full min-w-[560px] text-left text-body-sm">
           <thead>
             <tr class="bg-surface-container-highest/50 font-code text-[11px] text-on-surface-variant uppercase">
-              <th class="rounded-l-lg p-3">Tiêu chí</th>
+              <th class="rounded-l-lg p-3">{t.criteria}</th>
               <th class="p-3 font-bold text-primary">LongoMouse</th>
-              <th class="p-3">Phần mềm hãng chuột</th>
-              <th class="rounded-r-lg p-3">macOS mặc định</th>
+              <th class="p-3">{t.vendor}</th>
+              <th class="rounded-r-lg p-3">{t.os}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-surface-container">
@@ -73,7 +107,7 @@ const rows = [
                     </span>
                   </td>
                   <td class="p-3 text-on-surface-variant">{r.vendor}</td>
-                  <td class:list={["p-3", r.os === "Không" ? "text-error" : "text-on-surface-variant"]}>{r.os}</td>
+                  <td class:list={["p-3", r.os === t.no ? "text-error" : "text-on-surface-variant"]}>{r.os}</td>
                 </tr>
               ))
             }

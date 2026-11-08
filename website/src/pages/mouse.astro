@@ -1,27 +1,5 @@
 ---
-import Base from "../layouts/Base.astro";
-import Header from "../components/Header.astro";
-import Hero from "../components/Hero.astro";
-import PillarScroll from "../components/PillarScroll.astro";
-import PillarGestures from "../components/PillarGestures.astro";
-import PillarDevices from "../components/PillarDevices.astro";
-import TechSpecs from "../components/TechSpecs.astro";
-import Downloads from "../components/Downloads.astro";
-import Footer from "../components/Footer.astro";
+import Mouse from "../views/Mouse.astro";
 ---
 
-<Base
-  title="LongoKit · LongoMouse"
-  description="LongoMouse: cuộn mượt như trackpad, cử chỉ cho từng nút chuột và cài đặt riêng cho từng con chuột trên macOS."
->
-  <Header active="mouse" />
-  <main class="relative w-full overflow-x-hidden pt-20">
-    <Hero />
-    <PillarScroll />
-    <PillarGestures />
-    <PillarDevices />
-    <TechSpecs />
-    <Downloads />
-  </main>
-  <Footer />
-</Base>
+<Mouse lang="en" />

@@ -1,18 +1,46 @@
 ---
-const gestures = [
-  { icon: "drag_pan", tint: "text-primary", bg: "bg-primary-container/20", tag: "Kéo", title: "Click + Kéo",
-    body: "Giữ nút phụ rồi kéo sang trái/phải để chuyển màn hình ảo (Spaces), kéo lên để mở Mission Control, hoặc kéo để cuộn trang.",
-    from: "Nút 5", via: "Kéo lên", to: "Mission Control" },
-  { icon: "zoom_in", tint: "text-secondary", bg: "bg-secondary-container/20", tag: "Click + Lăn", title: "Click + Cuộn",
-    body: "Giữ nút phụ rồi lăn bánh xe để phóng to/thu nhỏ, chuyển Spaces hoặc cuộn ngang.",
-    from: "Nút 4", via: "Lăn", to: "Phóng to / thu nhỏ" },
-  { icon: "touch_app", tint: "text-tertiary", bg: "bg-tertiary-container/20", tag: "Nhấn đúp / Giữ", title: "Nhấn đúp & Giữ",
-    body: "Mỗi nút có thể gán riêng cho nhấn một lần, nhấn đúp và giữ — ba hành động khác nhau trên cùng một nút.",
-    from: "Nút giữa", via: "Nhấn đúp", to: "Hiện màn hình nền" },
-  { icon: "auto_awesome", tint: "text-primary", bg: "bg-primary-container/20", tag: "Hành động", title: "Hành động hệ thống",
-    body: "Launchpad, Mission Control, Look Up, Back/Forward, phím media, hoặc ghi bất kỳ phím tắt nào bạn muốn.",
-    from: "Nút 4", via: "", to: "⌘ ⇧ 4 (chụp màn hình)" },
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    title: "Multi-Action Gestures (Action & Gesture Engine)",
+    lead: "Turn your extra buttons into a control center. Each button (middle, button 4, button 5…) combines with click, hold, drag, or scroll to run system actions.",
+    listen: "Click \"Listen\", then press a mouse button to assign it", example: "Example:",
+    cards: [
+      ["Drag", "Click + Drag", "Hold an extra button and drag left/right to switch Spaces, up to open Mission Control, or drag to scroll the page.", "Button 5", "Drag up", "Mission Control"],
+      ["Click + Scroll", "Click + Scroll", "Hold an extra button and roll the wheel to zoom in/out, switch Spaces, or scroll sideways.", "Button 4", "Scroll", "Zoom in / out"],
+      ["Double / Hold", "Double Click & Hold", "Each button can do something different on a click, a double click, and a hold — three actions on one button.", "Middle button", "Double click", "Show Desktop"],
+      ["Actions", "System Actions", "Launchpad, Mission Control, Look Up, Back/Forward, media keys, or record any shortcut you like.", "Button 4", "", "⌘ ⇧ 4 (screenshot)"],
+    ],
+  },
+  vi: {
+    title: "Cử Chỉ Đa Tác Vụ (Action & Gesture Engine)",
+    lead: "Biến các nút phụ thành trung tâm điều khiển. Mỗi nút (giữa, nút 4, nút 5…) kết hợp được với nhấn, giữ, kéo hoặc lăn để chạy tác vụ hệ thống.",
+    listen: "Bấm \"Nghe\" rồi nhấn nút chuột để gán", example: "Ví dụ:",
+    cards: [
+      ["Kéo", "Click + Kéo", "Giữ nút phụ rồi kéo sang trái/phải để chuyển màn hình ảo (Spaces), kéo lên để mở Mission Control, hoặc kéo để cuộn trang.", "Nút 5", "Kéo lên", "Mission Control"],
+      ["Click + Lăn", "Click + Cuộn", "Giữ nút phụ rồi lăn bánh xe để phóng to/thu nhỏ, chuyển Spaces hoặc cuộn ngang.", "Nút 4", "Lăn", "Phóng to / thu nhỏ"],
+      ["Nhấn đúp / Giữ", "Nhấn đúp & Giữ", "Mỗi nút có thể gán riêng cho nhấn một lần, nhấn đúp và giữ — ba hành động khác nhau trên cùng một nút.", "Nút giữa", "Nhấn đúp", "Hiện màn hình nền"],
+      ["Hành động", "Hành động hệ thống", "Launchpad, Mission Control, Look Up, Back/Forward, phím media, hoặc ghi bất kỳ phím tắt nào bạn muốn.", "Nút 4", "", "⌘ ⇧ 4 (chụp màn hình)"],
+    ],
+  },
+});
+
+const style = [
+  { icon: "drag_pan", tint: "text-primary", bg: "bg-primary-container/20" },
+  { icon: "zoom_in", tint: "text-secondary", bg: "bg-secondary-container/20" },
+  { icon: "touch_app", tint: "text-tertiary", bg: "bg-tertiary-container/20" },
+  { icon: "auto_awesome", tint: "text-primary", bg: "bg-primary-container/20" },
 ];
+const gestures = style.map((s, i) => {
+  const [tag, title, body, from, via, to] = t.cards[i];
+  return { ...s, tag, title, body, from, via, to };
+});
 ---
 
 <section class="relative w-full px-margin-mobile py-space-3xl md:px-margin-desktop">
@@ -23,15 +51,12 @@ const gestures = [
           <span class="h-2 w-2 rounded-full bg-secondary"></span>
           <span class="font-code text-label-badge tracking-wider text-secondary uppercase">Core Pillar 02</span>
         </div>
-        <h2 class="text-headline-lg">Cử Chỉ Đa Tác Vụ (Action &amp; Gesture Engine)</h2>
-        <p class="text-body-lg text-on-surface-variant">
-          Biến các nút phụ thành trung tâm điều khiển. Mỗi nút (giữa, nút 4, nút 5…) kết hợp được với nhấn, giữ, kéo hoặc lăn
-          để chạy tác vụ hệ thống.
-        </p>
+        <h2 class="text-headline-lg">{t.title}</h2>
+        <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
       </div>
       <div class="inline-flex items-center gap-2 rounded-xl bg-surface-container-high px-3 py-1.5 font-code text-label-code">
         <span class="material-symbols-outlined text-[16px] text-secondary">hearing</span>
-        Bấm "Nghe" rồi nhấn nút chuột để gán
+        {t.listen}
       </div>
     </div>
 
@@ -52,7 +77,7 @@ const gestures = [
               </div>
             </div>
             <div class="mt-space-md flex flex-col gap-1 rounded-xl bg-surface-container-lowest/80 p-3">
-              <span class="font-code text-[11px] text-on-surface-variant">Ví dụ:</span>
+              <span class="font-code text-[11px] text-on-surface-variant">{t.example}</span>
               <span class="font-code text-[12px] font-semibold">
                 <span class="text-primary">{g.from}</span>
                 {g.via && <> + <span class="text-tertiary">{g.via}</span></>} ➔ {g.to}

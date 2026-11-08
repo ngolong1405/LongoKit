@@ -1,23 +1,5 @@
 ---
-import Base from "../layouts/Base.astro";
-import Header from "../components/Header.astro";
-import SuiteHero from "../components/suite/SuiteHero.astro";
-import SuitePillars from "../components/suite/SuitePillars.astro";
-import NativeStacks from "../components/suite/NativeStacks.astro";
-import SuiteDownloads from "../components/suite/SuiteDownloads.astro";
-import Footer from "../components/Footer.astro";
+import Home from "../views/Home.astro";
 ---
 
-<Base
-  title="LongoKit · Mouse, Keys & Display tools"
-  description="LongoKit: bộ công cụ tuỳ chỉnh chuột, bàn phím và màn hình cho macOS và Windows. LongoMouse đã có bản beta cho macOS."
->
-  <Header />
-  <main class="relative w-full overflow-x-hidden pt-20">
-    <SuiteHero />
-    <SuitePillars />
-    <NativeStacks />
-    <SuiteDownloads />
-  </main>
-  <Footer />
-</Base>
+<Home lang="en" />

@@ -1,24 +1,31 @@
 ---
 import logo from "../../../brand/logo/logo-dark.png";
 import { repo } from "../data/site";
+import { counterpart, localize, pick, type Lang } from "../i18n";
 
 interface Props {
+  lang: Lang;
   /** Which product page is open, to highlight it in the nav. */
   active?: "mouse";
 }
 
-const { active } = Astro.props;
+const { lang, active } = Astro.props;
+const other = counterpart(Astro.url.pathname);
+const t = pick(lang, {
+  en: { soon: "soon", theme: "Switch light / dark", language: "Tiếng Việt", download: "Download Free", short: "Get" },
+  vi: { soon: "sắp có", theme: "Đổi giao diện sáng / tối", language: "English", download: "Tải miễn phí", short: "Tải" },
+});
 
 const products = [
-  { id: "mouse", href: "/mouse", icon: "mouse", tint: "text-primary", name: "LongoMouse", soon: false },
-  { id: "keys", href: "/#pillars", icon: "keyboard", tint: "text-secondary", name: "LongoKeys", soon: true },
-  { id: "display", href: "/#pillars", icon: "desktop_windows", tint: "text-tertiary", name: "LongoDisplay", soon: true },
+  { id: "mouse", href: localize(lang, "/mouse"), icon: "mouse", tint: "text-primary", name: "LongoMouse", soon: false },
+  { id: "keys", href: localize(lang, "/#pillars"), icon: "keyboard", tint: "text-secondary", name: "LongoKeys", soon: true },
+  { id: "display", href: localize(lang, "/#pillars"), icon: "desktop_windows", tint: "text-tertiary", name: "LongoDisplay", soon: true },
 ];
 ---
 
 <header class="fixed inset-x-0 top-0 z-50 bg-surface/75 shadow-[0_1px_16px_var(--c-shadow)] backdrop-blur-2xl">
   <div class="mx-auto flex h-20 max-w-[1440px] items-center justify-between gap-gutter px-margin-mobile md:px-margin-desktop">
-    <a class="group flex items-center gap-space-sm" href="/">
+    <a class="group flex items-center gap-space-sm" href={localize(lang, "/")}>
       <img src={logo.src} alt="" class="h-9 w-9 rounded-xl object-contain shadow-md" />
       <span class="font-display text-headline-sm tracking-tight transition-colors group-hover:text-primary">LongoKit</span>
     </a>
@@ -37,7 +44,7 @@ const products = [
           >
             <span class:list={["material-symbols-outlined text-[16px]", p.tint]}>{p.icon}</span>
             {p.name}
-            {p.soon && <span class="rounded bg-surface-container-high px-1 font-code text-[9px] uppercase text-on-surface-variant">soon</span>}
+            {p.soon && <span class="rounded bg-surface-container-high px-1 font-code text-[9px] uppercase text-on-surface-variant">{t.soon}</span>}
           </a>
         ))
       }
@@ -46,29 +53,41 @@ const products = [
     <div class="flex items-center gap-space-sm">
       <a
         href={repo}
-        class="hidden items-center gap-space-xs rounded-xl bg-surface-container-low px-3.5 py-2 font-code text-label-code shadow-sm transition-all hover:bg-surface-container sm:flex"
+        class="hidden items-center gap-space-xs rounded-xl bg-surface-container-low px-3.5 py-2 font-code text-label-code shadow-sm transition-all hover:bg-surface-container xl:flex"
       >
         <span class="material-symbols-outlined text-[16px] text-primary-container">code</span>
         GitHub
+      </a>
+      <a
+        id="lang-switch"
+        href={other.href}
+        data-lang={other.lang}
+        class="flex items-center gap-1.5 rounded-xl bg-surface-container-low px-3 py-2 font-code text-xs shadow-sm transition-all hover:bg-surface-container"
+        title={t.language}
+        hreflang={other.lang}
+      >
+        <span class="material-symbols-outlined text-[16px] text-tertiary">language</span>
+        <span class="font-medium">{lang.toUpperCase()}</span>
+        <span class="text-on-surface-variant">→ {other.lang.toUpperCase()}</span>
       </a>
       <button
         id="theme-toggle"
         type="button"
         class="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-container-low shadow-sm transition-all hover:bg-surface-container"
-        title="Đổi giao diện sáng / tối"
-        aria-label="Đổi giao diện sáng / tối"
+        title={t.theme}
+        aria-label={t.theme}
       >
         <!-- Wrapped: the icon font's own display rule would override `hidden` on the icon itself. -->
         <span class="dark:hidden"><span class="material-symbols-outlined text-[18px] text-primary">dark_mode</span></span>
         <span class="hidden dark:inline"><span class="material-symbols-outlined text-[18px] text-primary">light_mode</span></span>
       </button>
       <a
-        href="/#downloads"
+        href={localize(lang, "/#downloads")}
         class="flex items-center gap-space-xs rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-4 py-2 text-body-sm font-semibold text-white shadow-[0_4px_20px_rgba(255,107,53,0.3)] transition-all hover:opacity-95"
       >
         <span class="material-symbols-outlined text-[18px]">download</span>
-        <span class="hidden sm:inline">Download Free</span>
-        <span class="sm:hidden">Tải</span>
+        <span class="hidden sm:inline">{t.download}</span>
+        <span class="sm:hidden">{t.short}</span>
       </a>
     </div>
   </div>
@@ -78,5 +97,10 @@ const products = [
   document.getElementById("theme-toggle")?.addEventListener("click", () => {
     const dark = document.documentElement.classList.toggle("dark");
     try { localStorage.setItem("theme", dark ? "dark" : "light"); } catch {}
+  });
+  const langSwitch = document.getElementById("lang-switch");
+  langSwitch?.addEventListener("click", () => {
+    try { localStorage.setItem("lang", langSwitch.dataset.lang ?? "en"); } catch {}
+    langSwitch.setAttribute("href", langSwitch.getAttribute("href") + location.hash);
   });
 </script>

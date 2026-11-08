@@ -1,5 +1,46 @@
 ---
 import { mouseVersion, mouseDownload, buildFromSource } from "../../data/site";
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    title: "One Suite to Master All Your Hardware.",
+    platforms: "macOS 13+ · Windows coming soon",
+    lead: ["Gestures for every mouse button and trackpad-smooth scrolling — with display brightness and keyboard remapping next. Native on", "and soon on"],
+    download: "Download LongoMouse", select: "Select Individual Kit", windowsSoon: "Windows 11: coming soon",
+    copy: "copy", copied: "copied!",
+    running: "Running", curve: "Each wheel notch: ease-out", smooth: "Smooth scrolling",
+    smoothNote: "The mouse wheel glides like a trackpad", demo: "(demo)",
+    b4: "Button 4 · Hold", b5: "Button 5 · Drag", spaces: "Switch Spaces",
+    on: "ON", direction: "Direction", natural: "Natural",
+    preview: "Coming soon · preview",
+    displayBody: "Planned: adjust external display brightness with your Mac's brightness keys or a slider, over DDC/CI.",
+    external: "External display (DisplayPort)", builtin: "MacBook display",
+    keysTitle: "CapsLock → Hyper & Vim layer",
+    keysNote: "✨ Planned: tap CapsLock for Esc, hold it for Hyper; H J K L become arrow keys while Hyper is held.",
+  },
+  vi: {
+    title: "Một Bộ Công Cụ Làm Chủ Mọi Thiết Bị.",
+    platforms: "macOS 13+ · Windows sắp có",
+    lead: ["Cử chỉ cho từng nút chuột và cuộn mượt như trackpad, rồi tới đây là độ sáng màn hình và remap bàn phím — làm native cho", "và sắp tới là"],
+    download: "Tải LongoMouse", select: "Chọn từng tiện ích", windowsSoon: "Windows 11: sắp có",
+    copy: "copy", copied: "đã copy!",
+    running: "Đang chạy", curve: "Mỗi nấc bánh xe: chậm dần (ease-out)", smooth: "Cuộn mượt",
+    smoothNote: "Bánh xe chuột trượt mượt như trackpad", demo: "(minh hoạ)",
+    b4: "Nút 4 · Giữ", b5: "Nút 5 · Kéo", spaces: "Chuyển Spaces",
+    on: "BẬT", direction: "Hướng", natural: "Tự nhiên",
+    preview: "Sắp có · bản xem trước",
+    displayBody: "Dự kiến: chỉnh độ sáng màn hình ngoài bằng phím độ sáng của Mac hoặc thanh trượt, qua DDC/CI.",
+    external: "Màn hình ngoài (DisplayPort)", builtin: "Màn hình MacBook",
+    keysTitle: "CapsLock → Hyper & lớp phím Vim",
+    keysNote: "✨ Dự kiến: nhấn CapsLock là Esc, giữ là Hyper; H J K L thành phím mũi tên khi giữ Hyper.",
+  },
+});
 
 const keyRows = [
   ["ESC", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "BKSP"],
@@ -17,17 +58,16 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
       <span class="h-2 w-2 animate-pulse rounded-full bg-primary-container shadow-[0_0_10px_#ff6b35]"></span>
       <span class="font-code text-label-badge tracking-wider uppercase">⚡ LongoMouse v{mouseVersion} beta</span>
       <span class="text-xs text-outline">•</span>
-      <span class="font-code text-label-code text-tertiary">macOS 13+ · Windows sắp có</span>
+      <span class="font-code text-label-code text-tertiary">{t.platforms}</span>
     </div>
 
     <h1 class="max-w-5xl font-display text-display-hero tracking-tight md:text-[5rem] md:leading-[5.5rem]">
-      One Suite to Master All Your Hardware.
+      {t.title}
     </h1>
     <p class="mt-6 max-w-3xl text-body-xl leading-relaxed text-on-surface-variant">
-      Cử chỉ cho từng nút chuột và cuộn mượt như trackpad, rồi tới đây là độ sáng màn hình và remap bàn phím — làm native
-      cho{" "}
+      {t.lead[0]}{" "}
       <span class="bg-gradient-to-r from-primary via-primary-container to-secondary bg-clip-text font-semibold text-transparent">macOS</span>{" "}
-      và sắp tới là{" "}
+      {t.lead[1]}{" "}
       <span class="bg-gradient-to-r from-secondary to-tertiary bg-clip-text font-semibold text-transparent">Windows 11</span>.
     </p>
 
@@ -40,7 +80,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
           <span class="flex items-center gap-space-sm">
             <span class="material-symbols-outlined text-[28px] text-white">mouse</span>
             <span class="flex flex-col text-left">
-              <span class="font-display text-sm leading-tight text-white">Download LongoMouse</span>
+              <span class="font-display text-sm leading-tight text-white">{t.download}</span>
               <span class="font-code text-[11px] text-white/80">macOS Universal · .dmg</span>
             </span>
           </span>
@@ -53,7 +93,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
           <span class="flex items-center gap-space-sm">
             <span class="material-symbols-outlined text-[24px] text-tertiary">widgets</span>
             <span class="flex flex-col text-left">
-              <span class="font-display text-sm leading-tight">Select Individual Kit</span>
+              <span class="font-display text-sm leading-tight">{t.select}</span>
               <span class="font-code text-[11px] text-on-surface-variant">Mouse · Keys · Display</span>
             </span>
           </span>
@@ -63,14 +103,14 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
       <div class="flex flex-wrap items-center justify-center gap-3 font-code text-xs text-on-surface-variant">
         <span class="flex items-center gap-1 text-primary"><span class="material-symbols-outlined text-xs">check_circle</span> macOS 13+ (Apple Silicon &amp; Intel)</span>
         <span class="text-outline">•</span>
-        <span class="flex items-center gap-1 text-secondary"><span class="material-symbols-outlined text-xs">schedule</span> Windows 11: sắp có</span>
+        <span class="flex items-center gap-1 text-secondary"><span class="material-symbols-outlined text-xs">schedule</span> {t.windowsSoon}</span>
       </div>
     </div>
 
     <div class="mt-6 flex max-w-full items-center gap-2 rounded-full bg-surface-container-lowest/80 px-4 py-2 font-code text-label-code text-on-surface-variant shadow-inner">
       <span class="text-primary-container">$</span>
       <span class="truncate">git clone … &amp;&amp; ./scripts/build-app.sh</span>
-      <button type="button" class="copy ml-2 rounded bg-surface-container-high px-2 py-0.5 text-[11px] text-tertiary transition-colors hover:bg-surface-bright" data-copy={buildFromSource}>copy</button>
+      <button type="button" class="copy ml-2 rounded bg-surface-container-high px-2 py-0.5 text-[11px] text-tertiary transition-colors hover:bg-surface-bright" data-copy={buildFromSource} data-copied={t.copied}>{t.copy}</button>
     </div>
 
     <!-- Device center preview -->
@@ -104,11 +144,11 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
               <span class="font-code text-label-badge tracking-widest text-primary uppercase">Smooth Scrolling</span>
               <h3 class="text-headline-md">Ergonomic Precision</h3>
             </div>
-            <span class="rounded-full bg-primary-container/20 px-2.5 py-1 font-code text-xs font-semibold text-primary-container">Đang chạy</span>
+            <span class="rounded-full bg-primary-container/20 px-2.5 py-1 font-code text-xs font-semibold text-primary-container">{t.running}</span>
           </div>
           <div class="rounded-xl bg-surface-container-high/60 p-4 backdrop-blur-md">
             <div class="mb-2 flex items-center justify-between font-code text-[11px]">
-              <span class="text-on-surface-variant">Mỗi nấc bánh xe: chậm dần (ease-out)</span>
+              <span class="text-on-surface-variant">{t.curve}</span>
               <span class="text-primary">800 ms</span>
             </div>
             <svg class="h-20 w-full text-primary-container" fill="none" viewBox="0 0 300 70" aria-hidden="true">
@@ -120,22 +160,22 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
           </div>
           <div class="flex items-center justify-between rounded-xl bg-surface-container/70 p-4">
             <div class="flex flex-col">
-              <span class="text-body-md font-medium">Cuộn mượt</span>
-              <span class="text-xs text-on-surface-variant">Bánh xe chuột trượt mượt như trackpad</span>
+              <span class="text-body-md font-medium">{t.smooth}</span>
+              <span class="text-xs text-on-surface-variant">{t.smoothNote}</span>
             </div>
             <label class="relative inline-flex cursor-pointer items-center">
-              <input type="checkbox" checked class="peer sr-only" aria-label="Cuộn mượt (minh hoạ)" />
+              <input type="checkbox" checked class="peer sr-only" aria-label={`${t.smooth} ${t.demo}`} />
               <span class="h-6 w-11 rounded-full bg-surface-container-highest transition-colors peer-checked:bg-primary-container after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full"></span>
             </label>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div class="flex flex-col gap-1 rounded-lg bg-surface-container-low p-3">
-              <span class="font-code text-[11px] text-on-surface-variant">Nút 4 · Giữ</span>
+              <span class="font-code text-[11px] text-on-surface-variant">{t.b4}</span>
               <span class="text-body-sm font-semibold text-primary">Mission Control</span>
             </div>
             <div class="flex flex-col gap-1 rounded-lg bg-surface-container-low p-3">
-              <span class="font-code text-[11px] text-on-surface-variant">Nút 5 · Kéo</span>
-              <span class="text-body-sm font-semibold text-secondary">Chuyển Spaces</span>
+              <span class="font-code text-[11px] text-on-surface-variant">{t.b5}</span>
+              <span class="text-body-sm font-semibold text-secondary">{t.spaces}</span>
             </div>
           </div>
         </div>
@@ -161,9 +201,9 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
             </div>
           </div>
           <div class="mt-6 flex items-center gap-4 rounded-full bg-surface-container/90 px-5 py-2.5 font-code text-xs shadow-lg">
-            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-tertiary"></span>Cuộn mượt: <strong class="text-tertiary">BẬT</strong></span>
+            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-tertiary"></span>{t.smooth}: <strong class="text-tertiary">{t.on}</strong></span>
             <span class="text-outline">|</span>
-            <span>Hướng: <strong class="text-primary-container">Tự nhiên</strong></span>
+            <span>{t.direction}: <strong class="text-primary-container">{t.natural}</strong></span>
           </div>
         </div>
       </div>
@@ -173,14 +213,14 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
         <div class="flex flex-col gap-5 lg:col-span-6">
           <div class="flex items-center gap-2">
             <span class="font-code text-label-badge tracking-widest text-tertiary uppercase">DDC/CI</span>
-            <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] text-on-surface-variant">Sắp có · bản xem trước</span>
+            <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] text-on-surface-variant">{t.preview}</span>
           </div>
           <h3 class="text-headline-md">True Hardware Luminance</h3>
-          <p class="text-body-sm text-on-surface-variant">Dự kiến: chỉnh độ sáng màn hình ngoài bằng phím độ sáng của Mac hoặc thanh trượt, qua DDC/CI.</p>
+          <p class="text-body-sm text-on-surface-variant">{t.displayBody}</p>
           {
             [
-              { icon: "tv", tint: "text-tertiary", name: "Màn hình ngoài (DisplayPort)", value: 78, accent: "accent-primary-container" },
-              { icon: "laptop_mac", tint: "text-secondary", name: "Màn hình MacBook", value: 62, accent: "accent-tertiary" },
+              { icon: "tv", tint: "text-tertiary", name: t.external, value: 78, accent: "accent-primary-container" },
+              { icon: "laptop_mac", tint: "text-secondary", name: t.builtin, value: 62, accent: "accent-tertiary" },
             ].map((d) => (
               <div class="flex flex-col gap-3 rounded-xl bg-surface-container-high/70 p-4">
                 <div class="flex items-center justify-between">
@@ -213,9 +253,9 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
           <div>
             <div class="flex items-center gap-2">
               <span class="font-code text-label-badge tracking-widest text-secondary uppercase">Layer Remapping</span>
-              <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] text-on-surface-variant">Sắp có · bản xem trước</span>
+              <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] text-on-surface-variant">{t.preview}</span>
             </div>
-            <h3 class="text-headline-md">CapsLock → Hyper &amp; lớp phím Vim</h3>
+            <h3 class="text-headline-md">{t.keysTitle}</h3>
           </div>
           <span class="rounded bg-secondary-container/40 px-3 py-1 font-code text-xs text-secondary">Hyper = ⌥ ⌘ ⌃ ⇧</span>
         </div>
@@ -238,7 +278,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
             </div>
           </div>
         </div>
-        <span class="font-code text-xs text-on-surface-variant">✨ Dự kiến: nhấn CapsLock là Esc, giữ là Hyper; H J K L thành phím mũi tên khi giữ Hyper.</span>
+        <span class="font-code text-xs text-on-surface-variant">{t.keysNote}</span>
       </div>
     </div>
   </section>
@@ -287,7 +327,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
   document.querySelectorAll<HTMLButtonElement>("button.copy").forEach((button) => {
     button.addEventListener("click", () => {
       navigator.clipboard.writeText(button.dataset.copy ?? "");
-      button.textContent = "copied!";
+      button.textContent = button.dataset.copied ?? "copied!";
     });
   });
 </script>

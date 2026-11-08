@@ -1,0 +1,37 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import SuiteHero from "../components/suite/SuiteHero.astro";
+import SuitePillars from "../components/suite/SuitePillars.astro";
+import NativeStacks from "../components/suite/NativeStacks.astro";
+import SuiteDownloads from "../components/suite/SuiteDownloads.astro";
+import Footer from "../components/Footer.astro";
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const meta = pick(lang, {
+  en: {
+    title: "LongoKit · Mouse, Keys & Display tools",
+    description: "LongoKit: tools for customizing your mouse, keyboard, and displays on macOS and Windows. LongoMouse is in beta for macOS.",
+  },
+  vi: {
+    title: "LongoKit · Công cụ cho chuột, bàn phím & màn hình",
+    description: "LongoKit: bộ công cụ tuỳ chỉnh chuột, bàn phím và màn hình cho macOS và Windows. LongoMouse đã có bản beta cho macOS.",
+  },
+});
+---
+
+<Base lang={lang} title={meta.title} description={meta.description}>
+  <Header lang={lang} />
+  <main class="relative w-full overflow-x-hidden pt-20">
+    <SuiteHero lang={lang} />
+    <SuitePillars lang={lang} />
+    <NativeStacks lang={lang} />
+    <SuiteDownloads lang={lang} />
+  </main>
+  <Footer lang={lang} />
+</Base>
