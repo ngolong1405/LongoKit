@@ -1,0 +1,62 @@
+---
+const stacks = [
+  {
+    icon: "laptop_mac", tint: "text-tertiary", title: "macOS Core Engine", badge: "ARM64 & x86-64",
+    rows: [
+      ["HID Capture", "CGEventTap + IOHIDManager"],
+      ["UI Rendering", "SwiftUI + AppKit"],
+      ["Bản dựng", "Universal binary · macOS 13+"],
+      ["Trạng thái", "LongoMouse 0.2 beta"],
+    ],
+    highlight: "text-primary-container",
+  },
+  {
+    icon: "window", tint: "text-secondary", title: "Windows 11 Fluent Engine", badge: "Đang lên kế hoạch",
+    rows: [
+      ["HID Capture", "Raw Input + low-level hooks"],
+      ["Luminance Channel", "Monitor Configuration API (DDC/CI)"],
+      ["UI Rendering", "WinUI 3 + Mica"],
+      ["Trạng thái", "Sắp có"],
+    ],
+    highlight: "text-secondary",
+  },
+];
+---
+
+<section class="mx-auto w-full max-w-[1440px] px-margin-mobile py-16 md:px-margin-desktop">
+  <div class="flex flex-col gap-10 rounded-3xl bg-surface-container-lowest p-8 shadow-xl md:p-12">
+    <div class="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+      <div>
+        <span class="font-code text-label-badge tracking-widest text-primary uppercase">Architectural Symmetry</span>
+        <h2 class="mt-1 text-headline-xl">Dual Native Operating Stacks</h2>
+      </div>
+      <p class="max-w-md text-body-md text-on-surface-variant">
+        Không Electron, không WebView. Mỗi nền tảng có app native riêng, dùng API gốc của hệ điều hành.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      {
+        stacks.map((s) => (
+          <div class="flex flex-col gap-5 rounded-2xl bg-surface-container-high/60 p-6 backdrop-blur-xl md:p-8">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class:list={["material-symbols-outlined text-2xl", s.tint]}>{s.icon}</span>
+                <h3 class="text-lg font-semibold">{s.title}</h3>
+              </div>
+              <span class:list={["rounded bg-surface-container-lowest px-2.5 py-1 font-code text-xs", s.tint]}>{s.badge}</span>
+            </div>
+            <div class="flex flex-col gap-3 font-code text-xs">
+              {s.rows.map(([label, value], i) => (
+                <div class="flex items-center justify-between gap-4 rounded-lg bg-surface-container-lowest p-3">
+                  <span class="text-on-surface-variant">{label}:</span>
+                  <span class:list={["text-right font-semibold", i === s.rows.length - 1 && s.highlight]}>{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

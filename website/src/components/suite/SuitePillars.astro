@@ -1,0 +1,70 @@
+---
+const pillars = [
+  {
+    name: "LongoMouse", href: "/mouse", icon: "mouse", status: "Có thể tải",
+    tint: "text-primary", iconTint: "text-primary-container", iconBg: "bg-primary-container/20", glow: "bg-primary-container/10 group-hover:bg-primary-container/20", dot: "bg-primary",
+    tagline: "Frictionless Smooth Scrolling",
+    body: "Bánh xe chuột trượt mượt như trackpad. Gán nút hông cho Mission Control, Spaces, Launchpad hay bất kỳ phím tắt nào, riêng cho từng con chuột.",
+    points: ["Cuộn mượt với thời gian trượt tuỳ chỉnh", "Hướng cuộn riêng cho chuột, trackpad giữ nguyên", "Nhấn, nhấn đúp, giữ, kéo, click + cuộn cho mỗi nút"],
+    tech: "CGEventTap + IOKit",
+  },
+  {
+    name: "LongoDisplay", href: "#downloads", icon: "desktop_windows", status: "Sắp có",
+    tint: "text-tertiary", iconTint: "text-tertiary", iconBg: "bg-tertiary/20", glow: "bg-tertiary/10 group-hover:bg-tertiary/20", dot: "bg-tertiary",
+    tagline: "DDC/CI Hardware Brightness",
+    body: "Dự kiến: dùng phím độ sáng để chỉnh màn hình ngoài qua HDMI, DisplayPort và Thunderbolt, kèm làm tối thêm bằng phần mềm khi code ban đêm.",
+    points: ["Độ sáng & âm lượng qua DDC/CI", "Đồng bộ độ sáng nhiều màn hình", "Làm tối dưới mức 0% bằng phần mềm"],
+    tech: "Đang lên kế hoạch",
+  },
+  {
+    name: "LongoKeys", href: "#downloads", icon: "keyboard", status: "Sắp có",
+    tint: "text-secondary", iconTint: "text-secondary", iconBg: "bg-secondary-container/30", glow: "bg-secondary-container/20 group-hover:bg-secondary-container/30", dot: "bg-secondary",
+    tagline: "Driverless Layer Remapping",
+    body: "Dự kiến: biến CapsLock thành phím bổ trợ mạnh nhất — nhấn là Esc, giữ là Hyper — và tạo lớp phím điều hướng mà không cần nạp firmware.",
+    points: ["Phím hai vai trò: nhấn / giữ", "Lớp điều hướng Vim H J K L", "Tự đổi cấu hình theo từng app"],
+    tech: "Đang lên kế hoạch",
+  },
+];
+---
+
+<section id="pillars" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-20 md:px-margin-desktop">
+  <div class="mb-14 flex flex-col gap-3">
+    <span class="font-code text-label-badge tracking-widest text-primary uppercase">Granular Subsystem Calibration</span>
+    <h2 class="text-headline-xl">Three Pillars of Absolute Precision</h2>
+    <p class="max-w-2xl text-body-lg text-on-surface-variant">
+      Thay cho cả chục phần mềm đi kèm của từng hãng: một bộ công cụ gọn nhẹ, native, không cần driver.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-gutter-lg md:grid-cols-3">
+    {
+      pillars.map((p) => (
+        <a href={p.href} class="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-surface-container-low p-8 shadow-lg transition-all hover:bg-surface-container">
+          <div class:list={["absolute -top-8 -right-8 h-32 w-32 rounded-full blur-2xl transition-all", p.glow]} />
+          <div class="flex flex-col gap-6">
+            <div class="flex items-center justify-between">
+              <div class:list={["flex h-12 w-12 items-center justify-center rounded-xl", p.iconBg, p.iconTint]}>
+                <span class="material-symbols-outlined text-[28px]">{p.icon}</span>
+              </div>
+              <span class="rounded-full bg-surface-container-high px-2.5 py-0.5 font-code text-[10px] text-on-surface-variant">{p.status}</span>
+            </div>
+            <div class="flex flex-col gap-2">
+              <h3 class="text-headline-md">{p.name}</h3>
+              <span class:list={["font-code text-label-code", p.tint]}>{p.tagline}</span>
+              <p class="mt-2 text-body-md leading-relaxed text-on-surface-variant">{p.body}</p>
+            </div>
+            <ul class="flex flex-col gap-2.5 font-code text-label-code text-on-surface-variant">
+              {p.points.map((point) => (
+                <li class="flex items-center gap-2"><span class:list={["h-1.5 w-1.5 shrink-0 rounded-full", p.dot]} />{point}</li>
+              ))}
+            </ul>
+          </div>
+          <div class="mt-8 flex items-center justify-between pt-4">
+            <span class:list={["font-code text-xs", p.tint]}>{p.tech}</span>
+            <span class:list={["material-symbols-outlined transition-transform group-hover:translate-x-1", p.tint]}>arrow_forward</span>
+          </div>
+        </a>
+      ))
+    }
+  </div>
+</section>

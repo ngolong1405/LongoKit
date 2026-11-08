@@ -5,31 +5,100 @@
 @font-face { font-family: "Geist"; src: url("../../../brand/fonts/Geist.ttf"); font-weight: 100 900; font-display: swap; }
 @font-face { font-family: "JetBrains Mono"; src: url("../../../brand/fonts/JetBrainsMono.ttf"); font-weight: 100 800; font-display: swap; }
 
-/* Landing page palette (dark), from the LongoKit landing design. Accents match brand/tokens.css. */
-@theme {
-  --color-background: #0f131c;
-  --color-surface: #0f131c;
-  --color-surface-bright: #353942;
-  --color-surface-variant: #31353e;
-  --color-surface-container-lowest: #0a0e16;
-  --color-surface-container-low: #181c24;
-  --color-surface-container: #1c2028;
-  --color-surface-container-high: #262a33;
-  --color-surface-container-highest: #31353e;
-  --color-on-surface: #dfe2ee;
-  --color-on-surface-variant: #e1bfb5;
-  --color-outline-variant: #594139;
-  --color-primary: #ffb59d;
-  --color-primary-container: #ff6b35;
-  --color-on-primary: #5d1900;
-  --color-on-primary-container: #5f1900;
-  --color-secondary: #d0bcff;
-  --color-secondary-container: #571bc1;
-  --color-tertiary: #4cd7f6;
-  --color-tertiary-container: #00a8c4;
-  --color-error: #ffb4ab;
-  --color-error-container: #93000a;
+@custom-variant dark (&:where(.dark, .dark *));
 
+/* Landing palette: light from "Solar Cyber Pro", dark from "Precision Glass & Obsidian". */
+:root {
+  --c-background: #f9f9ff;
+  --c-surface: #f9f9ff;
+  --c-surface-bright: #f9f9ff;
+  --c-surface-variant: #dce2f7;
+  --c-surface-container-lowest: #ffffff;
+  --c-surface-container-low: #f1f3ff;
+  --c-surface-container: #e9edff;
+  --c-surface-container-high: #e1e8fd;
+  --c-surface-container-highest: #dce2f7;
+  --c-on-surface: #141b2b;
+  --c-on-surface-variant: #5a4139;
+  --c-outline: #8e7067;
+  --c-outline-variant: #e2bfb4;
+  --c-primary: #a83300;
+  --c-primary-container: #d04509;
+  --c-on-primary: #ffffff;
+  --c-on-primary-container: #fffbff;
+  --c-primary-fixed: #ffdbd0;
+  --c-secondary: #712ae2;
+  --c-secondary-container: #8a4cfc;
+  --c-on-secondary-container: #fffbff;
+  --c-tertiary: #00685f;
+  --c-tertiary-container: #008378;
+  --c-on-tertiary: #ffffff;
+  --c-error: #ba1a1a;
+  --c-error-container: #ffdad6;
+  --c-shadow: rgb(15 23 42 / 0.12);
+}
+
+.dark {
+  --c-background: #0f131c;
+  --c-surface: #0f131c;
+  --c-surface-bright: #353942;
+  --c-surface-variant: #31353e;
+  --c-surface-container-lowest: #0a0e16;
+  --c-surface-container-low: #181c24;
+  --c-surface-container: #1c2028;
+  --c-surface-container-high: #262a33;
+  --c-surface-container-highest: #31353e;
+  --c-on-surface: #dfe2ee;
+  --c-on-surface-variant: #e1bfb5;
+  --c-outline: #a98a80;
+  --c-outline-variant: #594139;
+  --c-primary: #ffb59d;
+  --c-primary-container: #ff6b35;
+  --c-on-primary: #5d1900;
+  --c-on-primary-container: #5f1900;
+  --c-primary-fixed: #ffdbd0;
+  --c-secondary: #d0bcff;
+  --c-secondary-container: #571bc1;
+  --c-on-secondary-container: #c4abff;
+  --c-tertiary: #4cd7f6;
+  --c-tertiary-container: #00a8c4;
+  --c-on-tertiary: #003640;
+  --c-error: #ffb4ab;
+  --c-error-container: #93000a;
+  --c-shadow: rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-background: var(--c-background);
+  --color-surface: var(--c-surface);
+  --color-surface-bright: var(--c-surface-bright);
+  --color-surface-variant: var(--c-surface-variant);
+  --color-surface-container-lowest: var(--c-surface-container-lowest);
+  --color-surface-container-low: var(--c-surface-container-low);
+  --color-surface-container: var(--c-surface-container);
+  --color-surface-container-high: var(--c-surface-container-high);
+  --color-surface-container-highest: var(--c-surface-container-highest);
+  --color-on-surface: var(--c-on-surface);
+  --color-on-surface-variant: var(--c-on-surface-variant);
+  --color-outline: var(--c-outline);
+  --color-outline-variant: var(--c-outline-variant);
+  --color-primary: var(--c-primary);
+  --color-primary-container: var(--c-primary-container);
+  --color-on-primary: var(--c-on-primary);
+  --color-on-primary-container: var(--c-on-primary-container);
+  --color-primary-fixed: var(--c-primary-fixed);
+  --color-secondary: var(--c-secondary);
+  --color-secondary-container: var(--c-secondary-container);
+  --color-on-secondary-container: var(--c-on-secondary-container);
+  --color-tertiary: var(--c-tertiary);
+  --color-tertiary-container: var(--c-tertiary-container);
+  --color-on-tertiary: var(--c-on-tertiary);
+  --color-error: var(--c-error);
+  --color-error-container: var(--c-error-container);
+  --color-shadow: var(--c-shadow);
+}
+
+@theme {
   --font-display: "Space Grotesk", system-ui, sans-serif;
   --font-body: "Geist", system-ui, sans-serif;
   --font-code: "JetBrains Mono", ui-monospace, monospace;
@@ -65,6 +134,13 @@
   --text-headline-xl--line-height: 3.5rem;
   --text-headline-xl--letter-spacing: -0.03em;
   --text-headline-xl--font-weight: 600;
+  --text-body-xl: 1.25rem;
+  --text-body-xl--line-height: 2rem;
+  --text-body-xl--letter-spacing: -0.01em;
+  --text-display-hero: 4.5rem;
+  --text-display-hero--line-height: 5rem;
+  --text-display-hero--letter-spacing: -0.04em;
+  --text-display-hero--font-weight: 700;
 
   --spacing-margin-mobile: 1.25rem;
   --spacing-margin-desktop: 3rem;
@@ -81,7 +157,8 @@
 }
 
 @layer base {
-  html { color-scheme: dark; scroll-behavior: smooth; }
+  html { color-scheme: light; scroll-behavior: smooth; }
+  html.dark { color-scheme: dark; }
   body { @apply bg-background text-on-surface font-body antialiased; overscroll-behavior: none; }
   h1, h2, h3, h4 { @apply font-display; }
   .material-symbols-outlined { font-size: inherit; line-height: 1; vertical-align: middle; }
@@ -91,4 +168,5 @@
 @media (max-width: 640px) {
   .text-headline-xl { font-size: 2rem; line-height: 2.5rem; }
   .text-headline-lg { font-size: 1.75rem; line-height: 2.25rem; }
+  .text-display-hero { font-size: 2.75rem; line-height: 3.25rem; letter-spacing: -0.03em; }
 }

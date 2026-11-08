@@ -1,0 +1,109 @@
+---
+import logo from "../../../../brand/logo/logo-dark.png";
+import { repo, mouseDownload, mouseVersion, licenseURL } from "../../data/site";
+
+const kits = [
+  {
+    name: "LongoMouse", icon: "mouse", version: `v${mouseVersion}`, available: true,
+    tint: "text-primary", iconTint: "text-primary-container", iconBg: "bg-primary-container/20", badgeBg: "bg-primary-container/15",
+    mac: "bg-primary-container/20 text-primary hover:bg-primary-container hover:text-on-primary-container",
+    tagline: "Smooth Scrolling & Gesture Engine",
+    body: "Cuộn mượt như trackpad Apple, gán cử chỉ cho nút chuột phụ và cài đặt riêng cho từng con chuột.",
+  },
+  {
+    name: "LongoKeys", icon: "keyboard", version: "Sắp có", available: false,
+    tint: "text-secondary", iconTint: "text-secondary", iconBg: "bg-secondary-container/30", badgeBg: "bg-secondary-container/25",
+    mac: "", tagline: "Layer & Hyperkey Engine",
+    body: "Biến CapsLock thành Hyperkey, tạo lớp phím điều hướng Vim H J K L mà không cần nạp firmware QMK/VIA.",
+  },
+  {
+    name: "LongoDisplay", icon: "desktop_windows", version: "Sắp có", available: false,
+    tint: "text-tertiary", iconTint: "text-tertiary", iconBg: "bg-tertiary/20", badgeBg: "bg-tertiary/20",
+    mac: "", tagline: "DDC/CI Hardware Luminance",
+    body: "Chỉnh độ sáng, âm lượng màn hình ngoài bằng phím F1/F2 hoặc thanh trượt.",
+  },
+];
+---
+
+<section id="downloads" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-20 md:px-margin-desktop">
+  <div class="mb-14 flex flex-col items-center text-center">
+    <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-surface-container-high/80 px-3.5 py-1.5 backdrop-blur-xl">
+      <span class="h-2 w-2 animate-pulse rounded-full bg-primary-container"></span>
+      <span class="font-code text-label-badge tracking-wider uppercase">Modular Kits &amp; Universal Suite</span>
+    </div>
+    <h2 class="max-w-3xl font-display text-headline-xl tracking-tight md:text-[3.25rem] md:leading-[3.75rem]">Tải Về Đúng Bộ Tiện Ích Bạn Cần.</h2>
+    <p class="mt-4 max-w-2xl text-body-lg text-on-surface-variant">
+      Mỗi tiện ích là một app nhỏ, độc lập. Dùng cái bạn cần — hoặc chờ trọn bộ LongoKit khi cả ba đã sẵn sàng.
+    </p>
+  </div>
+
+  <div class="mb-12 grid grid-cols-1 gap-gutter-lg lg:grid-cols-3">
+    {
+      kits.map((k) => (
+        <div class="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-surface-container-low p-8 shadow-xl transition-all hover:bg-surface-container">
+          <div class="flex flex-col gap-5">
+            <div class="flex items-center justify-between">
+              <div class:list={["flex h-12 w-12 items-center justify-center rounded-xl", k.iconBg, k.iconTint]}>
+                <span class="material-symbols-outlined text-[28px]">{k.icon}</span>
+              </div>
+              <span class:list={["rounded px-2.5 py-1 font-code text-xs", k.badgeBg, k.tint]}>{k.version}</span>
+            </div>
+            <div>
+              <h3 class="text-headline-md">{k.name}</h3>
+              <p class:list={["mt-1 font-code text-xs", k.tint]}>{k.tagline}</p>
+              <p class="mt-3 text-body-sm leading-relaxed text-on-surface-variant">{k.body}</p>
+            </div>
+          </div>
+          <div class="mt-8 flex flex-col gap-2.5 pt-4">
+            {k.available ? (
+              <a href={mouseDownload} class:list={["flex w-full items-center justify-between rounded-xl px-4 py-3 text-xs font-semibold shadow-sm transition-colors", k.mac]}>
+                <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">desktop_mac</span>macOS Universal (.dmg)</span>
+                <span class="font-code text-[11px] opacity-80">Apple Silicon / Intel</span>
+              </a>
+            ) : (
+              <span class="flex w-full cursor-not-allowed items-center justify-between rounded-xl bg-surface-container-high px-4 py-3 text-xs font-medium opacity-70">
+                <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">desktop_mac</span>macOS</span>
+                <span class="font-code text-[11px] text-on-surface-variant">Sắp có</span>
+              </span>
+            )}
+            <span class="flex w-full cursor-not-allowed items-center justify-between rounded-xl bg-surface-container-high px-4 py-3 text-xs font-medium opacity-70">
+              <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-tertiary">window</span>Windows 11</span>
+              <span class="font-code text-[11px] text-on-surface-variant">Sắp có</span>
+            </span>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="relative flex flex-col items-center overflow-hidden rounded-3xl bg-surface-container-lowest p-8 text-center shadow-2xl md:p-12">
+    <div class="pointer-events-none absolute inset-0 bg-gradient-to-tr from-primary-container/20 via-secondary-container/25 to-tertiary/15 blur-3xl"></div>
+    <div class="relative z-10 flex max-w-3xl flex-col items-center">
+      <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-primary-container to-secondary-container shadow-lg">
+        <img src={logo.src} alt="" class="h-10 w-10 rounded-xl object-contain shadow" />
+      </div>
+      <h3 class="font-display text-headline-xl tracking-tight md:text-[2.75rem]">Trọn Bộ LongoKit Universal Suite</h3>
+      <p class="mt-3 max-w-xl text-body-md text-on-surface-variant">
+        Khi LongoKeys và LongoDisplay ra mắt, cả ba sẽ có trong một gói duy nhất cho macOS và Windows. Theo dõi trên GitHub
+        để biết khi có bản mới.
+      </p>
+      <div class="mt-8 flex w-full flex-col items-center justify-center gap-space-md sm:flex-row">
+        <a href={mouseDownload} class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-8 py-4 font-display text-sm font-semibold text-white shadow-[0_12px_32px_rgba(255,107,53,0.4)] transition-all hover:opacity-95 sm:w-auto">
+          <span class="material-symbols-outlined text-[20px]">mouse</span>
+          Tải LongoMouse cho macOS
+        </a>
+        <a href={repo} class="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-container-high px-8 py-4 font-display text-sm font-medium transition-all hover:bg-surface-bright sm:w-auto">
+          <span class="material-symbols-outlined text-[20px] text-tertiary">notifications</span>
+          Theo dõi trên GitHub
+        </a>
+      </div>
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-4 font-code text-xs text-on-surface-variant">
+        <a class="hover:text-primary" href={licenseURL}>Source-available</a>
+        <span>•</span>
+        <span>Không telemetry</span>
+        <span>•</span>
+        <span>Bản beta chưa notarize: lần đầu mở bằng chuột phải → Open</span>
+      </div>
+    </div>
+  </div>
+</section>
