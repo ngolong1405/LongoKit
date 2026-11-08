@@ -1,0 +1,95 @@
+---
+const devices = [
+  { name: "Logitech MX Master 3S", state: "ĐANG DÙNG (BT)", dot: "bg-primary animate-pulse", tint: "text-primary",
+    profile: "Nút riêng · Cuộn riêng", left: "Cuộn mượt", right: "800 ms", active: true },
+  { name: "Razer DeathAdder V3", state: "CHỜ (USB)", dot: "bg-secondary", tint: "text-secondary",
+    profile: "Nút riêng · Cuộn chung", left: "Cuộn mượt", right: "Tắt" },
+  { name: "Apple Magic Mouse 2", state: "CHỜ (BT)", dot: "bg-tertiary", tint: "text-tertiary",
+    profile: "Cử chỉ cảm ứng gốc", left: "Vuốt", right: "Giữ nguyên" },
+];
+---
+
+<section class="w-full bg-surface-container-low px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-gutter-lg lg:grid-cols-12">
+    <div class="flex flex-col gap-space-lg lg:col-span-5">
+      <div class="flex items-center gap-space-xs">
+        <span class="h-2 w-2 rounded-full bg-tertiary"></span>
+        <span class="font-code text-label-badge tracking-wider text-tertiary uppercase">Core Pillar 03</span>
+      </div>
+      <div class="flex flex-col gap-space-xs">
+        <h2 class="text-headline-lg">Quản Lý Đa Chuột Độc Lập (Per-Device Profiles)</h2>
+        <p class="text-body-lg text-on-surface-variant">
+          Dùng MX Master ở bàn làm việc và chuột gaming khi cắm màn hình ngoài? LongoMouse nhận ra từng con chuột và dùng đúng
+          cài đặt của nó.
+        </p>
+      </div>
+      <ul class="flex flex-col gap-space-sm text-body-md">
+        <li class="flex items-start gap-space-xs">
+          <span class="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-primary">check</span>
+          <span><strong>Tự đổi cài đặt theo chuột đang dùng:</strong> nhận diện theo Vendor ID &amp; Product ID, không cần khởi động lại.</span>
+        </li>
+        <li class="flex items-start gap-space-xs">
+          <span class="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-secondary">check</span>
+          <span><strong>Nút và cuộn riêng từng chuột:</strong> chuột gaming giữ cuộn thô, chuột văn phòng bật cuộn mượt.</span>
+        </li>
+        <li class="flex items-start gap-space-xs">
+          <span class="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-tertiary">check</span>
+          <span><strong>Không đụng tới trackpad &amp; Magic Mouse:</strong> cử chỉ vuốt cảm ứng gốc vẫn giữ nguyên.</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="flex flex-col gap-space-md lg:col-span-7">
+      <div class="grid grid-cols-1 gap-gutter-sm sm:grid-cols-3">
+        {
+          devices.map((d) => (
+            <div class:list={["flex flex-col gap-2 rounded-xl p-space-md", d.active ? "bg-surface-container shadow-md" : "bg-surface-container-high opacity-85 shadow-sm"]}>
+              <div class="flex items-center justify-between">
+                <span class:list={["h-2 w-2 rounded-full", d.dot]} />
+                <span class:list={["font-code text-[10px]", d.tint]}>{d.state}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-display text-[16px] font-semibold">{d.name}</span>
+                <span class="font-code text-[11px] text-on-surface-variant">{d.profile}</span>
+              </div>
+              <div class="mt-2 flex justify-between rounded-lg bg-surface-container-lowest/80 p-2 font-code text-[11px]">
+                <span class="text-on-surface-variant">{d.left}</span>
+                <span class={d.tint}>{d.right}</span>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="flex flex-col gap-space-md rounded-2xl bg-surface-container p-space-lg shadow-xl">
+        <div class="-mx-6 -mt-6 flex flex-wrap items-center justify-between gap-2 rounded-t-2xl bg-surface-container-low/40 p-4">
+          <div class="flex items-center gap-space-xs">
+            <span class="material-symbols-outlined text-[20px] text-primary">settings_suggest</span>
+            <span class="font-code text-body-sm font-semibold">Cấu hình: Logitech MX Master 3S</span>
+          </div>
+          <span class="rounded bg-surface-container px-2 py-0.5 font-code text-label-badge text-on-surface-variant">VID 0x046D · PID 0xB034</span>
+        </div>
+        <div class="grid grid-cols-1 gap-gutter md:grid-cols-2">
+          <div class="flex flex-col gap-space-xs">
+            <span class="font-code text-[12px] font-medium">Nút 4 (bên hông sau):</span>
+            <div class="flex items-center justify-between rounded-xl bg-surface-container-lowest p-2.5 font-code text-label-code">
+              <span>Nhấn: Back · Kéo: chuyển Spaces</span>
+              <span class="material-symbols-outlined text-[16px] text-primary">expand_more</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-space-xs">
+            <span class="font-code text-[12px] font-medium">Nút 5 (bên hông trước):</span>
+            <div class="flex items-center justify-between rounded-xl bg-surface-container-lowest p-2.5 font-code text-label-code">
+              <span>Giữ: Mission Control</span>
+              <span class="material-symbols-outlined text-[16px] text-secondary">expand_more</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 pt-space-xs">
+          <span class="material-symbols-outlined text-[18px] text-tertiary">verified_user</span>
+          <span class="text-body-sm text-on-surface-variant">Cài đặt chỉ lưu trên máy của bạn, không gửi dữ liệu ra ngoài.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

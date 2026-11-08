@@ -1,0 +1,54 @@
+---
+import logo from "../../../brand/logo/logo-dark.png";
+import { repo, mouseVersion } from "../data/site";
+
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-space-3xl w-full bg-surface-container-lowest">
+  <div class="mx-auto max-w-[1440px] px-margin-mobile pt-space-2xl pb-space-xl md:px-margin-desktop">
+    <div class="grid grid-cols-1 gap-gutter-lg pb-space-2xl md:grid-cols-2 lg:grid-cols-5">
+      <div class="flex flex-col gap-space-md lg:col-span-2">
+        <div class="flex items-center gap-space-sm">
+          <img src={logo.src} alt="" class="h-8 w-8 rounded-lg object-contain shadow-sm" />
+          <span class="font-display text-headline-sm">LongoKit</span>
+        </div>
+        <p class="max-w-sm text-body-sm text-on-surface-variant">
+          Bộ công cụ nhỏ, nhanh để tuỳ chỉnh chuột, bàn phím và màn hình trên macOS và Windows.
+        </p>
+        <div class="flex items-center gap-space-xs">
+          <span class="h-2 w-2 animate-pulse rounded-full bg-tertiary"></span>
+          <span class="font-code text-label-code text-tertiary">LongoMouse v{mouseVersion} beta</span>
+        </div>
+      </div>
+      <div class="flex flex-col gap-space-sm">
+        <h4 class="text-[15px] font-semibold">Sản phẩm</h4>
+        <ul class="flex flex-col gap-space-xs text-body-sm">
+          <li class="flex flex-col"><a class="font-medium text-primary hover:underline" href="#mouse">LongoMouse</a><span class="font-code text-[11px] text-on-surface-variant">Nút, cử chỉ &amp; cuộn mượt</span></li>
+          <li class="flex flex-col"><a class="hover:text-secondary" href="#roadmap">LongoKeys</a><span class="font-code text-[11px] text-on-surface-variant">Sắp có</span></li>
+          <li class="flex flex-col"><a class="hover:text-tertiary" href="#roadmap">LongoDisplay</a><span class="font-code text-[11px] text-on-surface-variant">Sắp có</span></li>
+        </ul>
+      </div>
+      <div class="flex flex-col gap-space-sm">
+        <h4 class="text-[15px] font-semibold">Tương thích</h4>
+        <ul class="flex flex-col gap-space-xs text-body-sm text-on-surface-variant">
+          <li>macOS 13 Ventura trở lên</li>
+          <li>Apple Silicon &amp; Intel</li>
+          <li>Windows: sắp có</li>
+        </ul>
+      </div>
+      <div class="flex flex-col gap-space-sm">
+        <h4 class="text-[15px] font-semibold">Cộng đồng</h4>
+        <ul class="flex flex-col gap-space-xs text-body-sm text-on-surface-variant">
+          <li><a class="hover:text-primary" href={repo}>Mã nguồn trên GitHub</a></li>
+          <li><a class="hover:text-primary" href={`${repo}/issues`}>Báo lỗi &amp; góp ý</a></li>
+          <li><a class="hover:text-primary" href={`${repo}/commits/main`}>Lịch sử thay đổi</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="flex flex-col items-center justify-between gap-space-md pt-space-lg font-code text-label-code text-on-surface-variant md:flex-row">
+      <span>© {year} LongoKit · Crafted by <span class="text-primary">Long Ngô</span></span>
+      <span>macOS · Windows sắp có</span>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,221 @@
+---
+import logo from "../../../brand/logo/logo-dark.png";
+import { mouseVersion, buildFromSource } from "../data/site";
+
+const facts = [
+  { value: "0", label: "Driver / Kext" },
+  { value: "0 byte", label: "Telemetry" },
+  { value: "~0%", label: "CPU khi rảnh" },
+];
+
+const tiles = [
+  { label: "Cuộn mượt", value: "800 ms", note: "ease-out 120 Hz", tint: "text-primary" },
+  { label: "Hướng cuộn", value: "Tự nhiên", note: "trackpad giữ nguyên", tint: "text-secondary" },
+  { label: "Cử chỉ", value: "6 đã gán", note: "0 xung đột", tint: "text-tertiary" },
+];
+---
+
+<!-- Breadcrumb bar -->
+<div id="top" class="w-full bg-surface-container-lowest/80 px-margin-mobile py-3 backdrop-blur-md md:px-margin-desktop">
+  <div class="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-gutter-sm">
+    <div class="flex items-center gap-space-xs font-code text-label-code">
+      <span class="text-on-surface-variant">LongoKit Suite</span>
+      <span class="text-on-surface-variant">/</span>
+      <span class="flex items-center gap-1.5 font-semibold text-primary">
+        <span class="material-symbols-outlined text-[15px] text-primary-container">mouse</span>
+        LongoMouse
+      </span>
+      <span class="rounded-full bg-surface-container-high px-2 py-0.5 font-code text-label-badge uppercase text-tertiary">v{mouseVersion}</span>
+    </div>
+    <span class="inline-flex items-center gap-1.5 rounded-full bg-surface-container-low px-2.5 py-1 font-code text-label-badge text-on-surface-variant">
+      <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-tertiary"></span>
+      macOS 13+ · Windows sắp có
+    </span>
+  </div>
+</div>
+
+<section id="mouse" class="relative w-full overflow-hidden px-margin-mobile pt-space-xl pb-space-3xl md:px-margin-desktop">
+  <div class="pointer-events-none absolute -top-32 left-1/4 h-[540px] w-[540px] rounded-full bg-primary-container/15 blur-[140px]"></div>
+  <div class="pointer-events-none absolute top-1/3 -right-20 h-[480px] w-[480px] rounded-full bg-secondary-container/20 blur-[160px]"></div>
+
+  <div class="relative mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-gutter-lg lg:grid-cols-12">
+    <!-- Copy & CTAs -->
+    <div class="relative z-10 flex flex-col gap-space-lg lg:col-span-6">
+      <div class="inline-flex w-fit items-center gap-space-xs rounded-full bg-surface-container-low px-3 py-1.5 shadow-sm">
+        <img src={logo.src} alt="" class="h-5 w-5 rounded-md object-cover" />
+        <span class="font-code text-label-badge uppercase tracking-wider text-primary">Smooth Scroll &amp; Gesture Engine</span>
+      </div>
+      <div class="flex flex-col gap-space-xs">
+        <h1 class="text-headline-xl tracking-tight">
+          Trải Nghiệm Chuột Hoàn Hảo{" "}
+          <span class="bg-gradient-to-r from-primary-container via-primary to-secondary bg-clip-text text-transparent">Từng Pixel</span>
+        </h1>
+        <p class="text-headline-sm font-normal text-on-surface-variant">Smooth Scrolling &amp; Multi-Action Gesture Engine.</p>
+      </div>
+      <p class="max-w-xl text-body-lg text-on-surface-variant">
+        Biến con chuột bình thường thành chuột "ma thuật": cuộn mượt như trackpad MacBook, gán cử chỉ cho từng nút phụ, và
+        cài đặt riêng cho từng con chuột. Viết bằng Swift thuần, không cần driver.
+      </p>
+
+      <div class="flex flex-col items-stretch gap-space-sm pt-space-xs sm:flex-row sm:items-center">
+        <a
+          href="#downloads"
+          class="flex items-center justify-center gap-space-xs rounded-xl bg-primary-container px-6 py-3.5 text-on-primary shadow-xl shadow-primary-container/25 transition-all hover:opacity-95"
+        >
+          <span class="material-symbols-outlined text-[20px]">laptop_mac</span>
+          <span class="flex flex-col text-left leading-tight">
+            <span class="text-body-md font-semibold">Tải LongoMouse (.dmg)</span>
+            <span class="font-code text-[11px] opacity-80">macOS 13+ · Apple Silicon &amp; Intel</span>
+          </span>
+        </a>
+        <span class="flex cursor-not-allowed items-center justify-center gap-space-xs rounded-xl bg-surface-container-high px-5 py-3.5 opacity-70 shadow-md">
+          <span class="material-symbols-outlined text-[20px] text-secondary">desktop_windows</span>
+          <span class="flex flex-col text-left leading-tight">
+            <span class="text-body-md font-medium">Windows</span>
+            <span class="font-code text-[11px] text-on-surface-variant">Sắp có</span>
+          </span>
+        </span>
+      </div>
+
+      <!-- Build from source -->
+      <div class="flex max-w-lg flex-col gap-1.5 rounded-xl bg-surface-container-lowest/90 p-3 shadow-md backdrop-blur-md">
+        <div class="flex items-center justify-between px-1 font-code text-[11px] text-on-surface-variant">
+          <span class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px] text-tertiary">terminal</span>
+            Tự build từ mã nguồn
+          </span>
+          <span class="text-on-surface-variant/70">Open source</span>
+        </div>
+        <div class="flex items-center justify-between gap-2 rounded-lg bg-surface-container px-3 py-1.5 font-code text-label-code">
+          <span class="truncate text-primary-container select-all">$ git clone … &amp;&amp; ./scripts/build-app.sh</span>
+          <button
+            type="button"
+            class="copy p-1 text-on-surface-variant transition-colors hover:text-primary"
+            data-copy={buildFromSource}
+            title="Copy"
+          >
+            <span class="material-symbols-outlined text-[14px]">content_copy</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-space-lg pt-space-xs">
+        {
+          facts.map((f, i) => (
+            <>
+              {i > 0 && <div class="h-8 w-px bg-surface-container-high" />}
+              <div class="flex flex-col">
+                <span class="font-display text-headline-sm font-bold">{f.value}</span>
+                <span class="font-code text-[11px] text-on-surface-variant">{f.label}</span>
+              </div>
+            </>
+          ))
+        }
+      </div>
+    </div>
+
+    <!-- Controller window mockup -->
+    <div class="relative z-10 lg:col-span-6">
+      <div class="relative flex flex-col gap-space-md rounded-2xl bg-surface-container/90 p-space-md shadow-2xl backdrop-blur-2xl sm:p-space-lg">
+        <div class="-mx-4 -mt-4 flex items-center justify-between rounded-t-2xl bg-surface-container-low/60 px-4 py-3 sm:-mx-6 sm:-mt-6">
+          <div class="flex items-center gap-2">
+            <div class="h-3 w-3 rounded-full bg-error-container"></div>
+            <div class="h-3 w-3 rounded-full bg-primary-container/80"></div>
+            <div class="h-3 w-3 rounded-full bg-tertiary-container"></div>
+            <span class="ml-2 hidden font-code text-label-code sm:inline">LongoMouse</span>
+          </div>
+          <span class="inline-flex items-center gap-1 rounded-full bg-primary-container/15 px-2 py-0.5 font-code text-label-badge text-primary">
+            <span class="h-1.5 w-1.5 animate-ping rounded-full bg-primary"></span>
+            ĐANG DÙNG: MX MASTER 3S
+          </span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-space-xs font-code text-label-code">
+          {
+            tiles.map((t) => (
+              <div class="flex flex-col gap-0.5 rounded-xl bg-surface-container-lowest p-2.5">
+                <span class="text-[11px] text-on-surface-variant">{t.label}</span>
+                <span class:list={["text-headline-sm font-semibold", t.tint]}>{t.value}</span>
+                <span class="text-[10px] text-on-surface-variant">{t.note}</span>
+              </div>
+            ))
+          }
+        </div>
+
+        <div class="relative flex min-h-[300px] w-full flex-col items-center justify-center overflow-hidden rounded-xl bg-surface-container-lowest/90 p-4">
+          <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-primary-container/10 via-secondary-container/5 to-transparent"></div>
+          <div class="relative flex h-64 w-64 items-center justify-center">
+            <div class="pointer-events-none absolute h-56 w-56 rounded-full bg-surface-container/30"></div>
+            <div class="pointer-events-none absolute h-44 w-44 rounded-full bg-surface-container-high/40"></div>
+            <div class="relative flex h-52 w-32 flex-col items-center rounded-t-[50px] rounded-b-[42px] bg-gradient-to-b from-surface-bright via-surface-container to-surface-container-high p-2 pt-3 shadow-2xl">
+              <div class="absolute top-0 bottom-24 w-px bg-surface-variant"></div>
+              <div id="demo-wheel" class="relative z-20 flex h-14 w-5 items-center justify-center rounded-full bg-gradient-to-b from-primary via-primary-container to-outline-variant shadow-lg transition-transform duration-200">
+                <div class="h-2 w-3 rounded bg-surface-container-lowest"></div>
+              </div>
+              <div class="absolute top-5 left-3 rounded bg-primary-container/20 px-2 py-0.5 font-code text-[9px] text-primary uppercase">LMB</div>
+              <div class="absolute top-5 right-3 rounded bg-surface-variant px-2 py-0.5 font-code text-[9px] text-on-surface-variant uppercase">RMB</div>
+              <div class="absolute top-24 -left-5 flex h-16 w-6 flex-col items-center justify-center gap-1 rounded-l-2xl bg-surface-bright shadow-md">
+                <div class="h-4 w-3 rounded-sm bg-secondary" title="Nút 4: Mission Control"></div>
+                <div class="h-4 w-3 rounded-sm bg-secondary-container" title="Nút 5: Launchpad"></div>
+              </div>
+              <div class="mt-auto mb-2 flex items-center gap-1">
+                <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></span>
+                <span class="font-code text-[8px] tracking-wider text-on-surface-variant">LONGOKIT</span>
+              </div>
+            </div>
+            <div class="absolute -top-1 -right-4 flex items-center gap-1.5 rounded-lg bg-surface-container-high px-3 py-1.5 font-code text-[11px] shadow-lg">
+              <span class="material-symbols-outlined text-[14px] text-primary">rotate_right</span>
+              Cuộn mượt
+            </div>
+            <div class="absolute -bottom-1 -left-4 flex items-center gap-1.5 rounded-lg bg-surface-container-high px-3 py-1.5 font-code text-[11px] shadow-lg">
+              <span class="material-symbols-outlined text-[14px] text-secondary">pan_tool_alt</span>
+              Click+Kéo: Mission Control
+            </div>
+          </div>
+
+          <div class="mt-4 w-full rounded-lg bg-surface-container-low/40 p-3">
+            <div class="mb-1.5 flex items-center justify-between font-code text-[10px] text-on-surface-variant">
+              <span class="tracking-wide uppercase">Đường cong chậm dần (ease-out)</span>
+              <span class="text-primary">t = 800 ms</span>
+            </div>
+            <svg class="h-12 w-full text-primary" fill="none" viewBox="0 0 400 48" aria-hidden="true">
+              <path d="M 0 44 Q 40 4, 110 8 T 240 28 T 350 42 T 400 44" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
+              <path d="M 0 44 Q 40 4, 110 8 T 240 28 T 350 42 T 400 44 L 400 48 L 0 48 Z" fill="currentColor" fill-opacity="0.12"></path>
+              <circle class="fill-primary-container" cx="110" cy="8" r="4"></circle>
+              <circle class="fill-secondary" cx="240" cy="28" r="3"></circle>
+            </svg>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-space-sm pt-space-xs">
+          <div class="flex items-center gap-2">
+            <span class="font-code text-body-sm font-medium">Cuộn mượt:</span>
+            <span class="rounded bg-surface-container-high px-2 py-0.5 font-code text-label-badge text-primary">Bật · 800 ms</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-code text-[11px] text-on-surface-variant">Đảo chiều:</span>
+            <button id="demo-toggle" type="button" class="flex h-6 w-11 items-center justify-end rounded-full bg-primary-container px-1 transition-colors" aria-label="Đảo chiều cuộn (minh hoạ)">
+              <span class="h-4 w-4 rounded-full bg-white shadow-md"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>("button.copy").forEach((button) => {
+    button.addEventListener("click", () => navigator.clipboard.writeText(button.dataset.copy ?? ""));
+  });
+  const toggle = document.getElementById("demo-toggle");
+  toggle?.addEventListener("click", () => {
+    const on = toggle.classList.toggle("bg-primary-container");
+    toggle.classList.toggle("bg-surface-variant", !on);
+    toggle.classList.toggle("justify-end", on);
+    toggle.classList.toggle("justify-start", !on);
+  });
+  const wheel = document.getElementById("demo-wheel");
+  wheel?.addEventListener("mouseenter", () => (wheel.style.transform = "translateY(-3px) scale(1.04)"));
+  wheel?.addEventListener("mouseleave", () => (wheel.style.transform = ""));
+</script>

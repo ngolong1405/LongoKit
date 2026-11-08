@@ -1,0 +1,111 @@
+---
+const micro = [
+  { icon: "speed", tint: "text-primary", bg: "bg-primary-container/20", title: "Cuộn mượt từng nấc",
+    body: "Mỗi nấc bánh xe được trượt mượt rồi chậm dần thay vì nhảy cục. Lăn liên tục thì các nấc nối thành một chuyển động liền." },
+  { icon: "swap_vert", tint: "text-tertiary", bg: "bg-tertiary-container/30", title: "Hướng cuộn riêng cho chuột",
+    body: "Chọn Tự nhiên hoặc Cổ điển cho chuột, trong khi trackpad vẫn giữ cài đặt của macOS." },
+  { icon: "keyboard_option_key", tint: "text-secondary", bg: "bg-secondary-container/30", title: "Tốc độ & phím bổ trợ",
+    body: "Chỉnh tốc độ cuộn từ 0.5× đến 2×. Giữ ⌥ để cuộn chậm chính xác, ⌘ để lướt nhanh tài liệu dài." },
+  { icon: "apps", tint: "text-primary", bg: "bg-surface-bright", title: "Tốc độ theo từng app", soon: true,
+    body: "Cuộn nhanh trong VS Code, chính xác trong Figma, giữ mặc định khi chơi game." },
+];
+---
+
+<section class="w-full bg-surface-container-lowest/50 px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto flex max-w-[1440px] flex-col gap-space-2xl">
+    <div class="flex max-w-2xl flex-col gap-space-xs">
+      <div class="flex items-center gap-space-xs">
+        <span class="h-2 w-2 rounded-full bg-primary-container"></span>
+        <span class="font-code text-label-badge tracking-wider text-primary uppercase">Core Pillar 01</span>
+      </div>
+      <h2 class="text-headline-lg">Cuộn Mượt Mà (Smooth Scrolling)</h2>
+      <p class="text-body-lg text-on-surface-variant">
+        Xoá cảm giác giật cục từng khấc trên chuột ngoài. LongoMouse trượt mỗi nấc bánh xe như trackpad, theo kiểu chậm dần
+        tự nhiên (giống Lenis trên web).
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-12">
+      <div class="flex flex-col gap-space-md lg:col-span-7">
+        <div class="grid grid-cols-1 gap-gutter md:grid-cols-2">
+          <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container-low p-space-lg shadow-md">
+            <div class="flex items-center justify-between">
+              <span class="rounded bg-surface-container-highest px-2 py-0.5 font-code text-label-badge text-error">Mặc định của OS</span>
+              <span class="material-symbols-outlined text-[20px] text-error">block</span>
+            </div>
+            <h3 class="text-headline-sm">Chuột thông thường</h3>
+            <p class="text-body-sm text-on-surface-variant">Giật cục từng nấc, trang nhảy cả đoạn rồi dừng khựng, mỏi mắt khi đọc văn bản hay code dài.</p>
+            <div class="flex h-24 flex-col justify-end rounded-lg bg-surface-container-lowest p-2">
+              <svg class="h-16 w-full text-error/60" fill="none" viewBox="0 0 200 40" aria-hidden="true">
+                <path d="M 0 35 L 20 35 L 20 15 L 40 15 L 40 35 L 70 35 L 70 5 L 90 5 L 90 35 L 120 35 L 120 10 L 140 10 L 140 35 L 200 35" stroke="currentColor" stroke-width="2"></path>
+              </svg>
+              <span class="mt-1 text-center font-code text-[10px] text-on-surface-variant">Nhảy cả đoạn mỗi nấc</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container p-space-lg shadow-xl">
+            <div class="flex items-center justify-between">
+              <span class="rounded bg-primary-container/20 px-2 py-0.5 font-code text-label-badge text-primary">LongoMouse</span>
+              <span class="material-symbols-outlined text-[20px] text-primary">check_circle</span>
+            </div>
+            <h3 class="text-headline-sm">Chuẩn mượt Trackpad</h3>
+            <p class="text-body-sm text-on-surface-variant">Mỗi nấc được chia thành nhiều bước nhỏ, nhanh lúc đầu và chậm dần đến khi dừng.</p>
+            <div class="flex h-24 flex-col justify-end rounded-lg bg-surface-container-lowest p-2">
+              <svg class="h-16 w-full text-primary-container" fill="none" viewBox="0 0 200 40" aria-hidden="true">
+                <path d="M 0 35 C 30 35, 40 5, 80 5 C 130 5, 160 30, 200 35" stroke="currentColor" stroke-width="2.5"></path>
+                <path d="M 0 35 C 30 35, 40 5, 80 5 C 130 5, 160 30, 200 35 L 200 40 L 0 40 Z" fill="currentColor" fill-opacity="0.15"></path>
+              </svg>
+              <span class="mt-1 text-center font-code text-[10px] text-primary">Trượt 120 Hz, chậm dần tự nhiên</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container-high p-space-md shadow-md">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px] text-primary">tune</span>
+              <span class="font-code text-body-sm font-semibold">Tuỳ chỉnh độ trượt &amp; tốc độ cuộn</span>
+            </div>
+            <span class="rounded bg-surface-container px-2 py-0.5 font-code text-label-badge text-tertiary">Theo từng chuột</span>
+          </div>
+          <div class="grid grid-cols-1 gap-gutter-sm pt-2 md:grid-cols-2">
+            <div class="flex flex-col gap-1.5">
+              <div class="flex justify-between font-code text-[11px] text-on-surface-variant">
+                <span>Thời gian trượt</span><span class="font-bold text-primary">800 ms</span>
+              </div>
+              <div class="h-2 w-full overflow-hidden rounded-full bg-surface-container-lowest">
+                <div class="h-full w-[75%] rounded-full bg-gradient-to-r from-primary-container to-primary"></div>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <div class="flex justify-between font-code text-[11px] text-on-surface-variant">
+                <span>Tốc độ cuộn</span><span class="font-bold text-secondary">1.25×</span>
+              </div>
+              <div class="h-2 w-full overflow-hidden rounded-full bg-surface-container-lowest">
+                <div class="h-full w-[50%] rounded-full bg-gradient-to-r from-secondary-container to-secondary"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-space-md lg:col-span-5">
+        {
+          micro.map((m) => (
+            <div class="flex items-start gap-space-sm rounded-xl bg-surface-container-low p-space-md shadow-sm">
+              <div class:list={["flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", m.bg]}>
+                <span class:list={["material-symbols-outlined text-[22px]", m.tint]}>{m.icon}</span>
+              </div>
+              <div class="flex flex-col">
+                <h4 class="flex items-center gap-2 text-[16px] font-semibold">
+                  {m.title}
+                  {m.soon && <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] font-normal text-on-surface-variant">Sắp có</span>}
+                </h4>
+                <p class="mt-1 text-body-sm text-on-surface-variant">{m.body}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

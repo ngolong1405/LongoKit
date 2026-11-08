@@ -1,0 +1,66 @@
+---
+const gestures = [
+  { icon: "drag_pan", tint: "text-primary", bg: "bg-primary-container/20", tag: "Kéo", title: "Click + Kéo",
+    body: "Giữ nút phụ rồi kéo sang trái/phải để chuyển màn hình ảo (Spaces), kéo lên để mở Mission Control, hoặc kéo để cuộn trang.",
+    from: "Nút 5", via: "Kéo lên", to: "Mission Control" },
+  { icon: "zoom_in", tint: "text-secondary", bg: "bg-secondary-container/20", tag: "Click + Lăn", title: "Click + Cuộn",
+    body: "Giữ nút phụ rồi lăn bánh xe để phóng to/thu nhỏ, chuyển Spaces hoặc cuộn ngang.",
+    from: "Nút 4", via: "Lăn", to: "Phóng to / thu nhỏ" },
+  { icon: "touch_app", tint: "text-tertiary", bg: "bg-tertiary-container/20", tag: "Nhấn đúp / Giữ", title: "Nhấn đúp & Giữ",
+    body: "Mỗi nút có thể gán riêng cho nhấn một lần, nhấn đúp và giữ — ba hành động khác nhau trên cùng một nút.",
+    from: "Nút giữa", via: "Nhấn đúp", to: "Hiện màn hình nền" },
+  { icon: "auto_awesome", tint: "text-primary", bg: "bg-primary-container/20", tag: "Hành động", title: "Hành động hệ thống",
+    body: "Launchpad, Mission Control, Look Up, Back/Forward, phím media, hoặc ghi bất kỳ phím tắt nào bạn muốn.",
+    from: "Nút 4", via: "", to: "⌘ ⇧ 4 (chụp màn hình)" },
+];
+---
+
+<section class="relative w-full px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto flex max-w-[1440px] flex-col gap-space-2xl">
+    <div class="flex flex-col justify-between gap-space-md md:flex-row md:items-end">
+      <div class="flex max-w-2xl flex-col gap-space-xs">
+        <div class="flex items-center gap-space-xs">
+          <span class="h-2 w-2 rounded-full bg-secondary"></span>
+          <span class="font-code text-label-badge tracking-wider text-secondary uppercase">Core Pillar 02</span>
+        </div>
+        <h2 class="text-headline-lg">Cử Chỉ Đa Tác Vụ (Action &amp; Gesture Engine)</h2>
+        <p class="text-body-lg text-on-surface-variant">
+          Biến các nút phụ thành trung tâm điều khiển. Mỗi nút (giữa, nút 4, nút 5…) kết hợp được với nhấn, giữ, kéo hoặc lăn
+          để chạy tác vụ hệ thống.
+        </p>
+      </div>
+      <div class="inline-flex items-center gap-2 rounded-xl bg-surface-container-high px-3 py-1.5 font-code text-label-code">
+        <span class="material-symbols-outlined text-[16px] text-secondary">hearing</span>
+        Bấm "Nghe" rồi nhấn nút chuột để gán
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-gutter md:grid-cols-2 lg:grid-cols-4">
+      {
+        gestures.map((g) => (
+          <div class="group flex flex-col justify-between rounded-2xl bg-surface-container p-space-lg shadow-md transition-all hover:bg-surface-bright">
+            <div class="flex flex-col gap-space-md">
+              <div class="flex items-center justify-between">
+                <div class:list={["flex h-12 w-12 items-center justify-center rounded-xl", g.bg]}>
+                  <span class:list={["material-symbols-outlined text-[26px]", g.tint]}>{g.icon}</span>
+                </div>
+                <span class:list={["rounded bg-surface-container-lowest px-2 py-0.5 font-code text-label-badge", g.tint]}>{g.tag}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <h3 class="text-headline-sm">{g.title}</h3>
+                <p class="text-body-sm text-on-surface-variant">{g.body}</p>
+              </div>
+            </div>
+            <div class="mt-space-md flex flex-col gap-1 rounded-xl bg-surface-container-lowest/80 p-3">
+              <span class="font-code text-[11px] text-on-surface-variant">Ví dụ:</span>
+              <span class="font-code text-[12px] font-semibold">
+                <span class="text-primary">{g.from}</span>
+                {g.via && <> + <span class="text-tertiary">{g.via}</span></>} ➔ {g.to}
+              </span>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

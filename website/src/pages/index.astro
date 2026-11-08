@@ -1,88 +1,27 @@
 ---
-// Placeholder landing page: real content and design come later. It only proves the build,
-// the shared brand tokens, and the light/dark themes.
 import Base from "../layouts/Base.astro";
-import logo from "../../../brand/logo/logo-dark.png";
-
-const repo = "https://github.com/ngolong1405/LongoKit";
-
-const apps = [
-  {
-    name: "Longo Mouse",
-    platforms: "macOS",
-    status: "In progress",
-    blurb: "Remap every mouse button and gesture, and get smooth, per-mouse scrolling.",
-    href: `${repo}/tree/main/apps/mouse-macos`,
-  },
-  { name: "Longo Keys", platforms: "macOS · Windows", status: "Planned", blurb: "Keyboard remapping and shortcuts." },
-  { name: "Longo Display", platforms: "macOS · Windows", status: "Planned", blurb: "Display layout and brightness tools." },
-];
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import PillarScroll from "../components/PillarScroll.astro";
+import PillarGestures from "../components/PillarGestures.astro";
+import PillarDevices from "../components/PillarDevices.astro";
+import TechSpecs from "../components/TechSpecs.astro";
+import Downloads from "../components/Downloads.astro";
+import Footer from "../components/Footer.astro";
 ---
 
-<Base title="LongoKit" description="Tools for customizing mice, keyboards, and displays on macOS and Windows.">
-  <header class="container nav">
-    <a class="brand" href="/">
-      <img src={logo.src} width="28" height="28" alt="" />
-      <span>LongoKit</span>
-    </a>
-    <a class="ghost" href={repo}>GitHub</a>
-  </header>
-
-  <main class="container">
-    <section class="hero">
-      <img src={logo.src} width="96" height="96" alt="LongoKit logo" />
-      <h1>Make your mouse, keyboard, and display <span class="accent">yours</span>.</h1>
-      <p>LongoKit is a set of small, fast tools for customizing input devices on macOS and Windows.</p>
-      <div class="actions">
-        <a class="primary" href={apps[0].href}>Get Longo Mouse</a>
-        <a class="ghost" href={repo}>View on GitHub</a>
-      </div>
-    </section>
-
-    <section class="apps">
-      {
-        apps.map((app) => (
-          <article class="card">
-            <div class="card-head">
-              <h3>{app.name}</h3>
-              <span class:list={["chip", { live: app.status !== "Planned" }]}>{app.status}</span>
-            </div>
-            <p class="platforms">{app.platforms}</p>
-            <p>{app.blurb}</p>
-            {app.href && <a class="link" href={app.href}>Learn more →</a>}
-          </article>
-        ))
-      }
-    </section>
+<Base
+  title="LongoKit · LongoMouse"
+  description="LongoMouse: cuộn mượt như trackpad, cử chỉ cho từng nút chuột và cài đặt riêng cho từng con chuột trên macOS."
+>
+  <Header />
+  <main class="relative w-full overflow-x-hidden pt-20">
+    <Hero />
+    <PillarScroll />
+    <PillarGestures />
+    <PillarDevices />
+    <TechSpecs />
+    <Downloads />
   </main>
-
-  <footer class="container footer">Crafted by <span class="accent">Long Ngô</span></footer>
+  <Footer />
 </Base>
-
-<style>
-  .nav { display: flex; align-items: center; justify-content: space-between; padding-block: 20px; }
-  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--lk-font-display); font-weight: 600; }
-  .brand img { border-radius: 7px; }
-
-  .hero { text-align: center; padding-block: 72px 56px; display: grid; justify-items: center; gap: 20px; }
-  .hero img { border-radius: 22px; box-shadow: 0 12px 40px rgb(255 107 53 / 0.25); }
-  .hero h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); max-width: 16ch; }
-  .hero p { color: var(--lk-text-muted); font-size: 1.125rem; max-width: 52ch; margin: 0; }
-  .accent { background: var(--lk-accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
-
-  .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 8px; }
-  .primary, .ghost { display: inline-flex; align-items: center; padding: 10px 18px; border-radius: 10px; font-weight: 600; text-decoration: none; font-size: 0.95rem; }
-  .primary { background: var(--lk-accent-gradient); color: #fff; box-shadow: 0 6px 20px rgb(255 107 53 / 0.3); }
-  .ghost { border: 1px solid var(--lk-hairline); background: var(--lk-island); }
-
-  .apps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; padding-bottom: 72px; }
-  .card { background: var(--lk-island); border: 1px solid var(--lk-hairline); border-radius: var(--lk-radius); padding: 20px; display: grid; gap: 8px; align-content: start; }
-  .card p { margin: 0; color: var(--lk-text-secondary); }
-  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .platforms { font-family: var(--lk-font-mono); font-size: 0.75rem; color: var(--lk-text-faint) !important; }
-  .chip { font-family: var(--lk-font-mono); font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; background: var(--lk-slate); color: var(--lk-text-muted); }
-  .chip.live { background: color-mix(in srgb, var(--lk-emerald) 15%, transparent); color: var(--lk-emerald); }
-  .link { color: var(--lk-solar); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
-
-  .footer { padding-block: 24px 40px; border-top: 1px solid var(--lk-hairline); color: var(--lk-text-faint); font-family: var(--lk-font-mono); font-size: 0.8rem; }
-</style>

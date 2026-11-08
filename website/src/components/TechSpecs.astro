@@ -1,0 +1,85 @@
+---
+const metrics = [
+  { icon: "bolt", tint: "text-primary", tag: "NATIVE", value: "Swift", label: "Không Electron, không web view",
+    body: "Viết bằng Swift + SwiftUI, chạy trực tiếp trên macOS. Bắt sự kiện qua CGEventTap và IOKit." },
+  { icon: "memory", tint: "text-secondary", tag: "IDLE", value: "~0%", label: "CPU khi không dùng",
+    body: "Chỉ làm việc khi bạn bấm hoặc lăn chuột; lúc rảnh gần như không tốn tài nguyên." },
+  { icon: "visibility_off", tint: "text-tertiary", tag: "PRIVACY FIRST", value: "0 byte", label: "Không gửi telemetry",
+    body: "Không kết nối Internet để theo dõi thói quen dùng chuột. Mã nguồn mở trên GitHub." },
+  { icon: "extension_off", tint: "text-primary-container", tag: "DRIVERLESS", value: "0 kext", label: "Không cài driver",
+    body: "Không cần tắt SIP, không cần quyền admin. Chỉ cần cấp quyền Trợ năng và Theo dõi đầu vào." },
+];
+
+const yes = "Có";
+const rows = [
+  { label: "Cuộn mượt cho chuột thường", ours: yes, vendor: "Tuỳ hãng", os: "Không" },
+  { label: "Cài đặt riêng cho từng chuột", ours: "Tự nhận VID/PID", vendor: "Chỉ chuột cùng hãng", os: "Một cài đặt chung" },
+  { label: "Cử chỉ Click + Kéo / Click + Cuộn", ours: yes, vendor: "Một số dòng chuột", os: "Không" },
+  { label: "Hướng cuộn chuột tách khỏi trackpad", ours: yes, vendor: "Tuỳ hãng", os: "Không" },
+  { label: "Mã nguồn mở", ours: yes, vendor: "Không", os: "—" },
+];
+---
+
+<section class="w-full bg-surface-container-lowest px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto flex max-w-[1440px] flex-col gap-space-2xl">
+    <div class="mx-auto flex max-w-3xl flex-col items-center gap-space-xs text-center">
+      <span class="font-code text-label-badge tracking-wider text-primary uppercase">Engineering</span>
+      <h2 class="text-headline-lg">Nhẹ, Native &amp; Riêng Tư</h2>
+      <p class="text-body-lg text-on-surface-variant">
+        Không Electron, không tiến trình web chạy nền. LongoMouse dùng API gốc của macOS (CGEventTap, IOHIDManager); bản
+        Windows sẽ dùng Raw Input và low-level hooks.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-gutter sm:grid-cols-2 lg:grid-cols-4">
+      {
+        metrics.map((m) => (
+          <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container p-space-lg shadow-md">
+            <div class="flex items-center justify-between">
+              <span class:list={["material-symbols-outlined text-[28px]", m.tint]}>{m.icon}</span>
+              <span class:list={["rounded bg-surface-container-lowest px-2 py-0.5 font-code text-label-badge", m.tint]}>{m.tag}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="font-display text-headline-xl font-bold tracking-tight">{m.value}</span>
+              <span class="text-body-md font-medium">{m.label}</span>
+            </div>
+            <p class="text-body-sm text-on-surface-variant">{m.body}</p>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="flex flex-col gap-space-md rounded-2xl bg-surface-container-low p-space-lg shadow-lg">
+      <h4 class="text-[18px] font-semibold">So sánh với các lựa chọn khác</h4>
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[560px] text-left text-body-sm">
+          <thead>
+            <tr class="bg-surface-container-highest/50 font-code text-[11px] text-on-surface-variant uppercase">
+              <th class="rounded-l-lg p-3">Tiêu chí</th>
+              <th class="p-3 font-bold text-primary">LongoMouse</th>
+              <th class="p-3">Phần mềm hãng chuột</th>
+              <th class="rounded-r-lg p-3">macOS mặc định</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-surface-container">
+            {
+              rows.map((r) => (
+                <tr>
+                  <td class="p-3 font-medium">{r.label}</td>
+                  <td class="p-3 font-semibold text-primary">
+                    <span class="flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                      {r.ours}
+                    </span>
+                  </td>
+                  <td class="p-3 text-on-surface-variant">{r.vendor}</td>
+                  <td class:list={["p-3", r.os === "Không" ? "text-error" : "text-on-surface-variant"]}>{r.os}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
