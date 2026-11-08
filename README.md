@@ -12,10 +12,18 @@ Tools for customizing mice, keyboards, and displays on macOS and Windows, by Lon
 ## Repository layout
 
 ```
-apps/        one folder per app and platform, each building on its own
-packages/    code shared by several apps (e.g. the SwiftUI design system), added once a second app needs it
-brand/       logos, icons and design tokens shared by the apps and the website
-website/     the LongoKit landing page
+apps/<product>-<platform>/   one app each, building on its own (its own README, scripts, and CI workflow)
+packages/                    code shared by several apps, e.g. the SwiftUI design system (added when a second app needs it)
+brand/                       logos, icons, and color tokens shared by the apps and the website (added with the website)
+website/                     the LongoKit landing page
+.github/workflows/           one workflow per app, triggered only by changes in that app's folder
 ```
 
-Each app has its own README with build steps.
+## Conventions
+
+- **Folders:** `apps/<product>-<platform>`, lowercase, e.g. `mouse-macos`, `keys-windows`.
+- **Commits:** start with the area they touch, e.g. `mouse-macos: add smooth scrolling`, `website: hero section`, `repo: CI`.
+- **Releases:** tag per app, `mouse-macos/v0.2.0`, so each app ships on its own schedule.
+- **Shared code** moves into `packages/` only once a second app uses it; until then it stays in the app.
+
+Each app's README has its build steps.

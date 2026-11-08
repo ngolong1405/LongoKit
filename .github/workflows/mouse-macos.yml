@@ -1,0 +1,27 @@
+name: mouse-macos
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/mouse-macos/**", ".github/workflows/mouse-macos.yml"]
+  pull_request:
+    paths: ["apps/mouse-macos/**", ".github/workflows/mouse-macos.yml"]
+
+jobs:
+  build:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: apps/mouse-macos
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build
+      - name: Engine self-test
+        run: .build/debug/LongoMouse --selftest
+      - name: App bundle and disk image
+        run: ./scripts/build-app.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LongoMouse
+          path: apps/mouse-macos/build/LongoMouse.dmg
