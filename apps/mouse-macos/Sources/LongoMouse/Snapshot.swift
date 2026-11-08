@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// `MouseMapper --snapshot <dir>` renders each tab to PNG and quits, for comparing against the Figma frames.
+/// `LongoMouse --snapshot <dir>` renders each tab to PNG and quits, for comparing against the Figma frames.
 /// It uses a throwaway defaults suite and never starts the event tap.
 enum Snapshot {
     static var outputDirectory: String? {

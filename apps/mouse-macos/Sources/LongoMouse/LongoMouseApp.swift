@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct MouseMapperApp: App {
+struct LongoMouseApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var model = AppModel(startsEngine: !Snapshot.isRequested && !SelfTest.isRequested)
 

@@ -2,9 +2,9 @@
 import PackageDescription
 
 let package = Package(
-    name: "MouseMapper",
+    name: "LongoMouse",
     platforms: [.macOS(.v13)],
     targets: [
-        .executableTarget(name: "MouseMapper", path: "Sources/MouseMapper")
+        .executableTarget(name: "LongoMouse", path: "Sources/LongoMouse")
     ]
 )

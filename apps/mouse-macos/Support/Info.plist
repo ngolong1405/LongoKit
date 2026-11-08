@@ -9,7 +9,7 @@
     <key>CFBundleIdentifier</key>
     <string>com.longngo.MouseMapper</string>
     <key>CFBundleExecutable</key>
-    <string>MouseMapper</string>
+    <string>LongoMouse</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundlePackageType</key>

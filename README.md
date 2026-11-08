@@ -1,39 +1,21 @@
 # LongoKit
 
-Tools for customizing mice, keyboards, and displays, by Long Ngô.
+Tools for customizing mice, keyboards, and displays on macOS and Windows, by Long Ngô.
 
-| App | Platform | Status |
-|---|---|---|
-| **Longo Mouse** | macOS 13+ | In progress |
-| Longo Keys | macOS, Windows | Planned |
-| Longo Display | macOS, Windows | Planned |
+| App | Folder | Platform | Status |
+|---|---|---|---|
+| **Longo Mouse** | [`apps/mouse-macos`](apps/mouse-macos) | macOS 13+ | In progress |
+| Longo Mouse | `apps/mouse-windows` | Windows | Planned |
+| Longo Keys | `apps/keys-macos`, `apps/keys-windows` | macOS, Windows | Planned |
+| Longo Display | `apps/display-macos`, `apps/display-windows` | macOS, Windows | Planned |
 
-## Longo Mouse
+## Repository layout
 
-Remap every mouse button and gesture, and tune the scroll wheel, separately for each mouse.
-
-- **Buttons:** click, double click, hold, click + drag, and click + scroll on any extra button. Actions include Mission Control, Spaces, Launchpad, back/forward, keyboard shortcuts, and media keys.
-- **Listen for a button:** press a mouse button to add it; buttons already set up are highlighted.
-- **Scrolling:** natural or classic direction for mice only (the trackpad keeps its setting), smooth animated scrolling, custom speed (hold ⌥ for slower, ⌘ for faster).
-- **Per mouse:** each mouse can have its own buttons and scroll settings, switched automatically when you use it.
-- **Menu bar popover** for quick toggles, light and dark themes, and English and Vietnamese.
-
-### Build
-
-Requires Xcode command line tools (Swift 5.9+).
-
-```sh
-./scripts/build-app.sh        # build/LongoMouse.app and build/LongoMouse.dmg (universal)
-swift build && .build/debug/MouseMapper --selftest   # engine self-test
+```
+apps/        one folder per app and platform, each building on its own
+packages/    code shared by several apps (e.g. the SwiftUI design system), added once a second app needs it
+brand/       logos, icons and design tokens shared by the apps and the website
+website/     the LongoKit landing page
 ```
 
-Optional: `./scripts/make-signing-identity.sh` creates a local signing certificate so macOS keeps the
-Accessibility and Input Monitoring permissions across rebuilds.
-
-On first launch, grant **Accessibility** and **Input Monitoring** in System Settings › Privacy & Security.
-
-### Layout
-
-- `Sources/MouseMapper/`: the app (SwiftUI + AppKit). `MouseEngine` holds the event tap and gesture logic, and `AppModel` holds the settings.
-- `Support/`: Info.plist, icons, and bundled fonts (Space Grotesk, Geist, JetBrains Mono; SIL Open Font License).
-- `scripts/`: build and signing helpers.
+Each app has its own README with build steps.

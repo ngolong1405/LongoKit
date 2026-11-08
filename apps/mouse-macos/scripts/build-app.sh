@@ -1,6 +1,6 @@
 #!/bin/bash
 # Builds build/LongoMouse.app and an installer disk image build/LongoMouse.dmg.
-# The bundle id and executable keep their original MouseMapper names so permissions and settings carry over.
+# The bundle id keeps its original MouseMapper name so permissions and settings carry over.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -9,11 +9,11 @@ DMG=build/LongoMouse.dmg
 
 # Universal binary so the app runs on both Apple Silicon and Intel Macs.
 swift build -c release --arch arm64 --arch x86_64
-BIN="$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/MouseMapper"
+BIN="$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/LongoMouse"
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp "$BIN" "$APP/Contents/MacOS/MouseMapper"
+cp "$BIN" "$APP/Contents/MacOS/LongoMouse"
 cp Support/Info.plist "$APP/Contents/Info.plist"
 cp Support/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp Support/Logo.png "$APP/Contents/Resources/Logo.png"
