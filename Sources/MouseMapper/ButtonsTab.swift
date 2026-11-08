@@ -64,10 +64,9 @@ private struct MouseCard: View {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(L("Button layout")).font(.display(15, .semibold)).foregroundStyle(Theme.text)
-                    Text(L("Click the mouse, then press a button to add it"))
+                    Text(summary)
                         .font(.ui(11))
                         .foregroundStyle(Theme.textMuted)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 6)
                 if active {
@@ -96,16 +95,11 @@ private struct MouseCard: View {
             .onTapGesture { model.setCapturing(true) }
             .help(L("Click, then press a mouse button to add it"))
 
-            profileRow
+            ListenButton(active: active) { model.setCapturing(!active) }
 
-            Button {
-                active ? model.setCapturing(false) : model.setCapturing(true)
-            } label: {
-                Label(active ? L("Stop listening") : L("Listen for a button"),
-                      systemImage: active ? "stop.circle" : "plus.circle")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(active ? AnyButtonStyle(.ghost) : AnyButtonStyle(.primary))
+            Hairline()
+
+            profileRow
         }
         .padding(16)
         .background(
@@ -138,8 +132,13 @@ private struct MouseCard: View {
                 DSSwitch(isOn: model.editingSeparateProfile) { model.setIndependent(target, !model.editingSeparateProfile) }
             }
         }
-        .padding(10)
-        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.hover))
+    }
+
+    /// "3 buttons · 4 gestures set up".
+    private var summary: String {
+        let gestures = model.editing.filter { $0.action != .none }.count
+        return gestures == 0 ? L("Nothing set up yet")
+                             : L("%d buttons · %d gestures set up", model.groups.count, gestures)
     }
 
     private var buttonStates: [Int: MouseShowcase.Part] {
@@ -149,6 +148,49 @@ private struct MouseCard: View {
             if states[binding.trigger.button] != .click { states[binding.trigger.button] = part }
         }
         return states
+    }
+}
+
+/// The way to add a button: full width, with what to do next spelled out. While listening it turns into Stop.
+private struct ListenButton: View {
+    let active: Bool
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: active ? "stop.fill" : "dot.radiowaves.left.and.right")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(active ? Theme.violet : .white)
+                    .frame(width: 32, height: 32)
+                    .background(Circle().fill(active ? Theme.violet.opacity(0.15) : Color.white.opacity(0.2)))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(active ? L("Listening… press a mouse button") : L("Listen for a button"))
+                        .font(.ui(13, .semibold))
+                    Text(active ? L("Click to stop, or press Esc") : L("Press any mouse button to add it or find it"))
+                        .font(.ui(10))
+                        .opacity(0.8)
+                }
+                .foregroundStyle(active ? Theme.text : .white)
+                Spacer(minLength: 0)
+                if !active {
+                    Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(.white.opacity(0.8))
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(shape.fill(active ? AnyShapeStyle(Theme.violet.opacity(0.08))
+                                          : AnyShapeStyle(LinearGradient(colors: [Theme.solar, Theme.magenta],
+                                                                         startPoint: .leading, endPoint: .trailing))))
+            .overlay(shape.strokeBorder(active ? Theme.violet : Theme.tint(0.15), lineWidth: active ? 1.5 : 1))
+            .shadow(color: (active ? Theme.violet : Theme.solar).opacity(hovering ? 0.45 : 0.25), radius: 10, y: 2)
+            .contentShape(shape)
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
     }
 }
 
@@ -329,12 +371,8 @@ private struct TriggersColumn: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(L("Configured Triggers")).font(.display(16, .semibold)).foregroundStyle(Theme.text)
-                Spacer()
-                Button { model.setCapturing(true) } label: { Label(L("Add New Button"), systemImage: "plus") }
-                    .buttonStyle(.ghost)
-            }
+            Text(L("Configured Triggers")).font(.display(16, .semibold)).foregroundStyle(Theme.text)
+                .frame(height: 28, alignment: .leading)
             if model.groups.isEmpty {
                 Text(L("No buttons yet. Click the mouse on the left, then press a button to add it."))
                     .font(.ui(12))
