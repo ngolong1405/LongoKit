@@ -21,7 +21,7 @@ cp Support/LogoLight.png "$APP/Contents/Resources/LogoLight.png"
 cp -R Support/Fonts "$APP/Contents/Resources/Fonts"
 # A fixed identity (scripts/make-signing-identity.sh) keeps Accessibility/Input Monitoring grants across
 # rebuilds. Without it the build is ad-hoc signed and macOS sees every build as a new app.
-IDENTITY="MouseMapper Local Signing"
+IDENTITY="LongoKit Local Signing"
 if security find-identity -p codesigning | grep -q "$IDENTITY"; then
     codesign --force --sign "$IDENTITY" --identifier com.longngo.MouseMapper "$APP"
 else
