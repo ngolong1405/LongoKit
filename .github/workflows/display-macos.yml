@@ -1,0 +1,27 @@
+name: display-macos
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/display-macos/**", "packages/ui-macos/**", ".github/workflows/display-macos.yml"]
+  pull_request:
+    paths: ["apps/display-macos/**", "packages/ui-macos/**", ".github/workflows/display-macos.yml"]
+
+jobs:
+  build:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: apps/display-macos
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build
+      - name: Engine self-test
+        run: .build/debug/LongoDisplay --selftest
+      - name: App bundle and disk image
+        run: ./scripts/build-app.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LongoDisplay
+          path: apps/display-macos/build/LongoDisplay.dmg
