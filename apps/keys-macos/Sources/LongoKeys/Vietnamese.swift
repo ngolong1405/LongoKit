@@ -176,5 +176,11 @@ enum Vietnamese {
         "↑ Up Arrow": "↑ Mũi tên lên",
         "↓ Down Arrow": "↓ Mũi tên xuống",
         "⌦ Forward Delete": "⌦ Xoá về sau",
+        // Keyboard list
+        "Types as usual": "Gõ như bình thường",
+        "Turn off: this keyboard types as usual": "Tắt: bàn phím này gõ như bình thường",
+        "Turn on": "Bật",
+        "Changes the shared settings, for every keyboard without its own.": "Đổi cài đặt chung, cho mọi bàn phím không có cài đặt riêng.",
+        "No changes": "Chưa đổi gì",
     ]
 }

@@ -24,6 +24,13 @@ final class AppModel: ObservableObject {
     @Published private(set) var shared: KeyboardProfile
     /// Keyboards with their own settings, by id.
     @Published private(set) var profiles: [String: KeyboardProfile]
+    /// Keyboards switched off in the list: they keep their settings but type as usual.
+    @Published private(set) var switchedOff: Set<String> {
+        didSet {
+            defaults.set(Array(switchedOff), forKey: Keys.switchedOff)
+            applyMappings()
+        }
+    }
     @Published var hyper: [HyperBinding] {
         didSet {
             save(hyper, forKey: Keys.hyper)
@@ -82,6 +89,7 @@ final class AppModel: ObservableObject {
     private enum Keys {
         static let shared = "sharedProfile"
         static let profiles = "keyboardProfiles"
+        static let switchedOff = "switchedOffKeyboards"
         static let hyper = "hyperBindings"
         static let enabled = "enabled"
         static let language = "language"
@@ -100,6 +108,7 @@ final class AppModel: ObservableObject {
         }
         shared = load(KeyboardProfile.self, Keys.shared) ?? KeyboardProfile()
         profiles = load([String: KeyboardProfile].self, Keys.profiles) ?? [:]
+        switchedOff = Set(defaults.stringArray(forKey: Keys.switchedOff) ?? [])
         hyper = load([HyperBinding].self, Keys.hyper) ?? HyperBinding.defaults
         isEnabled = defaults.object(forKey: Keys.enabled) as? Bool ?? true
         language = defaults.string(forKey: Keys.language).flatMap(AppLanguage.init(rawValue:)) ?? .systemDefault
@@ -146,6 +155,13 @@ final class AppModel: ObservableObject {
     }
 
     func hasOwnSettings(_ id: String) -> Bool { profiles[id] != nil }
+
+    func isOn(_ id: String) -> Bool { !switchedOff.contains(id) }
+
+    /// Off only takes this app's keys away from that keyboard, so it's never asked to be confirmed.
+    func setOn(_ id: String, _ on: Bool) {
+        if on { switchedOff.remove(id) } else { switchedOff.insert(id) }
+    }
 
     func keyboard(_ id: String) -> KeyboardDevice? { keyboards.first { $0.id == id } }
 
@@ -225,7 +241,7 @@ final class AppModel: ObservableObject {
     private func tables() -> [String: [Key: Key]] {
         var result: [String: [Key: Key]] = [:]
         for keyboard in keyboards {
-            result[keyboard.id] = isEnabled ? profile(for: keyboard.id).mapping(hyperReady: HyperTap.shared.isRunning) : [:]
+            result[keyboard.id] = isEnabled && isOn(keyboard.id) ? profile(for: keyboard.id).mapping(hyperReady: HyperTap.shared.isRunning) : [:]
         }
         return result
     }

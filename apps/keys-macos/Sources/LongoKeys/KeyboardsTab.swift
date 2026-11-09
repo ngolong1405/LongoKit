@@ -46,16 +46,13 @@ private struct KeyboardList: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            KeyboardRow(id: AppModel.allKeyboards, symbol: "square.stack.3d.up.fill", name: L("All keyboards"),
-                        detail: L("Shared settings, used by every keyboard without its own"))
-                .panel(padding: 0)
+            AllKeyboardsRow().panel(padding: 0)
 
             SectionLabel(text: L("Connected keyboards") + " (\(model.keyboards.count))")
             VStack(spacing: 0) {
                 ForEach(Array(model.keyboards.enumerated()), id: \.element.id) { index, keyboard in
                     if index > 0 { Hairline() }
-                    KeyboardRow(id: keyboard.id, symbol: keyboard.symbol, name: model.displayName(keyboard),
-                                detail: L(keyboard.connection) + " · " + (model.hasOwnSettings(keyboard.id) ? L("Own settings") : L("Shared settings")))
+                    KeyboardRow(keyboard: keyboard)
                 }
                 if model.keyboards.isEmpty {
                     Text(L("No keyboard found.")).font(.ui(12)).foregroundStyle(Theme.textMuted).padding(14)
@@ -68,37 +65,108 @@ private struct KeyboardList: View {
     }
 }
 
-private struct KeyboardRow: View {
+/// The shared settings: what every keyboard without its own uses.
+private struct AllKeyboardsRow: View {
     @EnvironmentObject private var model: AppModel
-    let id: String
-    let symbol: String
-    let name: String
-    let detail: String
 
     var body: some View {
-        let profile = model.profile(for: id)
         HStack(spacing: 12) {
-            Image(systemName: symbol)
-                .font(.system(size: 16))
-                .foregroundStyle(Theme.violetLight)
-                .frame(width: 38, height: 38)
-                .recessed(radius: 10)
+            RowIcon(symbol: "square.stack.3d.up.fill", on: true)
             VStack(alignment: .leading, spacing: 3) {
-                Text(name).font(.display(14, .semibold)).foregroundStyle(Theme.text)
-                Text(detail).font(.ui(11)).foregroundStyle(Theme.textMuted)
+                Text(L("All keyboards")).font(.display(14, .semibold)).foregroundStyle(Theme.text)
+                Text(L("Shared settings, used by every keyboard without its own")).font(.ui(11)).foregroundStyle(Theme.textMuted)
             }
             Spacer()
-            if profile.caps != .unchanged { Chip("Caps → " + profile.caps.title, tone: profile.caps == .hyper ? .solar : .violet) }
-            if !profile.remaps.isEmpty { Chip(L("%d remaps", profile.remaps.count)) }
-            Button { model.openKeyboard = id } label: {
-                HStack(spacing: 4) {
-                    Text(L("Customize"))
-                    Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold))
-                }
-            }
-            .buttonStyle(.ghost)
+            ProfileBadges(profile: model.shared)
+            CustomizeButton { model.openKeyboard = AppModel.allKeyboards }
         }
         .padding(14)
+    }
+}
+
+/// A connected keyboard: on/off, what it does at a glance, and Caps Lock right here.
+private struct KeyboardRow: View {
+    @EnvironmentObject private var model: AppModel
+    let keyboard: KeyboardDevice
+
+    var body: some View {
+        let on = model.isOn(keyboard.id)
+        let own = model.hasOwnSettings(keyboard.id)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                RowIcon(symbol: keyboard.symbol, on: on)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(model.displayName(keyboard)).font(.display(14, .semibold))
+                        .foregroundStyle(on ? Theme.text : Theme.textMuted)
+                    Text(L(keyboard.connection)).font(.ui(11)).foregroundStyle(Theme.textMuted)
+                }
+                Spacer()
+                if !on {
+                    Text(L("Types as usual")).font(.ui(10)).foregroundStyle(Theme.textFaint)
+                } else if own {
+                    ProfileBadges(profile: model.profile(for: keyboard.id))
+                } else {
+                    Text(L("Shared settings")).font(.ui(10)).foregroundStyle(Theme.textFaint)
+                }
+                DSSwitch(isOn: on) { model.setOn(keyboard.id, !on) }
+                    .scaleEffect(0.8)
+                    .frame(width: 32, height: 18)
+                    .help(on ? L("Turn off: this keyboard types as usual") : L("Turn on"))
+                CustomizeButton { model.openKeyboard = keyboard.id }
+            }
+            if on {
+                HStack(spacing: 10) {
+                    Text(L("Caps Lock")).font(.ui(11)).foregroundStyle(Theme.textSecondary)
+                    Segmented(options: CapsMode.allCases,
+                              selection: Binding(get: { model.profile(for: keyboard.id).caps },
+                                                 set: { new in model.change(own ? keyboard.id : nil) { $0.caps = new } }),
+                              title: { $0.title }, stretch: true)
+                }
+                .padding(.leading, 50)
+                .help(own ? "" : L("Changes the shared settings, for every keyboard without its own."))
+            }
+        }
+        .padding(14)
+    }
+}
+
+private struct RowIcon: View {
+    let symbol: String
+    let on: Bool
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: 16))
+            .foregroundStyle(on ? Theme.violetLight : Theme.textFaint)
+            .frame(width: 38, height: 38)
+            .recessed(radius: 10)
+    }
+}
+
+/// "Caps → Hyper" and "3 remaps", or a faint "No changes".
+private struct ProfileBadges: View {
+    let profile: KeyboardProfile
+
+    var body: some View {
+        HStack(spacing: 4) {
+            if profile.caps != .unchanged { Chip("Caps → " + profile.caps.title, tone: profile.caps == .hyper ? .solar : .violet) }
+            if !profile.remaps.isEmpty { Chip(L("%d remaps", profile.remaps.count)) }
+            if profile == KeyboardProfile() { Text(L("No changes")).font(.ui(10)).foregroundStyle(Theme.textFaint) }
+        }
+    }
+}
+
+private struct CustomizeButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Text(L("Customize"))
+                Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold))
+            }
+        }
+        .buttonStyle(.ghost)
     }
 }
 
