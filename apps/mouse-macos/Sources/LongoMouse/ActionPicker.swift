@@ -57,7 +57,7 @@ struct ActionPicker: View {
         }
         .padding(12)
         .frame(width: 400)
-        .background(LinearGradient(colors: [Theme.popoverTop, Theme.popoverBottom], startPoint: .top, endPoint: .bottom))
+        .pickerBackground()
         .onAppear {
             if binding?.action == .shortcut { section = .shortcut }
             if binding?.action == .mediaKey { section = .apple }
@@ -67,16 +67,7 @@ struct ActionPicker: View {
     // MARK: Header
 
     private var header: some View {
-        HStack(spacing: 6) {
-            Circle().fill(Theme.solar).frame(width: 6, height: 6).shadow(color: Theme.solar, radius: 3)
-            Text(headerText).font(.mono(9)).tracking(0.5).foregroundStyle(Theme.textMuted).lineLimit(1)
-            Spacer()
-            Button(action: dismiss) {
-                Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.textMuted)
-            }
-            .buttonStyle(.plain)
-            .help(L("Close without changes"))
-        }
+        PickerHeader(headerText, dismiss: dismiss)
     }
 
     private var headerText: String {
@@ -97,20 +88,7 @@ struct ActionPicker: View {
 
     private var standardList: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: "magnifyingglass").font(.system(size: 11)).foregroundStyle(Theme.textMuted)
-                if Self.flattened {
-                    Text(L("Search actions (e.g. Mission Control, Spaces)…")).font(.ui(12)).foregroundStyle(Theme.textFaint)
-                    Spacer()
-                } else {
-                    TextField("Search actions (e.g. Mission Control, Spaces)…", text: $query)
-                        .textFieldStyle(.plain)
-                        .font(.ui(12))
-                }
-            }
-            .padding(.horizontal, 9)
-            .padding(.vertical, 6)
-            .recessed()
+            PickerSearchField("Search actions (e.g. Mission Control, Spaces)…", query: $query, flattened: Self.flattened)
 
             scrollable {
                 VStack(alignment: .leading, spacing: 10) {
@@ -226,27 +204,16 @@ struct ActionPicker: View {
     // MARK: Footer
 
     private var recordRow: some View {
-        Button {
+        PickerFooterRow(symbol: "keyboard", title: L("Record Custom Key")) {
             section = .shortcut
             record()
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "keyboard").font(.system(size: 12)).foregroundStyle(Theme.violetLight)
-                Text(L("Record Custom Key")).font(.ui(12, .medium)).foregroundStyle(Theme.text)
-                Spacer()
-                if let shortcut = binding?.action == .shortcut ? binding?.shortcut : nil {
-                    KeyCombo(shortcut: shortcut)
-                } else {
-                    Text(L("Not set")).font(.mono(10)).foregroundStyle(Theme.textFaint)
-                }
+        } trailing: {
+            if let shortcut = binding?.action == .shortcut ? binding?.shortcut : nil {
+                KeyCombo(shortcut: shortcut)
+            } else {
+                Text(L("Not set")).font(.mono(10)).foregroundStyle(Theme.textFaint)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.island))
-            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.rim))
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
     }
 }
 
@@ -259,55 +226,6 @@ private struct ActionRow: View {
     var body: some View {
         PickerRow(symbol: action.symbol, title: action.title, subtitle: action.category, hint: hint,
                   selected: selected, enabled: action.isAvailable) { choose(action) }
-    }
-}
-
-private struct PickerRow: View {
-    let symbol: String
-    let title: String
-    let subtitle: String
-    let hint: String?
-    let selected: Bool
-    var enabled = true
-    let action: () -> Void
-    @State private var hovering = false
-
-    var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
-        Button(action: action) {
-            HStack(spacing: 10) {
-                Image(systemName: symbol)
-                    .font(.system(size: 12))
-                    .foregroundStyle(selected ? Theme.solar : Theme.violetLight)
-                    .frame(width: 18)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(title).font(.ui(12, .medium)).foregroundStyle(Theme.text)
-                    Text(subtitle).font(.ui(10)).foregroundStyle(selected ? Theme.solarLight : Theme.textMuted)
-                }
-                Spacer()
-                if selected {
-                    Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.solarLight)
-                    Chip(L("Selected"), tone: .solar)
-                } else if let hint {
-                    Text(hint)
-                        .font(.mono(9, .medium))
-                        .foregroundStyle(Theme.textMuted)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(RoundedRectangle(cornerRadius: 4).fill(Theme.segmentTrack))
-                        .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Theme.hairline))
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-            .background(shape.fill(selected ? Theme.solar.opacity(0.14) : hovering ? Theme.tint(0.05) : .clear))
-            .overlay(shape.strokeBorder(selected ? Theme.solar.opacity(0.3) : .clear))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.4)
-        .onHover { hovering = $0 }
     }
 }
 

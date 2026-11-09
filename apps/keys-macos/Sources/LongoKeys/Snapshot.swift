@@ -42,6 +42,12 @@ enum Snapshot {
                     }, model, scheme, to: directory.appendingPathComponent("\(scheme)-\(language.rawValue)-\(name).png"))
                 }
                 render(MenuPopover(), model, scheme, to: directory.appendingPathComponent("\(scheme)-\(language.rawValue)-popover.png"))
+                Pickers.flattened = true
+                render(TargetPicker(key: .escape, current: .tab) { _ in } dismiss: {}, model, scheme,
+                       to: directory.appendingPathComponent("\(scheme)-\(language.rawValue)-remap-picker.png"))
+                render(HyperActionPicker(key: .letter("j"), current: .key(.down)) { _ in } dismiss: {}, model, scheme,
+                       to: directory.appendingPathComponent("\(scheme)-\(language.rawValue)-hyper-picker.png"))
+                Pickers.flattened = false
             }
         }
         let icon = HStack(spacing: 24) {

@@ -16,6 +16,10 @@ struct MainWindow: View {
             .frame(height: Theme.contentHeight)
             .id(PageID(tab: model.tab, keyboard: model.openKeyboard))
             .transaction { $0.animation = nil }
+            // Soft blur behind an open picker keeps attention on the popover.
+            .blur(radius: model.isPicking ? 3 : 0)
+            .overlay(Color.black.opacity(model.isPicking ? 0.25 : 0).allowsHitTesting(false))
+            .animation(.easeOut(duration: 0.2), value: model.isPicking)
             WindowFooter(tab: model.tab)
         }
         // Rebuild every view when the language changes so all L() strings update.

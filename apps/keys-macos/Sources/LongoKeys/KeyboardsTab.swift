@@ -454,47 +454,15 @@ private struct KeyCapButton: View {
         .help(cap.key == .capsLock ? L("Set Caps Lock in the card above.") : "")
         .popover(isPresented: $picking, arrowEdge: .bottom) {
             if let key = cap.key {
-                TargetPicker(current: target) { new in
+                TargetPicker(key: key, current: target) { new in
                     picking = false
                     model.change(id) { p in
                         p.remaps.removeAll { $0.from == key }
                         if let new, new != key { p.remaps.append(Remap(from: key, to: new)) }
                     }
-                }
+                } dismiss: { picking = false }
             }
         }
-    }
-}
-
-/// What a key can send instead, plus "as it is".
-private struct TargetPicker: View {
-    let current: Key?
-    let choose: (Key?) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Button { choose(nil) } label: {
-                Label(L("As it is"), systemImage: "arrow.uturn.backward").font(.ui(12, .medium))
-            }
-            .buttonStyle(.ghost)
-            ForEach(KeyboardLayout.targets, id: \.0) { group, keys in
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(L(group).uppercased()).font(.mono(9, .semibold)).foregroundStyle(Theme.textFaint)
-                    LazyVGrid(columns: Array(repeating: GridItem(.fixed(78), spacing: 6), count: 4), spacing: 6) {
-                        ForEach(keys) { key in
-                            Button { choose(key) } label: {
-                                Text(key.name).font(.ui(11, .medium)).lineLimit(1).minimumScaleFactor(0.7)
-                                    .frame(width: 78, height: 26)
-                                    .background(RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                        .fill(current == key ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.tint(0.07))))
-                                    .foregroundStyle(current == key ? Color.white : Theme.text)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                }
-            }
-        }
-        .padding(14)
+        .onChange(of: picking) { model.isPicking = $0 }
     }
 }

@@ -67,6 +67,8 @@ final class AppModel: ObservableObject {
     }
     /// The keyboard whose page is open on the Keyboards tab; `allKeyboards` is the shared settings.
     @Published var openKeyboard: String?
+    /// True while a key picker popover is open; the window dims behind it.
+    @Published var isPicking = false
     static let allKeyboards = "all"
 
     private let defaults: UserDefaults
