@@ -119,7 +119,8 @@ enum SelfTest {
             print("\(keyboard.name) [\(keyboard.connection)] \(String(format: "%04X:%04X", keyboard.vendorID, keyboard.productID)) · id \(keyboard.id)")
         }
         for (name, count) in KeyMapper.current() { print("service \(name): \(count) mapped keys") }
-        print("Accessibility: \(AXIsProcessTrusted() ? "granted" : "not granted") · Secure Input: \(IsSecureEventInputEnabled() ? "on" : "off")")
+        print("Accessibility: \(AXIsProcessTrusted() ? "granted" : "not granted") · Secure Input: \(IsSecureEventInputEnabled() ? "on" : "off")"
+              + " · Input Monitoring: \(IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted ? "granted" : "not granted")")
         exit(0)
     }
 

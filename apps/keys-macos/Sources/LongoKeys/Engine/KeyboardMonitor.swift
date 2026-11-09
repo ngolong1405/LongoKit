@@ -24,9 +24,13 @@ struct KeyboardDevice: Identifiable, Equatable {
     var symbol: String { isBuiltIn ? "laptopcomputer" : "keyboard" }
 }
 
-/// Watches keyboards coming and going. Enumeration needs no permission.
+/// Watches keyboards coming and going, and which one is being typed on. Enumeration needs no permission;
+/// seeing keystrokes needs Input Monitoring (without it `onActivity` just never fires).
 final class KeyboardMonitor {
     var onChange: (([KeyboardDevice]) -> Void)?
+    /// Called with a keyboard id whenever typing starts coming from a different keyboard.
+    var onActivity: ((String) -> Void)?
+    private var lastActive: String?
 
     private let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
     private var devices: [UnsafeMutableRawPointer: KeyboardDevice] = [:]
@@ -44,8 +48,24 @@ final class KeyboardMonitor {
         IOHIDManagerRegisterDeviceRemovalCallback(manager, { context, _, _, device in
             Unmanaged<KeyboardMonitor>.fromOpaque(context!).takeUnretainedValue().removed(device)
         }, context)
+        IOHIDManagerRegisterInputValueCallback(manager, { context, _, _, value in
+            let device = IOHIDElementGetDevice(IOHIDValueGetElement(value))
+            Unmanaged<KeyboardMonitor>.fromOpaque(context!).takeUnretainedValue().activity(device)
+        }, context)
         IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
         IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
+    }
+
+    /// Opens the devices again, so keystrokes start arriving once Input Monitoring has been granted.
+    func reopen() {
+        IOHIDManagerClose(manager, IOOptionBits(kIOHIDOptionsTypeNone))
+        IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
+    }
+
+    private func activity(_ device: IOHIDDevice) {
+        guard let id = devices[Self.key(device)]?.id, id != lastActive else { return }
+        lastActive = id
+        onActivity?(id)
     }
 
     /// The keyboards connected right now, without watching (for `--diagnose`).

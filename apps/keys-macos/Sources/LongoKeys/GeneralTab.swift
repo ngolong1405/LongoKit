@@ -63,6 +63,22 @@ private struct PermissionCard: View {
                 .padding(12)
                 .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.amber.opacity(0.1)))
             }
+            HStack(spacing: 10) {
+                Image(systemName: "eye").foregroundStyle(Theme.violetLight)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L("Input Monitoring (optional)")).font(.ui(12, .medium)).foregroundStyle(Theme.text)
+                    Text(L("Shows which keyboard you're typing on in the Keyboards tab."))
+                        .font(.ui(11)).foregroundStyle(Theme.textMuted)
+                }
+                Spacer(minLength: 8)
+                if model.hasInputMonitoring {
+                    Chip(L("Granted"), tone: .emerald)
+                } else {
+                    Button(L("Grant Access…"), action: model.requestInputMonitoring).buttonStyle(.ghost)
+                }
+            }
+            .padding(12)
+            .recessed(radius: 12)
             Text(L("In password fields macOS turns on Secure Input and hides keys from every app like this one: there the Hyper key waits until you leave the field. Remapped keys keep working."))
                 .font(.ui(11)).foregroundStyle(Theme.textMuted)
                 .fixedSize(horizontal: false, vertical: true)

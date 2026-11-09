@@ -97,8 +97,13 @@ private struct KeyboardRow: View {
             HStack(spacing: 12) {
                 RowIcon(symbol: keyboard.symbol, on: on)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(model.displayName(keyboard)).font(.display(14, .semibold))
-                        .foregroundStyle(on ? Theme.text : Theme.textMuted)
+                    HStack(spacing: 6) {
+                        Text(model.displayName(keyboard)).font(.display(14, .semibold))
+                            .foregroundStyle(on ? Theme.text : Theme.textMuted)
+                        if model.typingKeyboard == keyboard.id && model.keyboards.count > 1 {
+                            Chip(L("Typing"), tone: .emerald, dot: true)
+                        }
+                    }
                     Text(L(keyboard.connection)).font(.ui(11)).foregroundStyle(Theme.textMuted)
                 }
                 Spacer()

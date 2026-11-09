@@ -67,6 +67,10 @@ final class AppModel: ObservableObject {
     @Published private(set) var hasAccessibility = AXIsProcessTrusted()
     /// A password field has Secure Input on: macOS hides keystrokes from the Hyper key until it's left.
     @Published private(set) var secureInput = false
+    /// Input Monitoring: optional, only for showing which keyboard is being typed on.
+    @Published private(set) var hasInputMonitoring = IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted
+    /// The keyboard typed on last (needs Input Monitoring).
+    @Published private(set) var typingKeyboard: String?
 
     @Published var tab: MainTab = .general {
         // Coming back to Keyboards from another tab starts at the list.
@@ -132,6 +136,7 @@ final class AppModel: ObservableObject {
             // A keyboard that just connected has no table yet; its services can lag behind the device.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { self.applyMappings() }
         }
+        monitor.onActivity = { [weak self] in self?.typingKeyboard = $0 }
         monitor.start()
 
         pauseKey = GlobalHotKey(controlOptionCommand: kVK_ANSI_K, id: 3) { [weak self] in
@@ -297,6 +302,16 @@ final class AppModel: ObservableObject {
         startTapIfPossible()
         let secure = IsSecureEventInputEnabled()
         if secure != secureInput { secureInput = secure }
+        let listening = IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted
+        if listening != hasInputMonitoring {
+            hasInputMonitoring = listening
+            if listening { monitor.reopen() }
+        }
+    }
+
+    func requestInputMonitoring() {
+        IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)
+        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent")!)
     }
 
     /// The Hyper key needs the tap; Caps Lock only becomes F18 once it runs (see `KeyboardProfile.mapping`).
