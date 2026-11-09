@@ -102,6 +102,14 @@ enum Vietnamese {
         "Turn %@ back on": "Bật lại %@",
         "Up 5%": "Tăng 5%",
         "Mute": "Tắt tiếng",
+        "Sync with the MacBook": "Đồng bộ với MacBook",
+        "In Sync, this display follows the MacBook's brightness, within this range.":
+            "Ở chế độ Đồng bộ, màn này đổi độ sáng theo MacBook, trong khoảng này.",
+        "Use Sync": "Bật Đồng bộ",
+        "Used only in Sync mode": "Chỉ dùng ở chế độ Đồng bộ",
+        "On": "Đang bật",
+        "Min": "Thấp nhất",
+        "Max": "Cao nhất",
         "Unmute": "Bật tiếng",
         "Down 5%": "Giảm 5%",
         "This monitor isn't answering DDC. MacBook HDMI ports often don't pass it on: plug it into a USB-C port, turn on DDC/CI in the monitor's menu, or use Software.":

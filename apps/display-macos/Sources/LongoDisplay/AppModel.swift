@@ -211,6 +211,15 @@ final class AppModel: ObservableObject {
         setLevel(min(max(value, 0), 1), for: display)
     }
 
+    /// The range an external display moves through in Sync, as the built-in display goes from 0% to 100%.
+    func setSyncRange(_ minimum: Double, _ maximum: Double, for display: Display) {
+        settings[display.key, default: DisplaySettings()].minimum = min(minimum, maximum)
+        settings[display.key, default: DisplaySettings()].maximum = max(minimum, maximum)
+        guard mode == .sync, isEnabled, isOn(display), let builtinValue = builtin.map({ settings(for: $0).brightness }) else { return }
+        let value = settings(for: display)
+        setBrightness(SyncMath.map(builtin: builtinValue, minimum: value.minimum, maximum: value.maximum), for: display)
+    }
+
     /// Brightness and extra dimming as one level (see `DisplaySettings.level`).
     func setLevel(_ value: Double, for display: Display) {
         let range = levelRange(for: display)

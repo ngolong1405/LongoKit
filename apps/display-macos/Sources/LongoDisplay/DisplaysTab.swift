@@ -293,19 +293,10 @@ private struct DisplayPage: View {
             }
 
             Group {
-            HStack(alignment: .center, spacing: 20) {
-                LimitTile(title: L("Min brightness"), value: value.minimum) { new in
-                    model.update(display) { $0.minimum = min(new, $0.maximum) }
-                }
-                ScreenCard(display: display, value: value)
-                LimitTile(title: L("Max brightness"), value: value.maximum) { new in
-                    model.update(display) { $0.maximum = max(new, $0.minimum) }
-                }
+            ScreenCard(display: display, value: value)
+            if !display.isBuiltin {
+                SyncRangeCard(display: display)
             }
-            Text(L("In Sync mode this display moves between its minimum and maximum as the built-in display changes."))
-                .font(.ui(11))
-                .foregroundStyle(Theme.textMuted)
-                .frame(maxWidth: .infinity)
             }
             .disabled(!model.isOn(display))
             .opacity(model.isOn(display) ? 1 : 0.4)
@@ -412,23 +403,96 @@ private struct ScreenCard: View {
     }
 }
 
-/// MIN / MAX: a big number with a small slider underneath.
-private struct LimitTile: View {
-    let title: String
-    let value: Double
-    let set: (Double) -> Void
+/// Sync for an external display: the range it moves through as the built-in display goes from 0% to 100%, with
+/// a live example. Only Sync uses it, which it says when the app is in Manual.
+private struct SyncRangeCard: View {
+    @EnvironmentObject private var model: AppModel
+    let display: Display
 
     var body: some View {
-        VStack(spacing: 8) {
-            Text("\(Int((value * 100).rounded()))")
-                .font(.display(40, .bold))
-                .foregroundStyle(Theme.solar)
-                .frame(width: 120, height: 70)
-                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.island))
-                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.hairline))
-            Text(title.uppercased()).font(.mono(10, .semibold)).foregroundStyle(Theme.textMuted)
-            DSSlider(value: Binding(get: { value }, set: set), range: 0...1, step: 0.01)
-                .frame(width: 120)
+        let value = model.settings(for: display)
+        let builtinValue = model.builtin.map { model.settings(for: $0).brightness } ?? 0.5
+        let mapped = SyncMath.map(builtin: builtinValue, minimum: value.minimum, maximum: value.maximum)
+        let syncing = model.mode == .sync
+        VStack(alignment: .leading, spacing: 14) {
+            CardHeader(symbol: "link", title: L("Sync with the MacBook"),
+                       subtitle: L("In Sync, this display follows the MacBook's brightness, within this range."),
+                       tint: Theme.violet) {
+                if syncing {
+                    Chip(L("On"), tone: .emerald, dot: true)
+                } else {
+                    Button(L("Use Sync")) { model.mode = .sync }.buttonStyle(.ghost)
+                }
+            }
+            RangeSlider(low: value.minimum, high: value.maximum) { low, high in
+                model.setSyncRange(low, high, for: display)
+            }
+            HStack(spacing: 6) {
+                Image(systemName: "laptopcomputer").foregroundStyle(Theme.textMuted)
+                Text("MacBook \(Int((builtinValue * 100).rounded()))%")
+                Image(systemName: "arrow.right").font(.system(size: 9, weight: .bold)).foregroundStyle(Theme.textFaint)
+                Image(systemName: "display").foregroundStyle(Theme.textMuted)
+                Text("\(model.displayName(display)) \(Int((mapped * 100).rounded()))%").foregroundStyle(Theme.solar)
+                Spacer()
+                if !syncing {
+                    Text(L("Used only in Sync mode")).foregroundStyle(Theme.textFaint)
+                }
+            }
+            .font(.mono(11, .semibold))
+            .foregroundStyle(Theme.textSecondary)
         }
+        .panel()
+    }
+}
+
+/// Two knobs on one track: the lowest and highest a display goes in Sync.
+private struct RangeSlider: View {
+    let low: Double
+    let high: Double
+    let set: (Double, Double) -> Void
+    /// The knob being dragged: picked at the start of a drag as the nearer one.
+    @State private var draggingLow: Bool?
+
+    var body: some View {
+        GeometryReader { geometry in
+            let knob: CGFloat = 44
+            let travel = geometry.size.width - knob
+            ZStack(alignment: .leading) {
+                Color.clear.frame(height: 6).recessed(radius: 3)
+                Capsule()
+                    .fill(Theme.accentGradient)
+                    .frame(width: max(travel * (high - low), 0), height: 6)
+                    .offset(x: travel * low + knob / 2)
+                    .shadow(color: Theme.solar.opacity(0.5), radius: 5)
+                knobView(low, title: L("Min")).offset(x: travel * low)
+                knobView(high, title: L("Max")).offset(x: travel * high)
+            }
+            .frame(height: 34)
+            .contentShape(Rectangle())
+            .gesture(DragGesture(minimumDistance: 0)
+                .onChanged { drag in
+                    let f = min(max((drag.location.x - knob / 2) / travel, 0), 1)
+                    let value = (f * 100).rounded() / 100
+                    let lowSide = draggingLow ?? (abs(value - low) <= abs(value - high) && !(low == high && value > high))
+                    draggingLow = lowSide
+                    if lowSide { set(min(value, high), high) } else { set(low, max(value, low)) }
+                }
+                .onEnded { _ in draggingLow = nil })
+        }
+        .frame(height: 34)
+    }
+
+    private func knobView(_ value: Double, title: String) -> some View {
+        VStack(spacing: 2) {
+            Text("\(Int((value * 100).rounded()))%")
+                .font(.mono(10, .bold))
+                .foregroundStyle(Theme.solar)
+                .frame(width: 44, height: 20)
+                .background(Capsule().fill(Theme.island))
+                .overlay(Capsule().strokeBorder(Theme.accentGradient, lineWidth: 1.5))
+            Text(title.uppercased()).font(.mono(8, .semibold)).foregroundStyle(Theme.textFaint)
+        }
+        .frame(width: 44)
+        .offset(y: 6)
     }
 }
