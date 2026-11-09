@@ -11,7 +11,7 @@ enum ControlMethod: String, Codable {
     case software
 }
 
-struct Display: Identifiable, Equatable {
+struct Display: Identifiable, Equatable, Codable {
     let id: CGDirectDisplayID
     /// Stable across reconnects and restarts (the display's UUID), used to keep its settings.
     let key: String
@@ -243,18 +243,17 @@ final class DisplayEngine {
         DisplayPower.set(display.id, on: on)
     }
 
-    /// Turns back on the displays with these keys that are connected but off. Nothing else is touched.
-    /// Returns whether none of them is still off.
-    @discardableResult
-    func turnOn(keys: Set<String>) -> Bool {
-        for id in DisplayPower.inactiveOnline() where keys.contains(Self.key(for: id)) {
-            // A display that's waking up can refuse once; ask again before giving up.
-            if !DisplayPower.set(id, on: true) {
-                usleep(300_000)
-                DisplayPower.set(id, on: true)
-            }
+    /// Asks macOS to turn these displays back on: by the IDs they had when turned off (a display that dropped out
+    /// of the connected list can only be reached that way) and by key among connected displays that are off.
+    /// Nothing else is touched. Whether they came back shows up in the next refresh.
+    func turnOn(ids: [CGDirectDisplayID], keys: Set<String>) {
+        var targets = Set(ids.filter { CGDisplayIsActive($0) == 0 })
+        for id in DisplayPower.inactiveOnline() where keys.contains(Self.key(for: id)) { targets.insert(id) }
+        for id in targets where !DisplayPower.set(id, on: true) {
+            // A display that's waking up can refuse once; ask again.
+            usleep(300_000)
+            DisplayPower.set(id, on: true)
         }
-        return !DisplayPower.inactiveOnline().contains { keys.contains(Self.key(for: $0)) }
     }
 
     /// The fallback when macOS won't turn a display off: a fully black picture. Gamma resets when the app quits.

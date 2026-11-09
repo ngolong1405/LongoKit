@@ -52,6 +52,13 @@ final class AppModel: ObservableObject {
     @Published private(set) var powerOff: [String: PowerOff] {
         didSet { save(powerOff, forKey: Keys.powerOff) }
     }
+    /// Each turned-off display as it was when turned off: its ID is how macOS turns it back on, and it stays listed
+    /// (as Off) even if it drops out of the connected list. Saved, for turning it back on after a crash.
+    private var offDisplays: [String: Display] {
+        didSet { save(offDisplays, forKey: Keys.offDisplays) }
+    }
+    /// Turned-off displays asked to come back on; forgotten once they show a picture.
+    private var turningOn: Set<String> = []
     /// Paused, the app leaves displays alone: no Sync, no brightness keys, no software dimming.
     @Published var isEnabled: Bool {
         didSet {
@@ -121,6 +128,7 @@ final class AppModel: ObservableObject {
         static let appearance = "appearance"
         static let menuBarIcon = "showMenuBarIcon"
         static let powerOff = "displaysTurnedOff"
+        static let offDisplays = "turnedOffDisplays"
         static let enabled = "enabled"
     }
 
@@ -129,6 +137,7 @@ final class AppModel: ObservableObject {
         self.defaults = defaults
         engine = live ? DisplayEngine() : nil
         settings = (defaults.data(forKey: Keys.settings)).flatMap { try? JSONDecoder().decode([String: DisplaySettings].self, from: $0) } ?? [:]
+        offDisplays = (defaults.data(forKey: Keys.offDisplays)).flatMap { try? JSONDecoder().decode([String: Display].self, from: $0) } ?? [:]
         powerOff = (defaults.data(forKey: Keys.powerOff)).flatMap { try? JSONDecoder().decode([String: PowerOff].self, from: $0) } ?? [:]
         isEnabled = defaults.object(forKey: Keys.enabled) as? Bool ?? true
         mode = defaults.string(forKey: Keys.mode).flatMap(BrightnessMode.init(rawValue:)) ?? .manual
@@ -142,10 +151,9 @@ final class AppModel: ObservableObject {
         applyAppearance()
         guard let engine else { return }
 
-        // Displays left off by a previous run come back on first (macOS normally does this itself when the
-        // app ends, see DisplayPower).
-        if !powerOff.isEmpty, engine.turnOn(keys: Set(powerOff.keys)) { powerOff = [:] }
+        // Displays left off by a previous run come back on first; each is forgotten once it shows a picture.
         engine.turnedOff = Set(powerOff.keys)
+        if !powerOff.isEmpty { turnAllOn() }
         emergencyKey = GlobalHotKey(controlOptionCommand: kVK_ANSI_B, id: 1) { [weak self] in
             MainActor.assumeIsolated { self?.turnAllOn() }
         }
@@ -292,9 +300,11 @@ final class AppModel: ObservableObject {
     private func turnOff(_ display: Display) {
         guard let engine, canTurnOff(display) else { return }
         // Saved before macOS is asked, so a crash right after still turns it back on at the next launch.
+        offDisplays[display.key] = display
         powerOff[display.key] = .disabled
         engine.turnedOff.insert(display.key)
         if !engine.setActive(display, false) {
+            offDisplays[display.key] = nil
             powerOff[display.key] = .blackout
             engine.turnedOff.remove(display.key)
             engine.setBlackout(display, true)
@@ -312,33 +322,64 @@ final class AppModel: ObservableObject {
         guard let engine, let state = powerOff[display.key] else { return }
         switch state {
         case .disabled:
-            // If macOS refuses, the display stays listed as off so it can be tried again (and quitting turns it on).
-            guard engine.turnOn(keys: [display.key]) else { return }
+            // It stays listed as off until it's really showing a picture (see `reloadDisplays`), so a display
+            // that doesn't come back can be tried again.
+            turningOn.insert(display.key)
+            engine.turnOn(ids: [offDisplays[display.key]?.id ?? display.id], keys: [display.key])
+            // Some displays take a while to wake; if it's still dark after a few seconds, ask once more.
+            let key = display.key
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+                guard let self, self.turningOn.contains(key) else { return }
+                self.engine?.turnOn(ids: [self.offDisplays[key]?.id ?? display.id], keys: [key])
+                self.reloadDisplays()
+            }
         case .blackout:
             engine.setBlackout(display, false)
+            powerOff[display.key] = nil
+            engine.turnedOff.remove(display.key)
         }
-        engine.turnedOff.remove(display.key)
-        powerOff[display.key] = nil
         reloadDisplays()
-        if let restored = displays.first(where: { $0.key == display.key && $0.isActive }) {
-            engine.apply(settings(for: restored), to: restored)
-        }
     }
 
     /// Every display this app turned off comes back on (⌃⌥⌘B, Quit, Restore Defaults).
     func turnAllOn() {
-        for display in displays where !isOn(display) { turnOn(display) }
-        // Off displays that dropped out of the list (unplugged, or still settling) too.
-        guard let engine, !powerOff.isEmpty, engine.turnOn(keys: Set(powerOff.keys)) else { return }
-        engine.turnedOff.removeAll()
-        powerOff = [:]
+        guard let engine else { return }
+        for (key, state) in powerOff {
+            switch state {
+            case .disabled:
+                turningOn.insert(key)
+            case .blackout:
+                if let display = displays.first(where: { $0.key == key }) { engine.setBlackout(display, false) }
+                powerOff[key] = nil
+                engine.turnedOff.remove(key)
+            }
+        }
+        let keys = Set(powerOff.keys)
+        if !keys.isEmpty { engine.turnOn(ids: keys.compactMap { offDisplays[$0]?.id }, keys: keys) }
+        reloadDisplays()
     }
 
     private func reloadDisplays() {
         guard let engine else { return }
         engine.softwareOnly = Set(settings.filter { $0.value.control == .software }.keys)
         engine.refresh()
-        displays = engine.displays
+        var listed = engine.displays
+        // A display asked back on is done once it's showing a picture: forget it and give it its brightness.
+        for key in turningOn {
+            guard let display = listed.first(where: { $0.key == key && $0.isActive }) else { continue }
+            turningOn.remove(key)
+            powerOff[key] = nil
+            offDisplays[key] = nil
+            engine.turnedOff.remove(key)
+            if isEnabled { engine.apply(settings(for: display), to: display) }
+        }
+        // A turned-off display that dropped out of the connected list stays listed, as Off, so it can be turned on.
+        for (key, display) in offDisplays where powerOff[key] == .disabled && !listed.contains(where: { $0.key == key }) {
+            var off = display
+            off.isActive = false
+            listed.append(off)
+        }
+        displays = listed.sorted { ($0.isBuiltin ? 0 : 1, $0.name) < ($1.isBuiltin ? 0 : 1, $1.name) }
         // Blacked-out displays stay black (reconnecting resets their gamma). Turned-off ones are never forgotten
         // here: only turning them on clears them, so one can't end up off with no way back from the app.
         for (key, state) in powerOff where state == .blackout {

@@ -4,8 +4,10 @@ import Foundation
 /// Turns a display off and on as if its cable were unplugged: windows move to the other displays.
 ///
 /// Safety comes first:
-/// - Changes are made "for this app only" (`.forAppOnly`): if Longo Display quits, crashes or is force-quit,
-///   macOS itself turns every display back on. A display can't be left off by a broken app.
+/// - Don't count on macOS undoing it: a turned-off display stays off after the app quits, and some (USB-C
+///   monitors powered by the cable) drop out of the connected list entirely. So the app remembers each turned-off
+///   display's ID and turns it on by that ID, listed or not, and only forgets it once it's showing a picture again.
+/// - Changes last for the login session at most (`.forSession`): logging out or restarting brings every display back.
 /// - The last display that's on can never be turned off.
 /// - Only displays this app turned off are ever turned on again; it never touches a closed MacBook lid.
 /// - ⌃⌥⌘B turns every display back on, from anywhere, without any permission (see `AppModel`).
@@ -45,7 +47,7 @@ enum DisplayPower {
             CGCancelDisplayConfiguration(config)
             return false
         }
-        return CGCompleteDisplayConfiguration(config, .forAppOnly) == .success
+        return CGCompleteDisplayConfiguration(config, .forSession) == .success
     }
 
     /// Connected displays macOS isn't showing a picture on (turned off, or a closed MacBook lid).
