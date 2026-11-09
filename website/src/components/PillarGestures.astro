@@ -11,6 +11,16 @@ const t = pick(lang, {
     title: "Gestures for Every Button",
     lead: "Click, hold, drag, or scroll with any extra button to run an action.",
     listen: "Click \"Listen\", then press a mouse button to assign it", example: "Example:",
+    tester: "Try your own mouse", testerBody: "Click, double-click, hold, drag or hold-and-scroll with the middle button or a side button inside the box, like Listen in the app.",
+    pad: "Press a mouse button here", heard: "Heard", plain: "Plain left and right clicks stay as they are; hold ⌘, ⌥, ⌃ or ⇧ to use them in a gesture.",
+    withMods: "can be assigned with modifier keys",
+    buttons: { 1: "Middle button", 3: "Button 4", 4: "Button 5", 0: "Left button", 2: "Right button" },
+    types: { click: "Click", double: "Double click", hold: "Hold", drag: "Drag", scroll: "Click + Scroll" },
+    actions: {
+      1: { click: "Middle click", double: "Show Desktop", hold: "Mission Control", drag: "Grab to scroll", scroll: "Zoom in / out" },
+      3: { click: "Back", double: "Launchpad", hold: "App Exposé", drag: "Switch Spaces", scroll: "Zoom in / out" },
+      4: { click: "Forward", double: "⌘ ⇧ 4 (screenshot)", hold: "Mission Control", drag: "Mission Control", scroll: "Switch Spaces" },
+    },
     cards: [
       ["Drag", "Click + Drag", "Drag to switch Spaces, open Mission Control, or scroll.", "Button 5", "Drag up", "Mission Control"],
       ["Click + Scroll", "Click + Scroll", "Hold a button and scroll to zoom or switch Spaces.", "Button 4", "Scroll", "Zoom in / out"],
@@ -22,6 +32,16 @@ const t = pick(lang, {
     title: "Cử Chỉ Cho Mọi Nút",
     lead: "Nhấn, giữ, kéo hoặc lăn với nút phụ bất kỳ để chạy một hành động.",
     listen: "Bấm \"Nghe\" rồi nhấn nút chuột để gán", example: "Ví dụ:",
+    tester: "Thử bằng chuột của bạn", testerBody: "Nhấn, nhấn đúp, giữ, kéo hoặc giữ + lăn bằng nút giữa hay nút bên trong khung, giống chế độ Nghe trong app.",
+    pad: "Nhấn một nút chuột ở đây", heard: "Đã nghe", plain: "Click trái và phải thường giữ nguyên; giữ ⌘, ⌥, ⌃ hoặc ⇧ để dùng chúng trong cử chỉ.",
+    withMods: "gán được khi giữ phím bổ trợ",
+    buttons: { 1: "Nút giữa", 3: "Nút 4", 4: "Nút 5", 0: "Nút trái", 2: "Nút phải" },
+    types: { click: "Nhấn", double: "Nhấn đúp", hold: "Giữ", drag: "Kéo", scroll: "Click + Lăn" },
+    actions: {
+      1: { click: "Click giữa", double: "Hiện màn hình nền", hold: "Mission Control", drag: "Kéo để cuộn", scroll: "Phóng to / thu nhỏ" },
+      3: { click: "Back", double: "Launchpad", hold: "App Exposé", drag: "Chuyển Spaces", scroll: "Phóng to / thu nhỏ" },
+      4: { click: "Forward", double: "⌘ ⇧ 4 (chụp màn hình)", hold: "Mission Control", drag: "Mission Control", scroll: "Chuyển Spaces" },
+    },
     cards: [
       ["Kéo", "Click + Kéo", "Kéo để chuyển Spaces, mở Mission Control hoặc cuộn trang.", "Nút 5", "Kéo lên", "Mission Control"],
       ["Click + Lăn", "Click + Cuộn", "Giữ nút rồi lăn để phóng to hoặc chuyển Spaces.", "Nút 4", "Lăn", "Phóng to / thu nhỏ"],
@@ -87,5 +107,83 @@ const gestures = style.map((s, i) => {
         ))
       }
     </div>
+
+    <!-- Listen: classify the visitor's own clicks the way the app does (hold 0.4 s, drag 12 px). -->
+    <div class="grid grid-cols-1 items-stretch gap-gutter rounded-2xl bg-surface-container-low p-space-lg shadow-xl lg:grid-cols-12" id="listen-demo">
+      <div class="flex flex-col gap-space-sm lg:col-span-4">
+        <span class="flex items-center gap-space-xs font-display text-headline-sm"><span class="material-symbols-outlined text-[22px] text-secondary">hearing</span>{t.tester}</span>
+        <p class="text-body-sm text-on-surface-variant">{t.testerBody}</p>
+        <p class="font-code text-[11px] text-on-surface-variant">{t.plain}</p>
+      </div>
+      <div class="flex min-h-[180px] cursor-crosshair select-none flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-secondary/40 bg-surface-container-lowest p-space-md text-center transition-colors lg:col-span-4" data-pad>
+        <span class="material-symbols-outlined text-[36px] text-secondary" data-pad-icon>mouse</span>
+        <span class="font-code text-xs text-on-surface-variant" data-pad-text>{t.pad}</span>
+      </div>
+      <div class="flex flex-col gap-2 lg:col-span-4">
+        <span class="font-code text-label-badge uppercase tracking-wider text-on-surface-variant">{t.heard}</span>
+        <div class="flex flex-col gap-2" data-log></div>
+      </div>
+    </div>
   </div>
 </section>
+
+<script define:vars={{ t }}>
+  const demo = document.getElementById("listen-demo");
+  const pad = demo.querySelector("[data-pad]"), padText = demo.querySelector("[data-pad-text]"), log = demo.querySelector("[data-log]");
+  const HOLD = 400, DRAG = 12, DOUBLE = 350;
+  let press = null, pendingClick = null;
+
+  const report = (button, type, mods) => {
+    const name = (mods ? mods + " " : "") + t.buttons[button];
+    const action = t.actions[button]?.[type] ?? t.withMods;
+    padText.textContent = `${name} · ${t.types[type]}`;
+    const row = document.createElement("div");
+    row.className = "flex items-center justify-between gap-2 rounded-lg bg-surface-container px-3 py-2 font-code text-[12px]";
+    row.innerHTML = `<span><span class="text-primary">${name}</span> · <span class="text-tertiary">${t.types[type]}</span></span><span class="font-semibold">➔ ${action}</span>`;
+    log.prepend(row);
+    while (log.children.length > 4) log.lastChild.remove();
+    pad.classList.add("border-secondary");
+    setTimeout(() => pad.classList.remove("border-secondary"), 250);
+  };
+  const modifiers = (e) => [e.ctrlKey && "⌃", e.altKey && "⌥", e.shiftKey && "⇧", e.metaKey && "⌘"].filter(Boolean).join("");
+
+  pad.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    const mods = modifiers(e);
+    // Like the app: plain left and right clicks aren't remapped.
+    if (e.button < 3 && e.button !== 1 && !mods) { padText.textContent = t.plain; return; }
+    if (pendingClick && pendingClick.button === e.button) {
+      clearTimeout(pendingClick.timer); pendingClick = null;
+      press = { button: e.button, mods, used: true };
+      report(e.button, "double", mods);
+      return;
+    }
+    press = { button: e.button, mods, x: e.clientX, y: e.clientY, used: false };
+    press.timer = setTimeout(() => { if (press && !press.used) { press.used = true; report(press.button, "hold", press.mods); } }, HOLD);
+  });
+  pad.addEventListener("mousemove", (e) => {
+    if (!press || press.used) return;
+    if (Math.hypot(e.clientX - press.x, e.clientY - press.y) > DRAG) {
+      press.used = true; clearTimeout(press.timer); report(press.button, "drag", press.mods);
+    }
+  });
+  pad.addEventListener("wheel", (e) => {
+    if (!press) return;
+    e.preventDefault();
+    if (!press.used) { press.used = true; clearTimeout(press.timer); report(press.button, "scroll", press.mods); }
+  }, { passive: false });
+  const release = (e) => {
+    if (!press || press.button !== e.button) return;
+    e.preventDefault();
+    clearTimeout(press.timer);
+    if (!press.used) {
+      const { button, mods } = press;
+      pendingClick = { button, timer: setTimeout(() => { pendingClick = null; report(button, "click", mods); }, DOUBLE) };
+    }
+    press = null;
+  };
+  // mouseup on the window too, so a drag that leaves the box still ends; back / forward don't navigate.
+  window.addEventListener("mouseup", release);
+  pad.addEventListener("auxclick", (e) => e.preventDefault());
+  pad.addEventListener("contextmenu", (e) => e.preventDefault());
+</script>

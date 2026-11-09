@@ -1,0 +1,76 @@
+---
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Way out", title: "One Shortcut to Pause Everything",
+    lead: "If a mapping ever gets in your way, ⌃⌥⌘M pauses Longo Mouse from any app: every button and the wheel go back to how macOS works. Press it again to resume. No permission needed for the shortcut itself.",
+    try: "Press ⌃⌥⌘M on your keyboard, or the button.", running: "Running", paused: "Paused",
+    runningBody: "Buttons, gestures and smooth scrolling are on.", pausedBody: "Everything works as macOS does by itself.",
+    press: "Pause", resume: "Resume",
+  },
+  vi: {
+    badge: "Lối thoát", title: "Một Phím Tắt Để Tạm Dừng Tất Cả",
+    lead: "Nếu một thiết lập nào đó làm vướng tay, ⌃⌥⌘M tạm dừng Longo Mouse từ bất kỳ app nào: mọi nút và con lăn trở về như macOS mặc định. Bấm lần nữa để bật lại. Phím tắt này không cần cấp quyền.",
+    try: "Bấm ⌃⌥⌘M trên bàn phím, hoặc bấm nút.", running: "Đang chạy", paused: "Tạm dừng",
+    runningBody: "Nút, cử chỉ và cuộn mượt đang bật.", pausedBody: "Mọi thứ hoạt động như macOS vốn làm.",
+    press: "Tạm dừng", resume: "Bật lại",
+  },
+});
+---
+
+<section class="w-full px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-gutter-lg rounded-3xl bg-surface-container-low p-space-lg shadow-xl lg:grid-cols-12 lg:p-space-xl" id="pause-demo">
+    <div class="flex flex-col gap-space-sm lg:col-span-7">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-tertiary">{t.badge}</span>
+      <h2 class="text-headline-lg">{t.title}</h2>
+      <p class="text-body-md text-on-surface-variant">{t.lead}</p>
+      <div class="flex items-center gap-1.5 pt-space-xs">
+        {["⌃", "⌥", "⌘", "M"].map((k) => (
+          <kbd class="flex h-10 min-w-10 items-center justify-center rounded-lg bg-surface-container-highest px-2 font-code text-lg shadow-[inset_0_-2px_0_rgba(0,0,0,0.15)]" data-key>{k}</kbd>
+        ))}
+        <span class="ml-space-sm font-code text-[11px] text-on-surface-variant">{t.try}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-space-md rounded-2xl bg-surface-container-lowest p-space-lg lg:col-span-5">
+      <button type="button" data-toggle class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-container to-secondary-container text-white shadow-[0_6px_20px_rgba(255,107,53,0.4)] transition-all" aria-label={t.press}>
+        <span class="material-symbols-outlined text-[26px]">power_settings_new</span>
+      </button>
+      <div class="flex flex-col gap-1">
+        <span class="flex items-center gap-2 font-display text-headline-sm">
+          <span class="h-2.5 w-2.5 rounded-full bg-emerald-500" data-dot></span><span data-state>{t.running}</span>
+        </span>
+        <span class="text-body-sm text-on-surface-variant" data-body>{t.runningBody}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ t }}>
+  const demo = document.getElementById("pause-demo");
+  const toggle = demo.querySelector("[data-toggle]");
+  let running = true;
+  const flashKeys = () => demo.querySelectorAll("[data-key]").forEach((k) => {
+    k.classList.add("bg-primary-container", "text-white");
+    setTimeout(() => k.classList.remove("bg-primary-container", "text-white"), 300);
+  });
+  const set = (on) => {
+    running = on;
+    demo.querySelector("[data-state]").textContent = on ? t.running : t.paused;
+    demo.querySelector("[data-body]").textContent = on ? t.runningBody : t.pausedBody;
+    demo.querySelector("[data-dot]").className = "h-2.5 w-2.5 rounded-full " + (on ? "bg-emerald-500" : "bg-amber-500");
+    toggle.className = "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl transition-all " + (on
+      ? "bg-gradient-to-br from-primary-container to-secondary-container text-white shadow-[0_6px_20px_rgba(255,107,53,0.4)]"
+      : "bg-surface-container-highest text-on-surface-variant");
+    toggle.setAttribute("aria-label", on ? t.press : t.resume);
+  };
+  toggle.addEventListener("click", () => set(!running));
+  window.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.altKey && e.metaKey && e.code === "KeyM") { e.preventDefault(); flashKeys(); set(!running); }
+  });
+</script>

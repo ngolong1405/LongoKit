@@ -17,6 +17,8 @@ const t = pick(lang, {
     smoothBody: "Fast at first, then eases to a stop.",
     smoothNote: "120 Hz glide with a natural ease-out",
     tune: "Tune glide & scroll speed", perMouse: "Per mouse", glide: "Glide time", speed: "Scroll speed", soon: "Coming soon",
+    tryIt: "Scroll with your mouse over either side: both move together.",
+    modifiers: "Hold ⌥ to scroll slowly, ⌘ to scroll fast.", slow: "⌥ held: precise, ¼ speed", fast: "⌘ held: turbo, 4× speed",
     micro: [
       ["Smooth notch by notch", "No more jumpy scrolling."],
       ["Mouse-only direction", "Natural or Classic, without touching the trackpad."],
@@ -34,6 +36,8 @@ const t = pick(lang, {
     smoothBody: "Nhanh lúc đầu, chậm dần đến khi dừng.",
     smoothNote: "Trượt 120 Hz, chậm dần tự nhiên",
     tune: "Tuỳ chỉnh độ trượt & tốc độ cuộn", perMouse: "Theo từng chuột", glide: "Thời gian trượt", speed: "Tốc độ cuộn", soon: "Sắp có",
+    tryIt: "Lăn chuột trên một trong hai bên: cả hai cùng cuộn.",
+    modifiers: "Giữ ⌥ để cuộn chậm, ⌘ để cuộn nhanh.", slow: "Đang giữ ⌥: cuộn chính xác, tốc độ ¼", fast: "Đang giữ ⌘: cuộn nhanh, tốc độ 4×",
     micro: [
       ["Cuộn mượt từng nấc", "Không còn giật cục khi cuộn."],
       ["Hướng cuộn riêng cho chuột", "Tự nhiên hoặc Cổ điển, trackpad giữ nguyên."],
@@ -64,38 +68,30 @@ const micro = style.map((s, i) => ({ ...s, title: t.micro[i][0], body: t.micro[i
     </div>
 
     <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-12">
-      <div class="flex flex-col gap-space-md lg:col-span-7">
-        <div class="grid grid-cols-1 gap-gutter md:grid-cols-2">
-          <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container-low p-space-lg shadow-md">
-            <div class="flex items-center justify-between">
-              <span class="rounded bg-surface-container-highest px-2 py-0.5 font-code text-label-badge text-error">{t.osDefault}</span>
-              <span class="material-symbols-outlined text-[20px] text-error">block</span>
+      <!-- Live comparison: the wheel over either pane scrolls both, one jumping and one gliding like the app. -->
+      <div class="flex flex-col gap-space-md lg:col-span-7" id="scroll-demo">
+        <div class="grid grid-cols-2 gap-gutter-sm">
+          {[["jump", t.osDefault, t.regularBody, "text-error", "bg-surface-container-highest"], ["glide", "LongoMouse", t.smoothBody, "text-primary", "bg-primary-container/20"]].map(([id, tag, body, tint, chip]) => (
+            <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container-low p-space-md shadow-md">
+              <div class="flex items-center justify-between">
+                <span class:list={["rounded px-2 py-0.5 font-code text-label-badge", chip, tint]}>{tag}</span>
+                <span class:list={["material-symbols-outlined text-[20px]", tint]}>{id === "jump" ? "block" : "check_circle"}</span>
+              </div>
+              <p class="text-body-sm text-on-surface-variant">{body}</p>
+              <div class="relative h-56 overflow-hidden rounded-lg bg-surface-container-lowest" data-pane={id}>
+                <div class="absolute inset-x-0 top-0 flex flex-col gap-2 p-3 will-change-transform" data-content>
+                  {Array.from({ length: 40 }, (_, i) => (
+                    <div class="flex items-center gap-2 rounded-md bg-surface-container px-2 py-1.5">
+                      <span class:list={["h-5 w-5 shrink-0 rounded", i % 3 === 0 ? "bg-primary-container/40" : i % 3 === 1 ? "bg-secondary-container/40" : "bg-tertiary/30"]}></span>
+                      <span class="h-2 rounded-full bg-on-surface-variant/25" style={`width: ${40 + ((i * 37) % 50)}%`}></span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <h3 class="text-headline-sm">{t.regular}</h3>
-            <p class="text-body-sm text-on-surface-variant">{t.regularBody}</p>
-            <div class="flex h-24 flex-col justify-end rounded-lg bg-surface-container-lowest p-2">
-              <svg class="h-16 w-full text-error/60" fill="none" viewBox="0 0 200 40" aria-hidden="true">
-                <path d="M 0 35 L 20 35 L 20 15 L 40 15 L 40 35 L 70 35 L 70 5 L 90 5 L 90 35 L 120 35 L 120 10 L 140 10 L 140 35 L 200 35" stroke="currentColor" stroke-width="2"></path>
-              </svg>
-              <span class="mt-1 text-center font-code text-[10px] text-on-surface-variant">{t.regularNote}</span>
-            </div>
-          </div>
-          <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container p-space-lg shadow-xl">
-            <div class="flex items-center justify-between">
-              <span class="rounded bg-primary-container/20 px-2 py-0.5 font-code text-label-badge text-primary">LongoMouse</span>
-              <span class="material-symbols-outlined text-[20px] text-primary">check_circle</span>
-            </div>
-            <h3 class="text-headline-sm">{t.smoothTitle}</h3>
-            <p class="text-body-sm text-on-surface-variant">{t.smoothBody}</p>
-            <div class="flex h-24 flex-col justify-end rounded-lg bg-surface-container-lowest p-2">
-              <svg class="h-16 w-full text-primary-container" fill="none" viewBox="0 0 200 40" aria-hidden="true">
-                <path d="M 0 35 C 30 35, 40 5, 80 5 C 130 5, 160 30, 200 35" stroke="currentColor" stroke-width="2.5"></path>
-                <path d="M 0 35 C 30 35, 40 5, 80 5 C 130 5, 160 30, 200 35 L 200 40 L 0 40 Z" fill="currentColor" fill-opacity="0.15"></path>
-              </svg>
-              <span class="mt-1 text-center font-code text-[10px] text-primary">{t.smoothNote}</span>
-            </div>
-          </div>
+          ))}
         </div>
+        <p class="text-center font-code text-[11px] text-on-surface-variant">{t.tryIt}</p>
 
         <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container-high p-space-md shadow-md">
           <div class="flex items-center justify-between">
@@ -106,23 +102,16 @@ const micro = style.map((s, i) => ({ ...s, title: t.micro[i][0], body: t.micro[i
             <span class="rounded bg-surface-container px-2 py-0.5 font-code text-label-badge text-tertiary">{t.perMouse}</span>
           </div>
           <div class="grid grid-cols-1 gap-gutter-sm pt-2 md:grid-cols-2">
-            <div class="flex flex-col gap-1.5">
-              <div class="flex justify-between font-code text-[11px] text-on-surface-variant">
-                <span>{t.glide}</span><span class="font-bold text-primary">800 ms</span>
-              </div>
-              <div class="h-2 w-full overflow-hidden rounded-full bg-surface-container-lowest">
-                <div class="h-full w-[75%] rounded-full bg-gradient-to-r from-primary-container to-primary"></div>
-              </div>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <div class="flex justify-between font-code text-[11px] text-on-surface-variant">
-                <span>{t.speed}</span><span class="font-bold text-secondary">1.25×</span>
-              </div>
-              <div class="h-2 w-full overflow-hidden rounded-full bg-surface-container-lowest">
-                <div class="h-full w-[50%] rounded-full bg-gradient-to-r from-secondary-container to-secondary"></div>
-              </div>
-            </div>
+            <label class="flex flex-col gap-1.5">
+              <span class="flex justify-between font-code text-[11px] text-on-surface-variant">{t.glide}<span class="font-bold text-primary" data-smooth-value>800 ms</span></span>
+              <input type="range" min="0" max="100" value="75" data-smooth class="h-1.5 w-full cursor-pointer accent-[#ff6b35]" />
+            </label>
+            <label class="flex flex-col gap-1.5">
+              <span class="flex justify-between font-code text-[11px] text-on-surface-variant">{t.speed}<span class="font-bold text-secondary" data-speed-value>1.00×</span></span>
+              <input type="range" min="50" max="200" step="5" value="100" data-speed class="h-1.5 w-full cursor-pointer accent-[#8a4cfc]" />
+            </label>
           </div>
+          <span class="font-code text-[11px] text-on-surface-variant" data-mod>{t.modifiers}</span>
         </div>
       </div>
 
@@ -147,3 +136,49 @@ const micro = style.map((s, i) => ({ ...s, title: t.micro[i][0], body: t.micro[i
     </div>
   </div>
 </section>
+
+<script define:vars={{ t }}>
+  const demo = document.getElementById("scroll-demo");
+  const panes = { jump: demo.querySelector('[data-pane="jump"]'), glide: demo.querySelector('[data-pane="glide"]') };
+  const content = { jump: panes.jump.querySelector("[data-content]"), glide: panes.glide.querySelector("[data-content]") };
+  const smooth = demo.querySelector("[data-smooth]"), speed = demo.querySelector("[data-speed]"), mod = demo.querySelector("[data-mod]");
+  const pos = { jump: 0, glide: 0 };
+  let target = 0, last = 0, running = false;
+  const limit = () => Math.max(0, content.jump.scrollHeight - panes.jump.clientHeight);
+  const show = (id) => { content[id].style.transform = `translateY(${-pos[id]}px)`; };
+
+  // Like the app: each frame covers a share of what's left, so it starts fast and eases out;
+  // the glide time (smoothness 0…1) sets how long it takes to settle, about 200…1000 ms.
+  const frame = (now) => {
+    const dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+    const duration = 0.2 + 0.8 * (+smooth.value / 100);
+    pos.glide += (target - pos.glide) * (1 - Math.exp(-dt / (duration / 4)));
+    if (Math.abs(target - pos.glide) < 0.5) { pos.glide = target; running = false; }
+    show("glide");
+    if (running) requestAnimationFrame(frame);
+  };
+
+  const wheel = (e) => {
+    e.preventDefault();
+    let factor = +speed.value / 100;
+    if (e.altKey) factor *= 0.25; else if (e.metaKey) factor *= 4;
+    mod.textContent = e.altKey ? t.slow : e.metaKey ? t.fast : t.modifiers;
+    // A notched wheel reports ±120 per notch (wheelDeltaY); a notch is about 40 px of page.
+    // Trackpads and smooth wheels report pixels, which both sides follow as they are.
+    const notches = e.wheelDeltaY && e.wheelDeltaY % 120 === 0 ? -e.wheelDeltaY / 120 : e.deltaMode === 1 ? e.deltaY : 0;
+    const pixels = notches ? notches * 40 : e.deltaY;
+    pos.jump = Math.min(Math.max(pos.jump + pixels * factor, 0), limit());
+    show("jump");
+    target = Math.min(Math.max(target + pixels * factor, 0), limit());
+    if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); }
+  };
+  Object.values(panes).forEach((pane) => pane.addEventListener("wheel", wheel, { passive: false }));
+
+  smooth.addEventListener("input", () => {
+    demo.querySelector("[data-smooth-value]").textContent = Math.round((0.2 + 0.8 * (+smooth.value / 100)) * 1000) + " ms";
+  });
+  speed.addEventListener("input", () => {
+    demo.querySelector("[data-speed-value]").textContent = (+speed.value / 100).toFixed(2) + "×";
+  });
+</script>

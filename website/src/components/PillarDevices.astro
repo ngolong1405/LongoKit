@@ -22,6 +22,14 @@ const t = pick(lang, {
     ],
     config: "Settings: Logitech MX Master 3S", b4: "Button 4 (back side):", b4Value: "Click: Back · Drag: switch Spaces",
     b5: "Button 5 (front side):", b5Value: "Hold: Mission Control", local: "Settings stay on your Mac; nothing is sent anywhere.",
+    scroll: "Scrolling:", auto: "Switch profile automatically", autoOn: "Touch a mouse below: its settings come with it.",
+    autoOff: "Automatic switching is off: still using the settings of", inUse: "IN USE", standby: "STANDBY",
+    profiles: [
+      { b4: "Click: Back · Drag: switch Spaces", b5: "Hold: Mission Control", scroll: "Own · smooth, 800 ms" },
+      { b4: "Click: Back", b5: "Click: Forward · Hold: ⌘ ⇧ 4", scroll: "Shared with All mice" },
+      { b4: "—", b5: "—", scroll: "Unchanged (touch gestures)" },
+    ],
+    touchHint: "Click a mouse to use it",
   },
   vi: {
     title: "Cài Đặt Riêng Cho Từng Chuột",
@@ -38,6 +46,14 @@ const t = pick(lang, {
     ],
     config: "Cấu hình: Logitech MX Master 3S", b4: "Nút 4 (bên hông sau):", b4Value: "Nhấn: Back · Kéo: chuyển Spaces",
     b5: "Nút 5 (bên hông trước):", b5Value: "Giữ: Mission Control", local: "Cài đặt chỉ lưu trên máy của bạn, không gửi dữ liệu ra ngoài.",
+    scroll: "Cuộn:", auto: "Tự đổi hồ sơ", autoOn: "Bấm vào một con chuột bên dưới: cài đặt của nó đi theo.",
+    autoOff: "Tự đổi đang tắt: vẫn dùng cài đặt của", inUse: "ĐANG DÙNG", standby: "CHỜ",
+    profiles: [
+      { b4: "Nhấn: Back · Kéo: chuyển Spaces", b5: "Giữ: Mission Control", scroll: "Riêng · mượt, 800 ms" },
+      { b4: "Nhấn: Back", b5: "Nhấn: Forward · Giữ: ⌘ ⇧ 4", scroll: "Dùng chung với Mọi chuột" },
+      { b4: "—", b5: "—", scroll: "Giữ nguyên (cử chỉ cảm ứng)" },
+    ],
+    touchHint: "Bấm vào một con chuột để dùng nó",
   },
 });
 
@@ -76,14 +92,21 @@ const checks = ["text-primary", "text-secondary", "text-tertiary"];
       </ul>
     </div>
 
-    <div class="flex flex-col gap-space-md lg:col-span-7">
+    <div class="flex flex-col gap-space-md lg:col-span-7" id="devices-demo">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <span class="font-code text-[11px] text-on-surface-variant">{t.touchHint}</span>
+        <button type="button" data-auto class="flex items-center gap-2 rounded-full bg-surface-container px-3 py-1.5 text-body-sm">
+          <span class="relative h-5 w-9 rounded-full bg-primary-container transition-colors" data-auto-track><span class="absolute top-0.5 left-[18px] h-4 w-4 rounded-full bg-white shadow transition-all" data-auto-knob></span></span>
+          {t.auto}
+        </button>
+      </div>
       <div class="grid grid-cols-1 gap-gutter-sm sm:grid-cols-3">
         {
-          devices.map((d) => (
-            <div class:list={["flex flex-col gap-2 rounded-xl p-space-md", d.active ? "bg-surface-container shadow-md" : "bg-surface-container-high opacity-85 shadow-sm"]}>
+          devices.map((d, i) => (
+            <button type="button" data-device={i} class="flex flex-col gap-2 rounded-xl p-space-md text-left transition-all">
               <div class="flex items-center justify-between">
-                <span class:list={["h-2 w-2 rounded-full", d.dot]} />
-                <span class:list={["font-code text-[10px]", d.tint]}>{d.state}</span>
+                <span class:list={["h-2 w-2 rounded-full", d.dot]} data-dot />
+                <span class:list={["font-code text-[10px]", d.tint]} data-state>{d.state}</span>
               </div>
               <div class="flex flex-col">
                 <span class="font-display text-[16px] font-semibold">{d.name}</span>
@@ -93,7 +116,7 @@ const checks = ["text-primary", "text-secondary", "text-tertiary"];
                 <span class="text-on-surface-variant">{d.left}</span>
                 <span class={d.tint}>{d.right}</span>
               </div>
-            </div>
+            </button>
           ))
         }
       </div>
@@ -102,27 +125,22 @@ const checks = ["text-primary", "text-secondary", "text-tertiary"];
         <div class="-mx-6 -mt-6 flex flex-wrap items-center justify-between gap-2 rounded-t-2xl bg-surface-container-low/40 p-4">
           <div class="flex items-center gap-space-xs">
             <span class="material-symbols-outlined text-[20px] text-primary">settings_suggest</span>
-            <span class="font-code text-body-sm font-semibold">{t.config}</span>
-          </div>
-          <span class="rounded bg-surface-container px-2 py-0.5 font-code text-label-badge text-on-surface-variant">VID 0x046D · PID 0xB034</span>
-        </div>
-        <div class="grid grid-cols-1 gap-gutter md:grid-cols-2">
-          <div class="flex flex-col gap-space-xs">
-            <span class="font-code text-[12px] font-medium">{t.b4}</span>
-            <div class="flex items-center justify-between rounded-xl bg-surface-container-lowest p-2.5 font-code text-label-code">
-              <span>{t.b4Value}</span>
-              <span class="material-symbols-outlined text-[16px] text-primary">expand_more</span>
-            </div>
-          </div>
-          <div class="flex flex-col gap-space-xs">
-            <span class="font-code text-[12px] font-medium">{t.b5}</span>
-            <div class="flex items-center justify-between rounded-xl bg-surface-container-lowest p-2.5 font-code text-label-code">
-              <span>{t.b5Value}</span>
-              <span class="material-symbols-outlined text-[16px] text-secondary">expand_more</span>
-            </div>
+            <span class="font-code text-body-sm font-semibold" data-config>{t.config}</span>
           </div>
         </div>
-        <div class="flex items-center gap-2 pt-space-xs">
+        <div class="grid grid-cols-1 gap-gutter md:grid-cols-3">
+          {[[t.b4, "b4", "text-primary"], [t.b5, "b5", "text-secondary"], [t.scroll, "scroll", "text-tertiary"]].map(([label, key, tint]) => (
+            <div class="flex flex-col gap-space-xs">
+              <span class="font-code text-[12px] font-medium">{label}</span>
+              <div class="flex min-h-[44px] items-center justify-between rounded-xl bg-surface-container-lowest p-2.5 font-code text-label-code transition-colors" data-field={key}>
+                <span data-value></span>
+                <span class:list={["material-symbols-outlined text-[16px]", tint]}>expand_more</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <span class="font-code text-[11px] text-on-surface-variant" data-auto-note>{t.autoOn}</span>
+        <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-[18px] text-tertiary">verified_user</span>
           <span class="text-body-sm text-on-surface-variant">{t.local}</span>
         </div>
@@ -130,3 +148,35 @@ const checks = ["text-primary", "text-secondary", "text-tertiary"];
     </div>
   </div>
 </section>
+
+<script define:vars={{ t, names: style.map((d) => d.name) }}>
+  const demo = document.getElementById("devices-demo");
+  const cards = [...demo.querySelectorAll("[data-device]")];
+  let active = 0, shown = 0, auto = true;
+  const render = () => {
+    cards.forEach((card, i) => {
+      const on = i === active;
+      card.className = "flex flex-col gap-2 rounded-xl p-space-md text-left transition-all " + (on ? "bg-surface-container shadow-md ring-2 ring-primary/40" : "bg-surface-container-high opacity-85 shadow-sm hover:opacity-100");
+      card.querySelector("[data-state]").textContent = on ? t.inUse : t.standby;
+      card.querySelector("[data-dot]").classList.toggle("animate-pulse", on);
+    });
+    const p = t.profiles[shown];
+    demo.querySelector("[data-config]").textContent = t.config.split(":")[0] + ": " + names[shown];
+    ["b4", "b5", "scroll"].forEach((key) => {
+      const field = demo.querySelector(`[data-field="${key}"]`);
+      field.querySelector("[data-value]").textContent = p[key];
+      field.classList.add("bg-primary-container/10");
+      setTimeout(() => field.classList.remove("bg-primary-container/10"), 300);
+    });
+    demo.querySelector("[data-auto-note]").textContent = auto ? t.autoOn : `${t.autoOff} ${names[shown]}.`;
+  };
+  cards.forEach((card, i) => card.addEventListener("click", () => { active = i; if (auto) shown = i; render(); }));
+  demo.querySelector("[data-auto]").addEventListener("click", () => {
+    auto = !auto;
+    if (auto) shown = active;
+    demo.querySelector("[data-auto-track]").className = "relative h-5 w-9 rounded-full transition-colors " + (auto ? "bg-primary-container" : "bg-surface-container-highest");
+    demo.querySelector("[data-auto-knob]").style.left = auto ? "18px" : "2px";
+    render();
+  });
+  render();
+</script>
