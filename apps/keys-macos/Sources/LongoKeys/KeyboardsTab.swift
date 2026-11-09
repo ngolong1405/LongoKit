@@ -110,6 +110,8 @@ private struct KeyTester: View {
     @State private var hyper = false
     @State private var last = ""
     @State private var monitor: Any?
+    /// Drives the "listening" glow.
+    @State private var pulse = false
 
     /// Modifier keys by key code, to light the right side.
     private static let modifierKeys: [UInt16: (Key, NSEvent.ModifierFlags)] = [
@@ -121,10 +123,25 @@ private struct KeyTester: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            CardHeader(symbol: "ear", title: L("Try your keys"),
-                       subtitle: L("Shows what apps receive, after remaps and Hyper."), tint: Theme.violet) {
-                Button(listening ? L("Stop") : L("Listen")) { listening ? stop() : start() }
-                    .buttonStyle(listening ? AnyButtonStyle(.primary) : AnyButtonStyle(.ghost))
+            CardHeader(symbol: listening ? "ear.fill" : "ear", title: L("Try your keys"),
+                       subtitle: listening ? L("Listening: the keys you type show up here and don't reach other apps.")
+                                           : L("Shows what apps receive, after remaps and Hyper."),
+                       tint: listening ? Theme.solar : Theme.violet) {
+                HStack(spacing: 10) {
+                    if listening {
+                        HStack(spacing: 6) {
+                            Circle().fill(Color.red).frame(width: 8, height: 8)
+                                .shadow(color: .red, radius: pulse ? 5 : 1)
+                                .opacity(pulse ? 1 : 0.35)
+                            Text(L("LISTENING")).font(.mono(10, .bold)).foregroundStyle(Theme.solar)
+                        }
+                        .padding(.horizontal, 10)
+                        .frame(height: 26)
+                        .background(Capsule().fill(Theme.solar.opacity(0.12)))
+                    }
+                    Button(listening ? L("Stop") : L("Listen")) { listening ? stop() : start() }
+                        .buttonStyle(listening ? AnyButtonStyle(.primary) : AnyButtonStyle(.ghost))
+                }
             }
             HStack(spacing: 8) {
                 Circle().fill(listening ? Theme.emerald : Theme.textFaint).frame(width: 7, height: 7)
@@ -135,13 +152,41 @@ private struct KeyTester: View {
             }
             TesterKeyboard(pressed: pressed, hyper: hyper)
                 .opacity(listening ? 1 : 0.55)
+            if listening && !HyperTap.shared.isRunning {
+                Text(L("The top row's brightness, media and volume keys need Accessibility permission (General tab) to show here."))
+                    .font(.ui(11)).foregroundStyle(Theme.amber)
+            }
         }
         .panel()
+        // While listening the card glows, so it's clear keys are being caught.
+        .overlay {
+            if listening {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Theme.accentGradient, lineWidth: 2)
+                    .shadow(color: Theme.solar.opacity(pulse ? 0.55 : 0.1), radius: pulse ? 14 : 4)
+                    .opacity(pulse ? 1 : 0.45)
+                    .allowsHitTesting(false)
+            }
+        }
         .onDisappear(perform: stop)
+        // Switching to another app stops listening, so the top row's keys work there.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in stop() }
     }
 
     private func start() {
         listening = true
+        pulse = false
+        withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { pulse = true }
+        // The top row's system keys never reach the window; the Hyper tap catches them while listening.
+        HyperTap.shared.listener = { fKey, action, down in
+            let key = Key(usage: 0x3A + UInt32(fKey - 1))
+            if down {
+                pressed.insert(key)
+                last = "\(key.name) · \(L(action))   ·   " + L("kept from macOS while listening")
+            } else {
+                pressed.remove(key)
+            }
+        }
         monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp, .flagsChanged]) { event in
             let flags = event.modifierFlags.intersection([.control, .option, .shift, .command])
             hyper = flags == [.control, .option, .shift, .command]
@@ -167,7 +212,9 @@ private struct KeyTester: View {
     }
 
     private func stop() {
+        HyperTap.shared.listener = nil
         listening = false
+        withAnimation(.easeOut(duration: 0.2)) { pulse = false }
         pressed = []
         hyper = false
         if let monitor { NSEvent.removeMonitor(monitor) }

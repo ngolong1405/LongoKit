@@ -24,6 +24,10 @@ final class HyperTap {
 
     /// Self-test only: actions are reported here instead of being sent to the system.
     static var recorder: ((String) -> Void)?
+    /// While the key tester listens: the top row's system keys (brightness, Mission Control, media, volume…) are
+    /// reported here as the F key they sit on, and kept from macOS so they don't act. Nil the rest of the time.
+    var listener: ((_ fKey: Int, _ action: String, _ down: Bool) -> Void)?
+
     /// Self-test only: the clock, so tap timing can be checked without waiting.
     var now: () -> Date = Date.init
 
@@ -42,7 +46,8 @@ final class HyperTap {
     func start() -> Bool {
         guard tap == nil else { return true }
         let types: [CGEventType] = [.keyDown, .keyUp]
-        let mask = types.reduce(CGEventMask(0)) { $0 | (CGEventMask(1) << $1.rawValue) }
+        // NX_SYSDEFINED (14): brightness, media and volume keys, for the key tester.
+        let mask = types.reduce(CGEventMask(1) << 14) { $0 | (CGEventMask(1) << $1.rawValue) }
         guard let tap = CGEvent.tapCreate(
             tap: .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap, eventsOfInterest: mask,
             callback: { _, type, event, refcon in
@@ -76,7 +81,12 @@ final class HyperTap {
             if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
             return pass
         }
-        guard isEnabled, event.getIntegerValueField(.eventSourceUserData) != Self.syntheticTag else { return pass }
+        if let listener, let (fKey, action, down) = Self.topRowKey(type, event) {
+            listener(fKey, action, down)
+            return nil
+        }
+        guard isEnabled, type == .keyDown || type == .keyUp,
+              event.getIntegerValueField(.eventSourceUserData) != Self.syntheticTag else { return pass }
         let code = event.getIntegerValueField(.keyboardEventKeycode)
 
         if code == Int64(kVK_F18) {
@@ -110,6 +120,36 @@ final class HyperTap {
             if withHyper.remove(code) != nil { event.flags.formUnion(Self.hyperFlags) }
         }
         return pass
+    }
+
+    // MARK: The top row's system keys
+
+    /// Aux control buttons (NX_KEYTYPE_*) by the F key they sit on, on Apple keyboards.
+    private static let auxKeys: [Int: (Int, String)] = [
+        3: (1, "Brightness down"), 2: (2, "Brightness up"),
+        21: (5, "Keyboard light down"), 22: (6, "Keyboard light up"),
+        20: (7, "Previous track"), 18: (7, "Previous track"), 16: (8, "Play / Pause"),
+        19: (9, "Next track"), 17: (9, "Next track"),
+        7: (10, "Mute"), 1: (11, "Volume down"), 0: (12, "Volume up"),
+    ]
+
+    /// Special key codes some Apple keyboards send from the top row.
+    private static let specialKeys: [Int64: (Int, String)] = [
+        160: (3, "Mission Control"), 131: (4, "Launchpad"), 177: (4, "Spotlight"),
+        176: (5, "Dictation"), 178: (6, "Do Not Disturb"),
+    ]
+
+    /// A top-row system key in this event: its F number, what it does, and whether it's going down.
+    static func topRowKey(_ type: CGEventType, _ event: CGEvent) -> (Int, String, Bool)? {
+        if type.rawValue == 14 {
+            guard let ns = NSEvent(cgEvent: event), ns.subtype.rawValue == 8 else { return nil }
+            let data = ns.data1
+            guard let (fKey, action) = auxKeys[(data & 0xFFFF_0000) >> 16] else { return nil }
+            return (fKey, action, (data & 0xFF00) >> 8 == 0x0A)
+        }
+        guard type == .keyDown || type == .keyUp,
+              let (fKey, action) = specialKeys[event.getIntegerValueField(.keyboardEventKeycode)] else { return nil }
+        return (fKey, action, type == .keyDown)
     }
 
     // MARK: Actions

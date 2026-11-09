@@ -98,6 +98,18 @@ enum Vietnamese {
         "Stop": "Dừng",
         "Press any key…": "Nhấn một phím bất kỳ…",
         "Click Listen, then press keys.": "Bấm Nghe rồi nhấn phím.",
+        "Listening: the keys you type show up here and don't reach other apps.":
+            "Đang nghe: phím bạn gõ chỉ hiện ở đây, không tới app khác.",
+        "LISTENING": "ĐANG NGHE",
+        "kept from macOS while listening": "đã chặn chức năng hệ thống khi đang nghe",
+        "The top row's brightness, media and volume keys need Accessibility permission (General tab) to show here.":
+            "Hàng phím độ sáng, nhạc và âm lượng cần quyền Trợ năng (tab Chung) để hiện ở đây.",
+        "Brightness down": "Giảm độ sáng", "Brightness up": "Tăng độ sáng",
+        "Keyboard light down": "Giảm đèn bàn phím", "Keyboard light up": "Tăng đèn bàn phím",
+        "Previous track": "Bài trước", "Play / Pause": "Phát / Tạm dừng", "Next track": "Bài sau",
+        "Mute": "Tắt tiếng", "Volume down": "Giảm âm lượng", "Volume up": "Tăng âm lượng",
+        "Mission Control": "Mission Control", "Launchpad": "Launchpad", "Spotlight": "Spotlight",
+        "Dictation": "Đọc chính tả", "Do Not Disturb": "Không làm phiền",
 
         // Keep / refuse
         "Keep these keys?": "Giữ các phím này?",
