@@ -51,8 +51,7 @@ enum Snapshot {
         // The menu bar icon, enlarged, on both menu bar colors.
         let icon = HStack(spacing: 24) {
             ForEach([Color.white, Color(hex: 0x1E1E22)], id: \.self) { background in
-                Image(nsImage: MenuBarIcon.image).renderingMode(.template).resizable().interpolation(.high)
-                    .foregroundStyle(background == .white ? Color.black : Color.white)
+                Image(nsImage: MenuBarIcon.image).resizable().interpolation(.high)
                     .frame(width: 144, height: 144).padding(16).background(background)
             }
         }
