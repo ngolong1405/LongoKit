@@ -11,10 +11,10 @@ const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
     badge: "Free · Beta", title: "Ready to Level Up Your Mouse?", lead: "No ads, no account, no data collection.",
-    macTitle: "LongoMouse for macOS", macBody: "A universal build for Apple Silicon and Intel, macOS 13 Ventura or later.",
+    macTitle: "LongoMouse for macOS", macBody: "Apple Silicon & Intel, macOS 13 or later.",
     version: "Version", freeBeta: "Free during beta", download: "Download the installer (.dmg)",
-    notarize: "This beta isn't notarized by Apple yet. If macOS blocks it the first time, open System Settings › Privacy & Security and click Open Anyway (only once).",
-    winTitle: "LongoMouse for Windows", winBody: "Planned, with a Fluent interface for Windows 11.",
+    notarize: "Blocked on first launch? System Settings › Privacy & Security › Open Anyway.",
+    winTitle: "LongoMouse for Windows", winBody: "Planned for Windows 10 & 11.",
     status: "Status", soon: "Coming soon", follow: "Follow on GitHub",
     roadmap: [
       ["LongoKeys", "Key remapping, layers, and shortcuts for your keyboard."],
@@ -25,10 +25,10 @@ const t = pick(lang, {
   },
   vi: {
     badge: "Miễn phí · Beta", title: "Sẵn Sàng Nâng Tầm Trải Nghiệm Chuột Của Bạn?", lead: "Không quảng cáo, không tài khoản, không thu thập dữ liệu.",
-    macTitle: "LongoMouse cho macOS", macBody: "Bản universal chạy trên chip Apple Silicon và Intel, macOS 13 Ventura trở lên.",
+    macTitle: "LongoMouse cho macOS", macBody: "Apple Silicon & Intel, macOS 13 trở lên.",
     version: "Phiên bản", freeBeta: "Miễn phí khi beta", download: "Tải bản cài đặt (.dmg)",
-    notarize: "Bản beta chưa được Apple notarize. Nếu macOS chặn khi mở lần đầu, vào Cài đặt hệ thống › Quyền riêng tư & Bảo mật và bấm Vẫn mở (Open Anyway), chỉ một lần.",
-    winTitle: "LongoMouse cho Windows", winBody: "Đang được lên kế hoạch, với giao diện Fluent cho Windows 11.",
+    notarize: "Bị chặn khi mở lần đầu? Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Vẫn mở.",
+    winTitle: "LongoMouse cho Windows", winBody: "Đang lên kế hoạch cho Windows 10 & 11.",
     status: "Trạng thái", soon: "Sắp có", follow: "Theo dõi trên GitHub",
     roadmap: [
       ["LongoKeys", "Đổi phím, lớp phím và phím tắt cho bàn phím."],

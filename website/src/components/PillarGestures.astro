@@ -8,25 +8,25 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    title: "Multi-Action Gestures (Action & Gesture Engine)",
-    lead: "Turn your extra buttons into a control center. Each button (middle, button 4, button 5…) combines with click, hold, drag, or scroll to run system actions.",
+    title: "Gestures for Every Button",
+    lead: "Click, hold, drag, or scroll with any extra button to run an action.",
     listen: "Click \"Listen\", then press a mouse button to assign it", example: "Example:",
     cards: [
-      ["Drag", "Click + Drag", "Hold an extra button and drag left/right to switch Spaces, up to open Mission Control, or drag to scroll the page.", "Button 5", "Drag up", "Mission Control"],
-      ["Click + Scroll", "Click + Scroll", "Hold an extra button and roll the wheel to zoom in/out, switch Spaces, or scroll sideways.", "Button 4", "Scroll", "Zoom in / out"],
-      ["Double / Hold", "Double Click & Hold", "Each button can do something different on a click, a double click, and a hold — three actions on one button.", "Middle button", "Double click", "Show Desktop"],
-      ["Actions", "System Actions", "Launchpad, Mission Control, Look Up, Back/Forward, media keys, or record any shortcut you like.", "Button 4", "", "⌘ ⇧ 4 (screenshot)"],
+      ["Drag", "Click + Drag", "Drag to switch Spaces, open Mission Control, or scroll.", "Button 5", "Drag up", "Mission Control"],
+      ["Click + Scroll", "Click + Scroll", "Hold a button and scroll to zoom or switch Spaces.", "Button 4", "Scroll", "Zoom in / out"],
+      ["Double / Hold", "Double Click & Hold", "Three actions on one button.", "Middle button", "Double click", "Show Desktop"],
+      ["Actions", "System Actions", "Launchpad, Mission Control, media keys, or any shortcut.", "Button 4", "", "⌘ ⇧ 4 (screenshot)"],
     ],
   },
   vi: {
-    title: "Cử Chỉ Đa Tác Vụ (Action & Gesture Engine)",
-    lead: "Biến các nút phụ thành trung tâm điều khiển. Mỗi nút (giữa, nút 4, nút 5…) kết hợp được với nhấn, giữ, kéo hoặc lăn để chạy tác vụ hệ thống.",
+    title: "Cử Chỉ Cho Mọi Nút",
+    lead: "Nhấn, giữ, kéo hoặc lăn với nút phụ bất kỳ để chạy một hành động.",
     listen: "Bấm \"Nghe\" rồi nhấn nút chuột để gán", example: "Ví dụ:",
     cards: [
-      ["Kéo", "Click + Kéo", "Giữ nút phụ rồi kéo sang trái/phải để chuyển màn hình ảo (Spaces), kéo lên để mở Mission Control, hoặc kéo để cuộn trang.", "Nút 5", "Kéo lên", "Mission Control"],
-      ["Click + Lăn", "Click + Cuộn", "Giữ nút phụ rồi lăn bánh xe để phóng to/thu nhỏ, chuyển Spaces hoặc cuộn ngang.", "Nút 4", "Lăn", "Phóng to / thu nhỏ"],
-      ["Nhấn đúp / Giữ", "Nhấn đúp & Giữ", "Mỗi nút có thể gán riêng cho nhấn một lần, nhấn đúp và giữ — ba hành động khác nhau trên cùng một nút.", "Nút giữa", "Nhấn đúp", "Hiện màn hình nền"],
-      ["Hành động", "Hành động hệ thống", "Launchpad, Mission Control, Look Up, Back/Forward, phím media, hoặc ghi bất kỳ phím tắt nào bạn muốn.", "Nút 4", "", "⌘ ⇧ 4 (chụp màn hình)"],
+      ["Kéo", "Click + Kéo", "Kéo để chuyển Spaces, mở Mission Control hoặc cuộn trang.", "Nút 5", "Kéo lên", "Mission Control"],
+      ["Click + Lăn", "Click + Cuộn", "Giữ nút rồi lăn để phóng to hoặc chuyển Spaces.", "Nút 4", "Lăn", "Phóng to / thu nhỏ"],
+      ["Nhấn đúp / Giữ", "Nhấn đúp & Giữ", "Ba hành động trên cùng một nút.", "Nút giữa", "Nhấn đúp", "Hiện màn hình nền"],
+      ["Hành động", "Hành động hệ thống", "Launchpad, Mission Control, phím media hoặc phím tắt bất kỳ.", "Nút 4", "", "⌘ ⇧ 4 (chụp màn hình)"],
     ],
   },
 });

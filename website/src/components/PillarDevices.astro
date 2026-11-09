@@ -8,12 +8,12 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    title: "Independent Multi-Mouse Profiles (Per-Device Profiles)",
-    lead: "An MX Master at your desk and a gaming mouse when you plug into an external display? LongoMouse recognizes each mouse and uses its own settings.",
+    title: "Settings for Each Mouse",
+    lead: "Each mouse keeps its own buttons and scrolling, switched automatically.",
     points: [
-      ["Switches with the mouse you're using:", "recognized by Vendor ID & Product ID, no restart needed."],
-      ["Separate buttons and scrolling per mouse:", "keep raw scrolling on the gaming mouse and smooth scrolling on the office one."],
-      ["Leaves the trackpad & Magic Mouse alone:", "their native swipe gestures stay as they are."],
+      ["Switches automatically", "to the mouse you're using."],
+      ["Own buttons and scrolling", "for every mouse."],
+      ["Trackpad & Magic Mouse", "stay untouched."],
     ],
     devices: [
       ["IN USE (BT)", "Own buttons · Own scrolling", "Smooth scroll", "800 ms"],
@@ -24,12 +24,12 @@ const t = pick(lang, {
     b5: "Button 5 (front side):", b5Value: "Hold: Mission Control", local: "Settings stay on your Mac; nothing is sent anywhere.",
   },
   vi: {
-    title: "Quản Lý Đa Chuột Độc Lập (Per-Device Profiles)",
-    lead: "Dùng MX Master ở bàn làm việc và chuột gaming khi cắm màn hình ngoài? LongoMouse nhận ra từng con chuột và dùng đúng cài đặt của nó.",
+    title: "Cài Đặt Riêng Cho Từng Chuột",
+    lead: "Mỗi con chuột có nút và cuộn riêng, tự đổi khi bạn đổi chuột.",
     points: [
-      ["Tự đổi cài đặt theo chuột đang dùng:", "nhận diện theo Vendor ID & Product ID, không cần khởi động lại."],
-      ["Nút và cuộn riêng từng chuột:", "chuột gaming giữ cuộn thô, chuột văn phòng bật cuộn mượt."],
-      ["Không đụng tới trackpad & Magic Mouse:", "cử chỉ vuốt cảm ứng gốc vẫn giữ nguyên."],
+      ["Tự đổi", "theo chuột đang dùng."],
+      ["Nút và cuộn riêng", "cho từng con chuột."],
+      ["Trackpad & Magic Mouse", "giữ nguyên."],
     ],
     devices: [
       ["ĐANG DÙNG (BT)", "Nút riêng · Cuộn riêng", "Cuộn mượt", "800 ms"],

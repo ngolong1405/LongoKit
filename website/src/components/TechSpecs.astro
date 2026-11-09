@@ -9,12 +9,12 @@ const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
     title: "Light, Native & Private",
-    lead: "No Electron, no background web process. LongoMouse uses macOS's own APIs (CGEventTap, IOHIDManager); the Windows version will use Raw Input and low-level hooks.",
+    lead: "A small native app that stays out of your way.",
     metrics: [
-      ["No Electron, no web view", "Written in Swift + SwiftUI, running natively on macOS. Events come through CGEventTap and IOKit."],
-      ["CPU when not in use", "It only works when you click or scroll; when idle it uses next to nothing."],
-      ["No telemetry", "Never connects to the Internet to track how you use your mouse. The source is public on GitHub for you to check."],
-      ["No drivers to install", "No need to disable SIP or grant admin rights. Just allow Accessibility and Input Monitoring."],
+      ["No Electron, no web view", "Built with Swift and SwiftUI."],
+      ["CPU when idle", "Only works when you click or scroll."],
+      ["No telemetry", "Nothing leaves your Mac."],
+      ["No drivers", "Just two macOS permissions."],
     ],
     compare: "Compared with the alternatives", criteria: "Criteria", vendor: "Mouse maker's software", os: "macOS default",
     yes: "Yes", no: "No",
@@ -28,12 +28,12 @@ const t = pick(lang, {
   },
   vi: {
     title: "Nhẹ, Native & Riêng Tư",
-    lead: "Không Electron, không tiến trình web chạy nền. LongoMouse dùng API gốc của macOS (CGEventTap, IOHIDManager); bản Windows sẽ dùng Raw Input và low-level hooks.",
+    lead: "Một app native nhỏ gọn, không làm phiền bạn.",
     metrics: [
-      ["Không Electron, không web view", "Viết bằng Swift + SwiftUI, chạy trực tiếp trên macOS. Bắt sự kiện qua CGEventTap và IOKit."],
-      ["CPU khi không dùng", "Chỉ làm việc khi bạn bấm hoặc lăn chuột; lúc rảnh gần như không tốn tài nguyên."],
-      ["Không gửi telemetry", "Không kết nối Internet để theo dõi thói quen dùng chuột. Mã nguồn công khai trên GitHub để bạn tự kiểm tra."],
-      ["Không cài driver", "Không cần tắt SIP, không cần quyền admin. Chỉ cần cấp quyền Trợ năng và Theo dõi đầu vào."],
+      ["Không Electron, không web view", "Viết bằng Swift và SwiftUI."],
+      ["CPU khi rảnh", "Chỉ chạy khi bạn bấm hoặc lăn chuột."],
+      ["Không telemetry", "Không có gì rời khỏi máy bạn."],
+      ["Không driver", "Chỉ cần hai quyền của macOS."],
     ],
     compare: "So sánh với các lựa chọn khác", criteria: "Tiêu chí", vendor: "Phần mềm hãng chuột", os: "macOS mặc định",
     yes: "Có", no: "Không",
