@@ -65,7 +65,13 @@ private struct DisplayList: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SectionLabel(text: L("Connected displays") + " (\(model.displays.count))")
+            HStack {
+                SectionLabel(text: L("Connected displays") + " (\(model.displays.count))")
+                Spacer()
+                Segmented(options: BrightnessMode.allCases, selection: $model.mode, title: { $0.title })
+                    .frame(width: 220)
+                    .help(L("Manual: each display keeps its own brightness. Sync: external displays follow the MacBook."))
+            }
             if model.mode == .sync && !model.externals.isEmpty {
                 SyncBanner()
             }
@@ -167,7 +173,7 @@ struct DisplayLevels: View {
     }
 }
 
-/// Sync is on: says why the external displays' sliders are locked, with the way out.
+/// Sync is on: says why the external displays' sliders are locked (the Manual / Sync switch is right above).
 private struct SyncBanner: View {
     @EnvironmentObject private var model: AppModel
 
@@ -178,9 +184,7 @@ private struct SyncBanner: View {
                 .font(.ui(12))
                 .foregroundStyle(Theme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 8)
-            Button(L("Switch to Manual")) { model.mode = .manual }
-                .buttonStyle(.ghost)
+            Spacer(minLength: 0)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
