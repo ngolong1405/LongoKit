@@ -183,12 +183,8 @@ struct BrightnessLevel: View {
                 .frame(width: 16)
             StepButton(symbol: "minus") { model.setLevel(level - StepButton.step, for: display) }
             DSSlider(value: Binding(get: { level }, set: { model.setLevel($0, for: display) }), range: range, step: 0.01,
-                     origin: range.lowerBound < 0 ? 0 : nil)
+                     origin: range.lowerBound < 0 ? 0 : nil, label: "\(Int((level * 100).rounded()))%")
             StepButton(symbol: "plus") { model.setLevel(level + StepButton.step, for: display) }
-            Text("\(Int((level * 100).rounded()))%")
-                .font(.mono(11, .semibold))
-                .foregroundStyle(dimming ? Theme.violetLight : Theme.solar)
-                .frame(width: 40, alignment: .trailing)
         }
     }
 }
@@ -227,12 +223,8 @@ struct LevelSlider: View {
                 .foregroundStyle(tint)
                 .frame(width: 16)
             StepButton(symbol: "minus") { set(max(value - StepButton.step, 0)) }
-            DSSlider(value: Binding(get: { value }, set: set), range: 0...1, step: 0.01)
+            DSSlider(value: Binding(get: { value }, set: set), range: 0...1, step: 0.01, label: "\(Int((value * 100).rounded()))%")
             StepButton(symbol: "plus") { set(min(value + StepButton.step, 1)) }
-            Text("\(Int((value * 100).rounded()))%")
-                .font(.mono(11, .semibold))
-                .foregroundStyle(tint)
-                .frame(width: 40, alignment: .trailing)
         }
     }
 }

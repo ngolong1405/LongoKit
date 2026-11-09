@@ -339,51 +339,67 @@ public struct DSSlider: View {
     /// Where the fill starts. With an origin inside the range (0 on a -80…100 slider), the fill runs from it to
     /// the knob: Solar above, violet below, with a tick at the origin.
     public var origin: Double?
+    /// Text shown on the knob (its value, say), which then becomes a pill wide enough to hold it.
+    public var label: String?
 
-    public init(value: Binding<Double>, range: ClosedRange<Double>, step: Double = 0.01, origin: Double? = nil) {
+    public init(value: Binding<Double>, range: ClosedRange<Double>, step: Double = 0.01, origin: Double? = nil,
+                label: String? = nil) {
         self._value = value
         self.range = range
         self.step = step
         self.origin = origin
+        self.label = label
     }
 
     public var body: some View {
+        let knob: CGFloat = label == nil ? 18 : 44
+        let half = knob / 2
         GeometryReader { geometry in
-            let travel = geometry.size.width - 18
+            let travel = geometry.size.width - knob
             let span = range.upperBound - range.lowerBound
             let fraction = (value - range.lowerBound) / span
+            let below = origin.map { value < $0 } ?? false
             ZStack(alignment: .leading) {
                 Color.clear.frame(height: 6).recessed(radius: 3)
                 if let origin, origin > range.lowerBound {
                     let start = (origin - range.lowerBound) / span
-                    let below = value < origin
                     // The stretch below the origin, faintly violet so it reads as a different zone.
                     Capsule()
                         .fill(Theme.violet.opacity(0.18))
-                        .frame(width: travel * start + 9, height: 6)
+                        .frame(width: travel * start + half, height: 6)
                     Capsule()
                         .fill(below ? AnyShapeStyle(LinearGradient(colors: [Theme.violet, Theme.violetLight], startPoint: .leading, endPoint: .trailing))
                                     : AnyShapeStyle(Theme.accentGradient))
                         .frame(width: max(travel * abs(fraction - start), 0), height: 6)
-                        .offset(x: travel * min(fraction, start) + 9)
+                        .offset(x: travel * min(fraction, start) + half)
                         .shadow(color: (below ? Theme.violet : Theme.solar).opacity(0.5), radius: 5)
                     Capsule()
                         .fill(Theme.tint(0.45))
                         .frame(width: 2, height: 12)
-                        .offset(x: travel * start + 8)
+                        .offset(x: travel * start + half - 1)
                 } else {
                     Capsule()
                         .fill(Theme.accentGradient)
-                        .frame(width: max(travel * fraction + 9, 6), height: 6)
+                        .frame(width: max(travel * fraction + half, 6), height: 6)
                         .shadow(color: Theme.solar.opacity(0.5), radius: 5)
                 }
                 ZStack {
-                    Circle().fill(LinearGradient(colors: [Color(hex: 0xF4F4F6), Color(hex: 0xA9ABB3)],
-                                                 startPoint: .top, endPoint: .bottom))
-                    Circle().strokeBorder(Theme.tint(0.6), lineWidth: 0.5)
-                    Circle().fill(Theme.solar).frame(width: 6, height: 6).shadow(color: Theme.solar, radius: 3)
+                    // A lighter knob when it carries text, so the number stays readable.
+                    Capsule().fill(LinearGradient(colors: label == nil ? [Color(hex: 0xF4F4F6), Color(hex: 0xA9ABB3)]
+                                                                       : [Color(hex: 0xFFFFFF), Color(hex: 0xDCDDE3)],
+                                                  startPoint: .top, endPoint: .bottom))
+                    Capsule().strokeBorder(Theme.tint(0.6), lineWidth: 0.5)
+                    if let label {
+                        Text(label)
+                            .font(.mono(10, .bold))
+                            .foregroundStyle(below ? Color(hex: 0x5B21B6) : Color(hex: 0xC2410C))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                    } else {
+                        Circle().fill(Theme.solar).frame(width: 6, height: 6).shadow(color: Theme.solar, radius: 3)
+                    }
                 }
-                .frame(width: 18, height: 18)
+                .frame(width: knob, height: 18)
                 .shadow(color: .black.opacity(0.5), radius: 3, y: 2)
                 .offset(x: travel * fraction)
             }
@@ -391,7 +407,7 @@ public struct DSSlider: View {
             // Grabbable a little above and below the track too, without taking more room.
             .contentShape(Rectangle().inset(by: -6))
             .gesture(DragGesture(minimumDistance: 0).onChanged { drag in
-                let f = min(max((drag.location.x - 9) / travel, 0), 1)
+                let f = min(max((drag.location.x - half) / travel, 0), 1)
                 let raw = range.lowerBound + f * (range.upperBound - range.lowerBound)
                 value = (raw / step).rounded() * step
             })
