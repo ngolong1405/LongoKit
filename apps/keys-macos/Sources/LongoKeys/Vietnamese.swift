@@ -90,8 +90,10 @@ enum Vietnamese {
         "Modifiers": "Phím bổ trợ",
         "Navigation": "Điều hướng",
         "Extra F keys": "Phím F thêm",
-        "This keyboard uses the shared settings. Turn on Own settings to change them just for it.":
-            "Bàn phím này dùng cài đặt chung. Bật Cài đặt riêng để chỉnh riêng cho nó.",
+        "Use shared settings": "Dùng cài đặt chung",
+        "Changes here are just for this keyboard.": "Thay đổi ở đây chỉ áp dụng cho bàn phím này.",
+        "Same as All keyboards. Change anything here and it becomes this keyboard's own.":
+            "Giống All keyboards. Đổi bất cứ gì ở đây thì bàn phím này sẽ có cài đặt riêng.",
         "Try your keys": "Thử phím",
         "Shows what apps receive, after remaps and Hyper.": "Hiện phím mà các app nhận được, sau khi đổi phím và Hyper.",
         "Listen": "Nghe",

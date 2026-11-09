@@ -36,6 +36,20 @@ enum SelfTest {
         let old = try? JSONDecoder().decode(KeyboardProfile.self, from: Data(#"{"remaps":[]}"#.utf8))
         check("Old settings load with defaults", old?.caps == .unchanged)
 
+        // Own settings exist only while they differ from the shared ones.
+        let suite = "LongoKeys.selftest"
+        UserDefaults().removePersistentDomain(forName: suite)
+        let model = AppModel(live: false, defaults: UserDefaults(suiteName: suite)!)
+        model.change(nil) { $0.caps = .hyper }
+        model.change("kb") { $0.caps = .escape }
+        check("Changing one keyboard gives it its own settings", model.hasOwnSettings("kb") && model.shared.caps == .hyper)
+        model.change("kb") { $0.caps = .hyper }
+        check("…which merge back once they match the shared ones", !model.hasOwnSettings("kb"))
+        model.change("kb") { $0.caps = .escape }
+        model.change(nil) { $0.caps = .escape }
+        check("…also when the shared ones change to match", !model.hasOwnSettings("kb"))
+        UserDefaults().removePersistentDomain(forName: suite)
+
         // The Hyper key.
         let tap = HyperTap.shared
         var recorded: [String] = []

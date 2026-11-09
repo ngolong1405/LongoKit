@@ -106,8 +106,9 @@ final class AppModel: ObservableObject {
         func load<T: Decodable>(_ type: T.Type, _ key: String) -> T? {
             defaults.data(forKey: key).flatMap { try? JSONDecoder().decode(type, from: $0) }
         }
-        shared = load(KeyboardProfile.self, Keys.shared) ?? KeyboardProfile()
-        profiles = load([String: KeyboardProfile].self, Keys.profiles) ?? [:]
+        let shared = load(KeyboardProfile.self, Keys.shared) ?? KeyboardProfile()
+        self.shared = shared
+        profiles = (load([String: KeyboardProfile].self, Keys.profiles) ?? [:]).filter { $0.value != shared }
         switchedOff = Set(defaults.stringArray(forKey: Keys.switchedOff) ?? [])
         hyper = load([HyperBinding].self, Keys.hyper) ?? HyperBinding.defaults
         isEnabled = defaults.object(forKey: Keys.enabled) as? Bool ?? true
@@ -169,13 +170,13 @@ final class AppModel: ObservableObject {
         keyboard.isBuiltIn ? L("Built-in Keyboard") : keyboard.name
     }
 
-    /// Own settings start as a copy of the shared ones; turning them off goes back to the shared ones.
-    func setOwnSettings(_ id: String, _ on: Bool) {
-        guard on != hasOwnSettings(id) else { return }
-        commit { profiles, _ in profiles[id] = on ? self.shared : nil }
+    /// Drops a keyboard's own settings: it goes back to the shared ones.
+    func useSharedSettings(_ id: String) {
+        commit { profiles, _ in profiles[id] = nil }
     }
 
-    /// Changes a keyboard's settings (or the shared ones, for nil / `allKeyboards`).
+    /// Changes a keyboard's settings (or the shared ones, for nil / `allKeyboards`). A keyboard gets its own
+    /// settings the moment they differ from the shared ones, and loses them once they match again.
     func change(_ id: String?, _ edit: (inout KeyboardProfile) -> Void) {
         var value = profile(for: id)
         edit(&value)
@@ -189,6 +190,7 @@ final class AppModel: ObservableObject {
         guard !confirming else { return }
         var newProfiles = profiles, newShared = shared
         edit(&newProfiles, &newShared)
+        newProfiles = newProfiles.filter { $0.value != newShared }
         guard newProfiles != profiles || newShared != shared else { return }
 
         // A keyboard must always be able to type the essentials (and ⌃⌥⌘K).

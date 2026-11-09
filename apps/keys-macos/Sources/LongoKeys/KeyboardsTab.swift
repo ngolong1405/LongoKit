@@ -351,7 +351,6 @@ private struct KeyboardPage: View {
     var body: some View {
         let keyboard = model.keyboard(id)
         let isAll = id == AppModel.allKeyboards
-        let editable = isAll || model.hasOwnSettings(id)
         VStack(alignment: .leading, spacing: 16) {
             Button { model.openKeyboard = nil } label: {
                 HStack(spacing: 4) {
@@ -375,24 +374,24 @@ private struct KeyboardPage: View {
                 }
                 Spacer()
                 if !isAll {
-                    VStack(alignment: .trailing, spacing: 4) {
-                        DSSwitch(isOn: model.hasOwnSettings(id)) { model.setOwnSettings(id, !model.hasOwnSettings(id)) }
-                        Text(L("Own settings")).font(.mono(10, .semibold)).foregroundStyle(Theme.textFaint)
+                    if model.hasOwnSettings(id) {
+                        Chip(L("Own settings"), tone: .solar)
+                        Button(L("Use shared settings")) { model.useSharedSettings(id) }.buttonStyle(.ghost)
+                    } else {
+                        Chip(L("Shared settings"), tone: .neutral)
                     }
                 }
             }
             .panel()
 
-            Group {
-                CapsCard(id: id)
-                RemapsCard(id: id)
+            if !isAll {
+                Text(model.hasOwnSettings(id)
+                     ? L("Changes here are just for this keyboard.")
+                     : L("Same as All keyboards. Change anything here and it becomes this keyboard's own."))
+                    .font(.ui(11)).foregroundStyle(Theme.textMuted)
             }
-            .disabled(!editable)
-            .opacity(editable ? 1 : 0.5)
-            if !editable {
-                Text(L("This keyboard uses the shared settings. Turn on Own settings to change them just for it."))
-                    .font(.ui(12)).foregroundStyle(Theme.textMuted)
-            }
+            CapsCard(id: id)
+            RemapsCard(id: id)
         }
     }
 }
