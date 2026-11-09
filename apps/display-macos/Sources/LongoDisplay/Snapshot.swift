@@ -20,7 +20,7 @@ enum Snapshot {
         let builtin = Display(id: 1, key: "builtin", name: "Built-in", isBuiltin: true, method: .native,
                               pixelSize: CGSize(width: 3024, height: 1964))
         let dell = Display(id: 2, key: "dell", name: "DELL U2723QE", isBuiltin: false, method: .ddc,
-                           pixelSize: CGSize(width: 3840, height: 2160))
+                           pixelSize: CGSize(width: 3840, height: 2160), hasDDC: true)
         let tv = Display(id: 3, key: "tv", name: "LG TV", isBuiltin: false, method: .software,
                          pixelSize: CGSize(width: 1920, height: 1080))
         var dellSettings = DisplaySettings()
@@ -28,7 +28,7 @@ enum Snapshot {
         dellSettings.minimum = 0.2
         dellSettings.maximum = 0.9
         model.simulate(displays: [builtin, dell, tv], settings: ["builtin": DisplaySettings(), "dell": dellSettings, "tv": DisplaySettings()],
-                       powerOff: ["tv": .disabled])
+                       powerOff: ["tv": .disabled], silentDDC: ["dell"])
 
         let shots: [(String, MainTab, String?)] = [("1-general", .general, nil), ("2-displays", .displays, nil), ("3-display", .displays, "dell")]
         for (scheme, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", .aqua)] {

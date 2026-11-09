@@ -80,7 +80,8 @@ enum SelfTest {
         for display in engine.displays {
             let brightness = DisplayServices.brightness(display.id).map { String(format: "%.0f%%", $0 * 100) } ?? "n/a"
             print("\(display.name) [\(display.isBuiltin ? "built-in" : "external")] \(display.sizeLabel)"
-                  + " · control: \(display.method.rawValue) · macOS brightness: \(brightness) · id \(display.key)")
+                  + " · control: \(display.method.rawValue) · macOS brightness: \(brightness) · id \(display.key)"
+                  + (display.method == .ddc ? " · " + engine.ddcReport(display) : ""))
         }
         if engine.displays.isEmpty { print("No active displays") }
         exit(0)

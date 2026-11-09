@@ -95,7 +95,8 @@ private struct DisplayRow: View {
                         Chip(L("Off"))
                     }
                 }
-                Text(model.isOn(display) ? display.sizeLabel + " · " + display.method.detail : L("Turned off: windows moved to your other displays"))
+                Text(!model.isOn(display) ? L("Turned off: windows moved to your other displays")
+                     : display.sizeLabel + " · " + (model.isDDCSilent(display) ? L("Not answering DDC") : display.method.detail))
                     .font(.ui(11))
                     .foregroundStyle(Theme.textMuted)
             }
@@ -139,6 +140,9 @@ private struct DisplayPage: View {
             .buttonStyle(.plain)
 
             PowerCard(display: display)
+            if display.hasDDC && model.isOn(display) {
+                ControlCard(display: display)
+            }
 
             Group {
             HStack(alignment: .center, spacing: 20) {
@@ -176,6 +180,32 @@ private struct DisplayPage: View {
                     .buttonStyle(.ghost)
             }
         }
+    }
+}
+
+/// Hardware (DDC) or software dimming, for monitors that have DDC.
+private struct ControlCard: View {
+    @EnvironmentObject private var model: AppModel
+    let display: Display
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            CardHeader(symbol: "slider.horizontal.3", title: L("Brightness Control"),
+                       subtitle: L("Hardware changes the monitor's backlight; Software darkens the picture."),
+                       tint: Theme.violet) {
+                Segmented(options: [false, true],
+                          selection: Binding(get: { model.settings(for: display).softwareOnly },
+                                             set: { model.setSoftwareOnly(display, $0) }),
+                          title: { $0 ? L("Software") : L("Hardware (DDC)") })
+            }
+            if model.isDDCSilent(display) {
+                Text(L("This monitor isn't answering DDC. MacBook HDMI ports often don't pass it on: plug it into a USB-C port, turn on DDC/CI in the monitor's menu, or use Software."))
+                    .font(.ui(11))
+                    .foregroundStyle(Theme.amber)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .panel()
     }
 }
 

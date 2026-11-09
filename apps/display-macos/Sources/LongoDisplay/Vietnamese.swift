@@ -80,6 +80,19 @@ enum Vietnamese {
         "Preferences…": "Mở cài đặt…",
         "Follows the built-in display in Sync mode": "Theo màn hình MacBook ở chế độ Đồng bộ",
 
+        // DDC control
+        "External displays follow the built-in display. Choose Manual to set each one yourself.":
+            "Màn ngoài đang chạy theo màn MacBook. Chọn Thủ công để chỉnh riêng từng màn.",
+        "Not answering DDC: if its brightness doesn't change, use Software dimming on its page.":
+            "Màn không trả lời DDC: nếu độ sáng không đổi, hãy chọn Phần mềm trong trang của màn này.",
+        "Not answering DDC": "Không trả lời DDC",
+        "Brightness Control": "Cách chỉnh độ sáng",
+        "Hardware changes the monitor's backlight; Software darkens the picture.":
+            "Phần cứng đổi đèn nền của màn; Phần mềm làm tối hình ảnh.",
+        "Hardware (DDC)": "Phần cứng (DDC)",
+        "This monitor isn't answering DDC. MacBook HDMI ports often don't pass it on: plug it into a USB-C port, turn on DDC/CI in the monitor's menu, or use Software.":
+            "Màn này không trả lời DDC. Cổng HDMI của MacBook thường không truyền DDC: hãy cắm qua cổng USB-C, bật DDC/CI trong menu của màn, hoặc chọn Phần mềm.",
+
         // Display power
         "Off": "Tắt",
         "Turn this display off": "Tắt màn hình này",

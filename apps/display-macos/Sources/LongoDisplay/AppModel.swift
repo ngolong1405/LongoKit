@@ -59,6 +59,9 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// DDC displays that gave no valid answer: their port may not pass DDC on (e.g. a MacBook's HDMI port).
+    @Published private(set) var silentDDC: Set<String> = []
+
     @Published var tab: MainTab = .general
     /// The display whose page is open on the Displays tab.
     @Published var openDisplayKey: String?
@@ -135,6 +138,10 @@ final class AppModel: ObservableObject {
                   self.freshDisplays.contains(display.key) else { return }
             self.settings[display.key]?.brightness = value
         }
+        engine.onDDCSilent = { [weak self] id in
+            guard let self, let display = self.displays.first(where: { $0.id == id }) else { return }
+            self.silentDDC.insert(display.key)
+        }
         reloadDisplays()
 
         keys.handler = { [weak self] up in
@@ -186,6 +193,19 @@ final class AppModel: ObservableObject {
     func resetDisplay(_ display: Display) {
         settings[display.key] = DisplaySettings()
         if isOn(display) { engine?.apply(DisplaySettings(), to: display) }
+    }
+
+    /// Hardware (DDC) or software dimming for a monitor that has DDC.
+    func setSoftwareOnly(_ display: Display, _ on: Bool) {
+        guard settings(for: display).softwareOnly != on else { return }
+        settings[display.key, default: DisplaySettings()].softwareOnly = on
+        engine?.resetGamma()
+        reloadDisplays()
+        for shown in displays where isOn(shown) && shown.isActive { engine?.apply(settings(for: shown), to: shown) }
+    }
+
+    func isDDCSilent(_ display: Display) -> Bool {
+        display.method == .ddc && silentDDC.contains(display.key)
     }
 
     // MARK: - Power
@@ -250,6 +270,7 @@ final class AppModel: ObservableObject {
 
     private func reloadDisplays() {
         guard let engine else { return }
+        engine.softwareOnly = Set(settings.filter(\.value.softwareOnly).keys)
         engine.refresh()
         displays = engine.displays
         // Blacked-out displays stay black (reconnecting resets their gamma). Turned-off ones are never forgotten
@@ -271,6 +292,8 @@ final class AppModel: ObservableObject {
             }
         }
         if let key = openDisplayKey, !displays.contains(where: { $0.key == key }) { openDisplayKey = nil }
+        // A display that just connected joins Sync right away, not at the next built-in brightness change.
+        lastBuiltin = nil
         followBuiltin()
     }
 
@@ -351,8 +374,10 @@ final class AppModel: ObservableObject {
 
     // MARK: - Snapshot / self-test support
 
-    func simulate(displays: [Display], settings: [String: DisplaySettings], powerOff: [String: PowerOff] = [:]) {
+    func simulate(displays: [Display], settings: [String: DisplaySettings], powerOff: [String: PowerOff] = [:],
+                  silentDDC: Set<String> = []) {
         self.displays = displays
+        self.silentDDC = silentDDC
         self.settings = settings
         self.powerOff = powerOff
     }

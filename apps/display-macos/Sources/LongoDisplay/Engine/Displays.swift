@@ -19,6 +19,8 @@ struct Display: Identifiable, Equatable {
     let isBuiltin: Bool
     var method: ControlMethod
     var pixelSize: CGSize
+    /// The monitor has a DDC channel, even if software dimming was chosen for it.
+    var hasDDC = false
     /// False while turned off (see `DisplayPower`): connected, but macOS shows nothing on it.
     var isActive = true
 }
@@ -31,6 +33,8 @@ struct DisplaySettings: Codable, Equatable {
     var maximum = 1.0
     /// Extra software dimming on top of the hardware brightness, 0…0.8.
     var extraDim = 0.0
+    /// Dim in software even though the monitor has DDC (some ports, like a MacBook's HDMI, don't pass it on).
+    var softwareOnly = false
 
     init() {}
 
@@ -41,6 +45,7 @@ struct DisplaySettings: Codable, Equatable {
         minimum = try c.decodeIfPresent(Double.self, forKey: .minimum) ?? d.minimum
         maximum = try c.decodeIfPresent(Double.self, forKey: .maximum) ?? d.maximum
         extraDim = try c.decodeIfPresent(Double.self, forKey: .extraDim) ?? d.extraDim
+        softwareOnly = try c.decodeIfPresent(Bool.self, forKey: .softwareOnly) ?? d.softwareOnly
     }
 }
 
@@ -107,6 +112,10 @@ final class DisplayEngine {
     /// Each DDC display's maximum brightness value, read once (most monitors use 100).
     private var ddcMaximum: [CGDirectDisplayID: UInt16] = [:]
     private var dimmed: [CGDirectDisplayID: Double] = [:]
+    /// Displays set to software dimming although they have DDC, by key.
+    var softwareOnly: Set<String> = []
+    /// A DDC display gave no valid answer when asked for its brightness (nil reading).
+    var onDDCSilent: ((CGDirectDisplayID) -> Void)?
     /// Displays the app turned off, by key: they stay listed so they can be turned back on.
     var turnedOff: Set<String> = []
     var onChange: (() -> Void)?
@@ -153,18 +162,24 @@ final class DisplayEngine {
                 DispatchQueue.main.async {
                     guard let self else { return }
                     self.ddcMaximum[id] = reading?.max ?? 100
-                    if let reading { self.onDDCBrightness?(id, Double(reading.current) / Double(reading.max)) }
+                    if let reading {
+                        self.onDDCBrightness?(id, Double(reading.current) / Double(reading.max))
+                    } else {
+                        self.onDDCSilent?(id)
+                    }
                 }
             }
         }
 
         let previous = displays
         var all = ids.map { id in
+            let key = Self.key(for: id)
             let method: ControlMethod = DisplayServices.canChangeBrightness(id) ? .native
-                : channels[id] != nil ? .ddc : .software
-            return Display(id: id, key: Self.key(for: id), name: Self.name(for: id),
+                : channels[id] != nil && !softwareOnly.contains(key) ? .ddc : .software
+            return Display(id: id, key: key, name: Self.name(for: id),
                            isBuiltin: CGDisplayIsBuiltin(id) != 0, method: method,
-                           pixelSize: CGSize(width: CGDisplayPixelsWide(id), height: CGDisplayPixelsHigh(id)))
+                           pixelSize: CGSize(width: CGDisplayPixelsWide(id), height: CGDisplayPixelsHigh(id)),
+                           hasDDC: channels[id] != nil)
         }
         // A turned-off display has no screen any more, so it keeps the name and method it had.
         for id in DisplayPower.inactiveOnline() {
@@ -172,9 +187,17 @@ final class DisplayEngine {
             guard turnedOff.contains(key) else { continue }
             let known = previous.first { $0.key == key }
             all.append(Display(id: id, key: key, name: known?.name ?? Self.name(for: id), isBuiltin: CGDisplayIsBuiltin(id) != 0,
-                               method: known?.method ?? .software, pixelSize: known?.pixelSize ?? .zero, isActive: false))
+                               method: known?.method ?? .software, pixelSize: known?.pixelSize ?? .zero,
+                               hasDDC: known?.hasDDC ?? false, isActive: false))
         }
         displays = all.sorted { ($0.isBuiltin ? 0 : 1, $0.name) < ($1.isBuiltin ? 0 : 1, $1.name) }
+    }
+
+    /// `--diagnose`: what the monitor answers when asked for its brightness over DDC (read only).
+    func ddcReport(_ display: Display) -> String {
+        guard let channel = channels[display.id] else { return "no DDC channel" }
+        guard let reading = channel.read(.brightness) else { return "DDC: no answer" }
+        return "DDC brightness \(reading.current)/\(reading.max)"
     }
 
     /// Turns a display off as if unplugged, or back on. Returns whether macOS accepted it.

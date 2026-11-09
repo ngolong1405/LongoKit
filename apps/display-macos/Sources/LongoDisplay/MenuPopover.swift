@@ -15,6 +15,12 @@ struct MenuPopover: View {
                 Text(AppInfo.name).font(.display(14, .semibold)).foregroundStyle(Theme.text)
             }
             Segmented(options: BrightnessMode.allCases, selection: $model.mode, title: { $0.title }, stretch: true)
+            if model.mode == .sync && !model.externals.isEmpty {
+                Text(L("External displays follow the built-in display. Choose Manual to set each one yourself."))
+                    .font(.ui(11))
+                    .foregroundStyle(Theme.textMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             Hairline()
 
             ForEach(model.displays) { display in
@@ -80,6 +86,12 @@ private struct DisplaySliderRow: View {
                     Text("\(Int((value * 100).rounded()))%").font(.mono(11, .semibold)).foregroundStyle(Theme.solar)
                 }
                 PowerButton(display: display)
+            }
+            if on && model.isDDCSilent(display) {
+                Text(L("Not answering DDC: if its brightness doesn't change, use Software dimming on its page."))
+                    .font(.ui(10))
+                    .foregroundStyle(Theme.amber)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             if on {
                 DSSlider(value: Binding(get: { value }, set: { model.setBrightness($0, for: display) }), range: 0...1, step: 0.01)
