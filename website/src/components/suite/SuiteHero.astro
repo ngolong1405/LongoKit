@@ -19,7 +19,8 @@ const t = pick(lang, {
     b4: "Button 4 · Hold", b5: "Button 5 · Drag", spaces: "Switch Spaces",
     on: "ON", direction: "Direction", natural: "Natural",
     preview: "Coming soon · preview",
-    displayBody: "Planned: adjust external display brightness with your Mac's brightness keys or a slider, over DDC/CI.",
+    displayBody: "Adjust external display brightness and volume over DDC/CI with a slider or your Mac's brightness keys, or let them follow your MacBook.",
+    displayBadge: "v0.1 beta",
     external: "External display (DisplayPort)", builtin: "MacBook display",
     keysTitle: "CapsLock → Hyper & Vim layer",
     keysNote: "✨ Planned: tap CapsLock for Esc, hold it for Hyper; H J K L become arrow keys while Hyper is held.",
@@ -35,7 +36,8 @@ const t = pick(lang, {
     b4: "Nút 4 · Giữ", b5: "Nút 5 · Kéo", spaces: "Chuyển Spaces",
     on: "BẬT", direction: "Hướng", natural: "Tự nhiên",
     preview: "Sắp có · bản xem trước",
-    displayBody: "Dự kiến: chỉnh độ sáng màn hình ngoài bằng phím độ sáng của Mac hoặc thanh trượt, qua DDC/CI.",
+    displayBody: "Chỉnh độ sáng và âm lượng màn hình ngoài qua DDC/CI bằng thanh trượt hoặc phím độ sáng của Mac, hoặc để chúng đi theo MacBook.",
+    displayBadge: "v0.1 beta",
     external: "Màn hình ngoài (DisplayPort)", builtin: "Màn hình MacBook",
     keysTitle: "CapsLock → Hyper & lớp phím Vim",
     keysNote: "✨ Dự kiến: nhấn CapsLock là Esc, giữ là Hyper; H J K L thành phím mũi tên khi giữ Hyper.",
@@ -208,12 +210,12 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
         </div>
       </div>
 
-      <!-- LongoDisplay (planned) -->
+      <!-- LongoDisplay -->
       <div class="hub-panel hidden grid-cols-1 items-center gap-8 bg-gradient-to-b from-surface-container-low/70 to-surface-container-lowest p-6 md:p-10 lg:grid-cols-12" data-panel="display">
         <div class="flex flex-col gap-5 lg:col-span-6">
           <div class="flex items-center gap-2">
             <span class="font-code text-label-badge tracking-widest text-tertiary uppercase">DDC/CI</span>
-            <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] text-on-surface-variant">{t.preview}</span>
+            <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] text-on-surface-variant">{t.displayBadge}</span>
           </div>
           <h3 class="text-headline-md">True Hardware Luminance</h3>
           <p class="text-body-sm text-on-surface-variant">{t.displayBody}</p>

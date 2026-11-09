@@ -1,7 +1,7 @@
 ---
 import ProductIcon from "../ProductIcon.astro";
 import Logo from "../Logo.astro";
-import { repo, mouseDownload, mouseVersion, licenseURL } from "../../data/site";
+import { repo, mouseDownload, mouseVersion, displayDownload, displayVersion, licenseURL } from "../../data/site";
 import { pick, type Lang } from "../../i18n";
 
 interface Props {
@@ -16,7 +16,7 @@ const t = pick(lang, {
     soon: "Coming soon",
     mouse: "Smooth scrolling and gestures for any mouse.",
     keys: "Remap keys and build shortcut layers.",
-    display: "Control external display brightness.",
+    display: "Brightness and volume for every display, with Sync to your MacBook.",
     suiteTitle: "The Full LongoKit Suite",
     suiteBody: "All three tools in one app once they're ready. Follow on GitHub for updates.",
     getMouse: "Get LongoMouse for macOS", follow: "Follow on GitHub",
@@ -28,7 +28,7 @@ const t = pick(lang, {
     soon: "Sắp có",
     mouse: "Cuộn mượt và cử chỉ cho mọi con chuột.",
     keys: "Đổi phím và tạo lớp phím tắt.",
-    display: "Chỉnh độ sáng màn hình ngoài.",
+    display: "Độ sáng và âm lượng cho mọi màn hình, đồng bộ theo MacBook.",
     suiteTitle: "Trọn Bộ LongoKit",
     suiteBody: "Cả ba công cụ trong một app khi đã sẵn sàng. Theo dõi trên GitHub để cập nhật.",
     getMouse: "Tải LongoMouse cho macOS", follow: "Theo dõi trên GitHub",
@@ -38,20 +38,20 @@ const t = pick(lang, {
 
 const kits = [
   {
-    name: "LongoMouse", product: "mouse" as const, version: `v${mouseVersion}`, available: true,
+    name: "LongoMouse", product: "mouse" as const, version: `v${mouseVersion}`, available: true, download: mouseDownload,
     tint: "text-primary", badgeBg: "bg-primary-container/15",
     mac: "bg-primary-container/20 text-primary hover:bg-primary-container hover:text-on-primary-container",
     tagline: "Smooth Scrolling & Gesture Engine", body: t.mouse,
   },
   {
-    name: "LongoKeys", product: "keys" as const, version: t.soon, available: false,
+    name: "LongoKeys", product: "keys" as const, version: t.soon, available: false, download: "",
     tint: "text-secondary", badgeBg: "bg-secondary-container/25",
     mac: "", tagline: "Layer & Hyperkey Engine", body: t.keys,
   },
   {
-    name: "LongoDisplay", product: "display" as const, version: t.soon, available: false,
+    name: "LongoDisplay", product: "display" as const, version: `v${displayVersion}`, available: true, download: displayDownload,
     tint: "text-tertiary", badgeBg: "bg-tertiary/20",
-    mac: "", tagline: "DDC/CI Hardware Luminance", body: t.display,
+    mac: "bg-tertiary/15 text-tertiary hover:bg-tertiary/30", tagline: "DDC/CI Hardware Luminance", body: t.display,
   },
 ];
 ---
@@ -83,7 +83,7 @@ const kits = [
           </div>
           <div class="mt-8 flex flex-col gap-2.5 pt-4">
             {k.available ? (
-              <a href={mouseDownload} class:list={["flex w-full items-center justify-between rounded-xl px-4 py-3 text-xs font-semibold shadow-sm transition-colors", k.mac]}>
+              <a href={k.download} class:list={["flex w-full items-center justify-between rounded-xl px-4 py-3 text-xs font-semibold shadow-sm transition-colors", k.mac]}>
                 <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">desktop_mac</span>macOS Universal (.dmg)</span>
                 <span class="font-code text-[11px] opacity-80">Apple Silicon / Intel</span>
               </a>

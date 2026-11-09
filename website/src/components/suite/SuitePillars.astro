@@ -17,8 +17,8 @@ const t = pick(lang, {
       points: ["Trackpad-like smooth scrolling", "Gestures for every extra button", "Separate settings for each mouse"],
     },
     display: {
-      body: "Control external display brightness from your keyboard.",
-      points: ["Brightness & volume over DDC/CI", "Works with multiple displays"],
+      body: "Brightness and volume for every display, from the menu bar or your keyboard.",
+      points: ["Brightness & volume over DDC/CI", "Sync with your MacBook", "Works with multiple displays"],
     },
     keys: {
       body: "Remap keys and build shortcut layers — no firmware needed.",
@@ -34,8 +34,8 @@ const t = pick(lang, {
       points: ["Cuộn mượt như trackpad", "Cử chỉ cho mọi nút phụ", "Cài đặt riêng cho từng chuột"],
     },
     display: {
-      body: "Chỉnh độ sáng màn hình ngoài ngay từ bàn phím.",
-      points: ["Độ sáng & âm lượng qua DDC/CI", "Hỗ trợ nhiều màn hình"],
+      body: "Độ sáng và âm lượng cho mọi màn hình, từ thanh menu hoặc bàn phím.",
+      points: ["Độ sáng & âm lượng qua DDC/CI", "Đồng bộ theo MacBook", "Hỗ trợ nhiều màn hình"],
     },
     keys: {
       body: "Đổi phím và tạo lớp phím tắt — không cần nạp firmware.",
@@ -51,9 +51,9 @@ const pillars = [
     tagline: "Frictionless Smooth Scrolling", ...t.mouse, tech: "CGEventTap + IOKit",
   },
   {
-    name: "LongoDisplay", product: "display" as const, href: "#downloads", status: t.soon,
+    name: "LongoDisplay", product: "display" as const, href: "#downloads", status: t.available,
     tint: "text-tertiary", glow: "bg-tertiary/10 group-hover:bg-tertiary/20", dot: "bg-tertiary",
-    tagline: "DDC/CI Hardware Brightness", ...t.display, tech: t.planned,
+    tagline: "DDC/CI Hardware Brightness", ...t.display, tech: "DDC/CI + DisplayServices",
   },
   {
     name: "LongoKeys", product: "keys" as const, href: "#downloads", status: t.soon,
