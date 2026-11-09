@@ -217,8 +217,9 @@ final class DisplayEngine {
     /// `--diagnose`: what the monitor answers when asked for its brightness over DDC (read only).
     func ddcReport(_ display: Display) -> String {
         guard let channel = channels[display.id] else { return "no DDC channel" }
-        guard let reading = channel.read(.brightness) else { return "DDC: no answer" }
-        return "DDC brightness \(reading.current)/\(reading.max)"
+        let chip = String(format: "chip 0x%02X", channel.chipAddress)
+        guard let reading = channel.read(.brightness) else { return "DDC (\(chip)): no answer" }
+        return "DDC (\(chip)) brightness \(reading.current)/\(reading.max)"
     }
 
     /// Turns a display off as if unplugged, or back on. Returns whether macOS accepted it.

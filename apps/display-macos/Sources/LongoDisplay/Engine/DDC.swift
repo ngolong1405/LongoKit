@@ -6,6 +6,9 @@ import IOKit
 // display's DCPAVServiceProxy in the IORegistry exposes an IOAVService that can send I²C messages to the
 // monitor's controller (chip address 0x37, register 0x51). These functions are exported by IOKit but not
 // declared in its headers.
+//
+// A MacBook Pro's HDMI port goes through a DisplayPort-to-HDMI converter (MCDP29XX) that only passes DDC on at
+// chip address 0xB7, as m1ddc found; at 0x37 the monitor never hears it.
 
 @_silgen_name("IOAVServiceCreateWithService")
 private func IOAVServiceCreateWithService(_ allocator: CFAllocator?, _ service: io_service_t) -> Unmanaged<CFTypeRef>?
@@ -29,11 +32,14 @@ enum VCP: UInt8 {
 /// It holds no mutable state; the IOAVService calls are safe to make from background queues.
 final class DDCChannel: @unchecked Sendable {
     private let service: CFTypeRef
-    private static let chipAddress: UInt32 = 0x37
+    let chipAddress: UInt32
     private static let dataAddress: UInt32 = 0x51
+    static let standardChip: UInt32 = 0x37
+    static let mcdpChip: UInt32 = 0xB7
 
-    fileprivate init(service: CFTypeRef) {
+    fileprivate init(service: CFTypeRef, chipAddress: UInt32) {
         self.service = service
+        self.chipAddress = chipAddress
     }
 
     /// Sets a control. Monitors miss messages now and then, so it's sent twice, as MonitorControl does.
@@ -43,7 +49,7 @@ final class DDCChannel: @unchecked Sendable {
         var ok = false
         for _ in 0..<2 {
             usleep(10_000)
-            ok = IOAVServiceWriteI2C(service, Self.chipAddress, Self.dataAddress, &packet, UInt32(packet.count)) == KERN_SUCCESS || ok
+            ok = IOAVServiceWriteI2C(service, chipAddress, Self.dataAddress, &packet, UInt32(packet.count)) == KERN_SUCCESS || ok
         }
         return ok
     }
@@ -53,12 +59,12 @@ final class DDCChannel: @unchecked Sendable {
         var request = Self.readPacket(code.rawValue)
         for _ in 0..<3 {
             usleep(10_000)
-            guard IOAVServiceWriteI2C(service, Self.chipAddress, Self.dataAddress, &request, UInt32(request.count)) == KERN_SUCCESS else {
+            guard IOAVServiceWriteI2C(service, chipAddress, Self.dataAddress, &request, UInt32(request.count)) == KERN_SUCCESS else {
                 continue
             }
             usleep(50_000)
             var reply = [UInt8](repeating: 0, count: 11)
-            guard IOAVServiceReadI2C(service, Self.chipAddress, 0, &reply, UInt32(reply.count)) == KERN_SUCCESS,
+            guard IOAVServiceReadI2C(service, chipAddress, Self.dataAddress, &reply, UInt32(reply.count)) == KERN_SUCCESS,
                   let parsed = Self.parseReply(reply, code: code.rawValue) else { continue }
             return parsed
         }
@@ -74,10 +80,11 @@ final class DDCChannel: @unchecked Sendable {
         return packet
     }
 
-    /// Get VCP Feature: length, opcode 0x01, code, checksum.
+    /// Get VCP Feature: length, opcode 0x01, code, checksum. Like a write, the checksum covers the destination
+    /// (0x6E) and source (0x51) addresses; most monitors forgive leaving 0x51 out, the HDMI converter doesn't.
     static func readPacket(_ code: UInt8) -> [UInt8] {
         var packet: [UInt8] = [0x82, 0x01, code]
-        packet.append(checksum(seed: 0x6E, packet))
+        packet.append(checksum(seed: 0x6E ^ 0x51, packet))
         return packet
     }
 
@@ -103,6 +110,17 @@ enum DDCDiscovery {
         var serial: UInt32?
         var name: String?
         var service: CFTypeRef
+        var chipAddress: UInt32
+    }
+
+    /// The proxy sits behind the HDMI port's MCDP29XX converter.
+    private static func isMCDP29XX(_ proxy: io_registry_entry_t) -> Bool {
+        var parent = io_registry_entry_t()
+        guard IORegistryEntryGetParentEntry(proxy, kIOServicePlane, &parent) == KERN_SUCCESS else { return false }
+        defer { IOObjectRelease(parent) }
+        let provider = IORegistryEntryCreateCFProperty(parent, "EPICProviderClass" as CFString, kCFAllocatorDefault, 0)?
+            .takeRetainedValue() as? String
+        return provider == "AppleDCPMCDP29XX"
     }
 
     /// Walks the registry in order: each external DCPAVServiceProxy follows the framebuffer it drives,
@@ -135,7 +153,8 @@ enum DDCDiscovery {
                     model: (attributes["ProductID"] as? NSNumber)?.uint32Value,
                     serial: (attributes["SerialNumber"] as? NSNumber)?.uint32Value,
                     name: attributes["ProductName"] as? String,
-                    service: service))
+                    service: service,
+                    chipAddress: isMCDP29XX(entry) ? DDCChannel.mcdpChip : DDCChannel.standardChip))
             }
         }
         return found
@@ -161,7 +180,7 @@ enum DDCDiscovery {
             // Vendor and model must match, unless there's exactly one external display and one channel.
             let best = scored.max { $0.1 < $1.1 }
             if let best, best.1 >= 2 || (displays.count == 1 && pool.count == 1) {
-                result[display] = DDCChannel(service: pool[best.0].service)
+                result[display] = DDCChannel(service: pool[best.0].service, chipAddress: pool[best.0].chipAddress)
                 pool.remove(at: best.0)
             }
         }

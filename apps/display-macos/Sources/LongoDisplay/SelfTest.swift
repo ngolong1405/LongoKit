@@ -11,7 +11,7 @@ enum SelfTest {
     static func runAndExit() {
         // DDC packets (VESA MCCS framing as MonitorControl sends it). The last byte is the XOR checksum.
         check("Set brightness 50 packet", DDCChannel.writePacket(0x10, 50) == [0x84, 0x03, 0x10, 0x00, 0x32, 0x9A])
-        check("Get brightness packet", DDCChannel.readPacket(0x10) == [0x82, 0x01, 0x10, 0xFD])
+        check("Get brightness packet", DDCChannel.readPacket(0x10) == [0x82, 0x01, 0x10, 0xAC])
         let reply: [UInt8] = [0x6E, 0x88, 0x02, 0x00, 0x10, 0x00, 0x00, 0x64, 0x00, 0x2A, 0x00]
         check("Parse reply: current 42 of 100", DDCChannel.parseReply(reply, code: 0x10).map { $0 == (42, 100) } ?? false)
         check("Reject an error reply", DDCChannel.parseReply([0x6E, 0x88, 0x02, 0x01, 0x10, 0, 0, 0x64, 0, 0x2A, 0], code: 0x10) == nil)
