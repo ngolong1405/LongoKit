@@ -120,12 +120,13 @@ struct WindowFooter: View {
     }
 }
 
-/// The app mark: a display with a sun, on the LongoKit gradient.
+/// The app mark: the LongoDisplay icon, on a dark or white tile to match the appearance.
 struct AppLogo: View {
     var size: CGFloat
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        if let logo = Resource.image("Logo.png") {
+        if let logo = Resource.image(scheme == .dark ? "Logo.png" : "LogoLight.png") ?? Resource.image("Logo.png") {
             Image(nsImage: logo).resizable().interpolation(.high).frame(width: size, height: size)
         } else {
             RoundedRectangle(cornerRadius: size * 0.22, style: .continuous)

@@ -1,0 +1,25 @@
+---
+// A LongoKit Trinity app icon in the current theme (brand/icons).
+import mouseDark from "../../../brand/icons/mouse-dark.png";
+import mouseLight from "../../../brand/icons/mouse-light.png";
+import displayDark from "../../../brand/icons/display-dark.png";
+import displayLight from "../../../brand/icons/display-light.png";
+import keysDark from "../../../brand/icons/keys-dark.png";
+import keysLight from "../../../brand/icons/keys-light.png";
+
+interface Props {
+  product: "mouse" | "display" | "keys";
+  class?: string;
+}
+
+const icons = {
+  mouse: [mouseLight, mouseDark],
+  display: [displayLight, displayDark],
+  keys: [keysLight, keysDark],
+};
+const { product, class: className = "" } = Astro.props;
+const [light, dark] = icons[product];
+---
+
+<img src={light.src} alt="" class:list={[className, "dark:hidden"]} />
+<img src={dark.src} alt="" class:list={[className, "hidden dark:block"]} />

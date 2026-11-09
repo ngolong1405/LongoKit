@@ -1,4 +1,5 @@
 ---
+import ProductIcon from "../ProductIcon.astro";
 import Logo from "../Logo.astro";
 import { repo, mouseDownload, mouseVersion, licenseURL } from "../../data/site";
 import { pick, type Lang } from "../../i18n";
@@ -37,19 +38,19 @@ const t = pick(lang, {
 
 const kits = [
   {
-    name: "LongoMouse", icon: "mouse", version: `v${mouseVersion}`, available: true,
-    tint: "text-primary", iconTint: "text-primary-container", iconBg: "bg-primary-container/20", badgeBg: "bg-primary-container/15",
+    name: "LongoMouse", product: "mouse" as const, version: `v${mouseVersion}`, available: true,
+    tint: "text-primary", badgeBg: "bg-primary-container/15",
     mac: "bg-primary-container/20 text-primary hover:bg-primary-container hover:text-on-primary-container",
     tagline: "Smooth Scrolling & Gesture Engine", body: t.mouse,
   },
   {
-    name: "LongoKeys", icon: "keyboard", version: t.soon, available: false,
-    tint: "text-secondary", iconTint: "text-secondary", iconBg: "bg-secondary-container/30", badgeBg: "bg-secondary-container/25",
+    name: "LongoKeys", product: "keys" as const, version: t.soon, available: false,
+    tint: "text-secondary", badgeBg: "bg-secondary-container/25",
     mac: "", tagline: "Layer & Hyperkey Engine", body: t.keys,
   },
   {
-    name: "LongoDisplay", icon: "desktop_windows", version: t.soon, available: false,
-    tint: "text-tertiary", iconTint: "text-tertiary", iconBg: "bg-tertiary/20", badgeBg: "bg-tertiary/20",
+    name: "LongoDisplay", product: "display" as const, version: t.soon, available: false,
+    tint: "text-tertiary", badgeBg: "bg-tertiary/20",
     mac: "", tagline: "DDC/CI Hardware Luminance", body: t.display,
   },
 ];
@@ -71,9 +72,7 @@ const kits = [
         <div class="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-surface-container-low p-8 shadow-xl transition-all hover:bg-surface-container">
           <div class="flex flex-col gap-5">
             <div class="flex items-center justify-between">
-              <div class:list={["flex h-12 w-12 items-center justify-center rounded-xl", k.iconBg, k.iconTint]}>
-                <span class="material-symbols-outlined text-[28px]">{k.icon}</span>
-              </div>
+              <ProductIcon product={k.product} class="-m-1.5 h-15 w-15" />
               <span class:list={["rounded px-2.5 py-1 font-code text-xs", k.badgeBg, k.tint]}>{k.version}</span>
             </div>
             <div>

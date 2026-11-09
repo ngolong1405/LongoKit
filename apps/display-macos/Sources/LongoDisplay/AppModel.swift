@@ -265,9 +265,28 @@ final class AppModel: ObservableObject {
 
     // MARK: - Helpers
 
+    private var appearanceObservation: NSKeyValueObservation?
+
+    /// NSApp may not exist yet during launch, so apply on the next turn of the run loop. The Dock icon follows:
+    /// white tile in light mode, dark tile in dark mode.
     private func applyAppearance() {
         let appearance = appearance.nsAppearance
-        DispatchQueue.main.async { NSApp?.appearance = appearance }
+        DispatchQueue.main.async { [weak self] in
+            guard let app = NSApp else { return }
+            app.appearance = appearance
+            Self.updateDockIcon()
+            if self?.appearanceObservation == nil {
+                self?.appearanceObservation = app.observe(\.effectiveAppearance) { _, _ in
+                    DispatchQueue.main.async { Self.updateDockIcon() }
+                }
+            }
+        }
+    }
+
+    private static func updateDockIcon() {
+        guard let app = NSApp else { return }
+        let dark = app.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        app.applicationIconImage = Resource.image(dark ? "Logo.png" : "LogoLight.png")
     }
 
     private func save<T: Encodable>(_ value: T, forKey key: String) {

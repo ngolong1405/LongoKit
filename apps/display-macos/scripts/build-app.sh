@@ -17,6 +17,7 @@ cp "$BIN" "$APP/Contents/MacOS/LongoDisplay"
 cp Support/Info.plist "$APP/Contents/Info.plist"
 cp Support/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp Support/Logo.png "$APP/Contents/Resources/Logo.png"
+cp Support/LogoLight.png "$APP/Contents/Resources/LogoLight.png"
 # Support/Fonts links to brand/fonts; copy the files, not the link.
 cp -RL Support/Fonts "$APP/Contents/Resources/Fonts"
 
