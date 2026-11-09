@@ -48,6 +48,19 @@ private struct KeyboardList: View {
         VStack(alignment: .leading, spacing: 14) {
             AllKeyboardsRow().panel(padding: 0)
 
+            if let id = model.typingKeyboard, !model.isOn(id), let keyboard = model.keyboard(id) {
+                HStack(spacing: 10) {
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.amber)
+                    Text(L("You're typing on %@, which is off: it types as usual.", model.displayName(keyboard)))
+                        .font(.ui(12)).foregroundStyle(Theme.text)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 8)
+                    Button(L("Turn on")) { model.setOn(id, true) }.buttonStyle(.primary)
+                }
+                .padding(12)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.amber.opacity(0.1)))
+            }
+
             SectionLabel(text: L("Connected keyboards") + " (\(model.keyboards.count))")
             VStack(spacing: 0) {
                 ForEach(Array(model.keyboards.enumerated()), id: \.element.id) { index, keyboard in

@@ -186,6 +186,7 @@ enum Vietnamese {
         "No changes": "Chưa đổi gì",
         "Hide keys": "Ẩn bàn phím",
         "Typing": "Đang gõ",
+        "You're typing on %@, which is off: it types as usual.": "Bạn đang gõ trên %@, bàn phím này đang tắt nên gõ như bình thường.",
         "Input Monitoring (optional)": "Theo dõi đầu vào (tuỳ chọn)",
         "Shows which keyboard you're typing on in the Keyboards tab.": "Cho biết bạn đang gõ trên bàn phím nào, ở tab Bàn phím.",
         "Show keys": "Hiện bàn phím",
