@@ -28,6 +28,18 @@ enum SelfTest {
         check("Key down stops at 0", SyncMath.stepped(0, up: false) == 0)
         check("Key up stops at 100%", SyncMath.stepped(1, up: true) == 1)
 
+        // One level for brightness and extra dimming.
+        var level = DisplaySettings()
+        level.setLevel(-0.3)
+        check("Below 0% the backlight stays at 0 and the picture dims", level.brightness == 0 && abs(level.extraDim - 0.3) < 0.0001 && abs(level.level + 0.3) < 0.0001)
+        level.setLevel(0.4)
+        check("Back above 0% the extra dimming is gone", level.brightness == 0.4 && level.extraDim == 0)
+        level.setLevel(-5)
+        check("Extra dimming stops at its deepest", level.extraDim == DisplaySettings.maxDim)
+        check("Key down from 0% goes into extra dimming", SyncMath.stepped(0, up: false, lowest: -DisplaySettings.maxDim) == -1.0 / 16)
+        let mixed = try? JSONDecoder().decode(DisplaySettings.self, from: Data(#"{"brightness":0.5,"extraDim":0.3}"#.utf8))
+        check("Old dimming above 0% brightness is dropped", mixed?.extraDim == 0)
+
         // Coalescing: a burst of slider values writes far fewer times and ends on the last value.
         var written: [Int] = []
         let lock = NSLock()

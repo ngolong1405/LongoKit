@@ -185,7 +185,19 @@ final class AppModel: ObservableObject {
 
     /// Sets one display's brightness (0…1).
     func setBrightness(_ value: Double, for display: Display) {
-        update(display) { $0.brightness = min(max(value, 0), 1) }
+        setLevel(min(max(value, 0), 1), for: display)
+    }
+
+    /// Brightness and extra dimming as one level (see `DisplaySettings.level`).
+    func setLevel(_ value: Double, for display: Display) {
+        let range = levelRange(for: display)
+        update(display) { $0.setLevel(min(max(value, range.lowerBound), range.upperBound)) }
+    }
+
+    /// How low a display's level goes: below 0 is extra dimming, except where brightness is already done in
+    /// software and going lower would only repeat it.
+    func levelRange(for display: Display) -> ClosedRange<Double> {
+        display.method == .software ? 0...1 : -DisplaySettings.maxDim...1
     }
 
     func update(_ display: Display, _ change: (inout DisplaySettings) -> Void) {
@@ -341,7 +353,12 @@ final class AppModel: ObservableObject {
         guard let engine, let builtin, let builtinValue = engine.builtinBrightness(),
               lastBuiltin.map({ abs($0 - builtinValue) > 0.004 }) ?? true else { return }
         lastBuiltin = builtinValue
-        settings[builtin.key]?.brightness = builtinValue
+        if builtinValue > 0, settings(for: builtin).extraDim > 0 {
+            // The brightness keys took it back above 0%: the extra dimming below 0% goes too.
+            update(builtin) { $0.setLevel(builtinValue) }
+        } else {
+            settings[builtin.key]?.brightness = builtinValue
+        }
         guard mode == .sync else { return }
         for display in externals where isOn(display) {
             let value = settings(for: display)
@@ -356,9 +373,9 @@ final class AppModel: ObservableObject {
               let id = (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value,
               let display = displays.first(where: { $0.id == id }),
               display.method != .native else { return false }
-        let value = SyncMath.stepped(settings(for: display).brightness, up: up)
-        setBrightness(value, for: display)
-        BrightnessOSD.shared.show(value, on: display.id)
+        let value = SyncMath.stepped(settings(for: display).level, up: up, lowest: levelRange(for: display).lowerBound)
+        setLevel(value, for: display)
+        BrightnessOSD.shared.show(max(value, 0), on: display.id)
         return true
     }
 

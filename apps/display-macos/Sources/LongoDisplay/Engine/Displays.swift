@@ -57,6 +57,21 @@ struct DisplaySettings: Codable, Equatable {
         extraDim = try c.decodeIfPresent(Double.self, forKey: .extraDim) ?? d.extraDim
         control = (try? c.decodeIfPresent(ControlChoice.self, forKey: .control)) ?? d.control
         volume = try c.decodeIfPresent(Double.self, forKey: .volume)
+        // Extra dimming now only goes below 0% brightness; older versions allowed it at any brightness.
+        if brightness > 0 { extraDim = 0 }
+    }
+
+    /// The deepest extra dimming, as a fraction of the picture taken away.
+    static let maxDim = 0.8
+
+    /// Brightness and extra dimming as one level, like Lunar's sub-zero: 0…1 is the backlight, below 0 darkens
+    /// the picture further (down to -maxDim) once the backlight is at its lowest.
+    var level: Double { brightness > 0 || extraDim == 0 ? brightness : -extraDim }
+
+    mutating func setLevel(_ value: Double) {
+        let value = min(max(value, -Self.maxDim), 1)
+        brightness = max(value, 0)
+        extraDim = max(-value, 0)
     }
 }
 
@@ -70,9 +85,10 @@ enum SyncMath {
     /// Brightness keys move in 16 steps, like macOS.
     static let keyStep = 1.0 / 16
 
-    static func stepped(_ value: Double, up: Bool) -> Double {
+    /// One key press up or down, staying within `lowest`…1 (below 0 is extra dimming).
+    static func stepped(_ value: Double, up: Bool, lowest: Double = 0) -> Double {
         let steps = (value / keyStep).rounded()
-        return min(max((steps + (up ? 1 : -1)) * keyStep, 0), 1)
+        return min(max((steps + (up ? 1 : -1)) * keyStep, lowest), 1)
     }
 }
 

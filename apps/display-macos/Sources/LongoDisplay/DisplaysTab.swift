@@ -148,23 +148,13 @@ struct DisplayLevels: View {
     let columns: Bool
 
     var body: some View {
-        let value = model.settings(for: display)
         let locked = model.mode == .sync && !display.isBuiltin
         let layout = columns ? AnyLayout(HStackLayout(alignment: .top, spacing: 24)) : AnyLayout(VStackLayout(spacing: 8))
         layout {
-            VStack(spacing: 8) {
-                LevelSlider(symbol: "sun.max.fill", value: value.brightness) { model.setBrightness($0, for: display) }
-                    .disabled(locked)
-                    .opacity(locked ? 0.5 : 1)
-                    .help(locked ? L("Follows the built-in display in Sync mode") : L("Brightness"))
-                if value.brightness < 0.005 || value.extraDim > 0 {
-                    LevelSlider(symbol: "moon.fill", value: value.extraDim, range: 0...0.8, tint: Theme.violetLight) { new in
-                        model.update(display) { $0.extraDim = new }
-                    }
-                    .help(L("Extra Dimming"))
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                }
-            }
+            BrightnessLevel(display: display)
+                .disabled(locked)
+                .opacity(locked ? 0.5 : 1)
+                .help(locked ? L("Follows the built-in display in Sync mode") : L("Brightness"))
             if display.method == .ddc {
                 LevelSlider(symbol: "speaker.wave.2.fill", value: model.volume(for: display)) { model.setVolume($0, for: display) }
                     .help(L("Speaker volume"))
@@ -173,7 +163,31 @@ struct DisplayLevels: View {
                     .help(L("Mac volume"))
             }
         }
-        .animation(.easeOut(duration: 0.2), value: value.brightness < 0.005 || value.extraDim > 0)
+    }
+}
+
+/// Brightness and extra dimming on one slider: right of the 0 tick is the backlight, left of it (violet, with a
+/// moon) darkens the picture further. Displays dimmed in software only go down to 0.
+struct BrightnessLevel: View {
+    @EnvironmentObject private var model: AppModel
+    let display: Display
+
+    var body: some View {
+        let level = model.settings(for: display).level
+        let range = model.levelRange(for: display)
+        let dimming = level < 0
+        HStack(spacing: 8) {
+            Image(systemName: dimming ? "moon.fill" : "sun.max.fill")
+                .font(.system(size: 11))
+                .foregroundStyle(dimming ? Theme.violetLight : Theme.solar)
+                .frame(width: 16)
+            DSSlider(value: Binding(get: { level }, set: { model.setLevel($0, for: display) }), range: range, step: 0.01,
+                     origin: range.lowerBound < 0 ? 0 : nil)
+            Text("\(Int((level * 100).rounded()))%")
+                .font(.mono(11, .semibold))
+                .foregroundStyle(dimming ? Theme.violetLight : Theme.solar)
+                .frame(width: 40, alignment: .trailing)
+        }
     }
 }
 
@@ -181,7 +195,6 @@ struct DisplayLevels: View {
 struct LevelSlider: View {
     let symbol: String
     let value: Double
-    var range: ClosedRange<Double> = 0...1
     var tint = Theme.solar
     let set: (Double) -> Void
 
@@ -191,7 +204,7 @@ struct LevelSlider: View {
                 .font(.system(size: 11))
                 .foregroundStyle(tint)
                 .frame(width: 16)
-            DSSlider(value: Binding(get: { value }, set: set), range: range, step: 0.01)
+            DSSlider(value: Binding(get: { value }, set: set), range: 0...1, step: 0.01)
             Text("\(Int((value * 100).rounded()))%")
                 .font(.mono(11, .semibold))
                 .foregroundStyle(tint)
@@ -239,18 +252,6 @@ private struct DisplayPage: View {
                 .font(.ui(11))
                 .foregroundStyle(Theme.textMuted)
                 .frame(maxWidth: .infinity)
-
-            VStack(alignment: .leading, spacing: 12) {
-                CardHeader(symbol: "moon.fill", title: L("Extra Dimming"),
-                           subtitle: L("Darker than the lowest brightness, for late nights. Done in software."),
-                           tint: Theme.violet) {
-                    Text("\(Int((value.extraDim * 100).rounded()))%").font(.mono(12, .semibold)).foregroundStyle(Theme.violetLight)
-                }
-                DSSlider(value: Binding(get: { value.extraDim },
-                                        set: { new in model.update(display) { $0.extraDim = new } }),
-                         range: 0...0.8, step: 0.05)
-            }
-            .panel()
             }
             .disabled(!model.isOn(display))
             .opacity(model.isOn(display) ? 1 : 0.4)
@@ -329,21 +330,11 @@ private struct ScreenCard: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                 Chip(display.method.title, tone: display.method.tone, dot: true)
-                HStack(spacing: 10) {
-                    Image(systemName: "sun.min").foregroundStyle(Theme.textMuted)
-                    DSSlider(value: Binding(get: { value.brightness },
-                                            set: { model.setBrightness($0, for: display) }),
-                             range: 0...1, step: 0.01)
-                        // In Sync an external display follows the built-in one, as in the menu.
-                        .disabled(model.mode == .sync && !display.isBuiltin)
-                        .opacity(model.mode == .sync && !display.isBuiltin ? 0.5 : 1)
-                        .help(model.mode == .sync && !display.isBuiltin ? L("Follows the built-in display in Sync mode") : "")
-                    Image(systemName: "sun.max.fill").foregroundStyle(Theme.solar)
-                    Text("\(Int((value.brightness * 100).rounded()))")
-                        .font(.mono(13, .semibold))
-                        .foregroundStyle(Theme.solar)
-                        .frame(width: 30, alignment: .trailing)
-                }
+                BrightnessLevel(display: display)
+                    // In Sync an external display follows the built-in one, as in the menu.
+                    .disabled(model.mode == .sync && !display.isBuiltin)
+                    .opacity(model.mode == .sync && !display.isBuiltin ? 0.5 : 1)
+                    .help(model.mode == .sync && !display.isBuiltin ? L("Follows the built-in display in Sync mode") : "")
                 .padding(.top, 6)
             }
             .padding(20)

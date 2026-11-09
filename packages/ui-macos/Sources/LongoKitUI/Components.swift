@@ -336,22 +336,47 @@ public struct DSSlider: View {
     /// Off for snapshots: ImageRenderer can't draw the AppKit view that catches the wheel.
     public static var scrollWheelAdjusts = true
 
-    public init(value: Binding<Double>, range: ClosedRange<Double>, step: Double = 0.01) {
+    /// Where the fill starts. With an origin inside the range (0 on a -80…100 slider), the fill runs from it to
+    /// the knob: Solar above, violet below, with a tick at the origin.
+    public var origin: Double?
+
+    public init(value: Binding<Double>, range: ClosedRange<Double>, step: Double = 0.01, origin: Double? = nil) {
         self._value = value
         self.range = range
         self.step = step
+        self.origin = origin
     }
 
     public var body: some View {
         GeometryReader { geometry in
             let travel = geometry.size.width - 18
-            let fraction = (value - range.lowerBound) / (range.upperBound - range.lowerBound)
+            let span = range.upperBound - range.lowerBound
+            let fraction = (value - range.lowerBound) / span
             ZStack(alignment: .leading) {
                 Color.clear.frame(height: 6).recessed(radius: 3)
-                Capsule()
-                    .fill(Theme.accentGradient)
-                    .frame(width: max(travel * fraction + 9, 6), height: 6)
-                    .shadow(color: Theme.solar.opacity(0.5), radius: 5)
+                if let origin, origin > range.lowerBound {
+                    let start = (origin - range.lowerBound) / span
+                    let below = value < origin
+                    // The stretch below the origin, faintly violet so it reads as a different zone.
+                    Capsule()
+                        .fill(Theme.violet.opacity(0.18))
+                        .frame(width: travel * start + 9, height: 6)
+                    Capsule()
+                        .fill(below ? AnyShapeStyle(LinearGradient(colors: [Theme.violet, Theme.violetLight], startPoint: .leading, endPoint: .trailing))
+                                    : AnyShapeStyle(Theme.accentGradient))
+                        .frame(width: max(travel * abs(fraction - start), 0), height: 6)
+                        .offset(x: travel * min(fraction, start) + 9)
+                        .shadow(color: (below ? Theme.violet : Theme.solar).opacity(0.5), radius: 5)
+                    Capsule()
+                        .fill(Theme.tint(0.45))
+                        .frame(width: 2, height: 12)
+                        .offset(x: travel * start + 8)
+                } else {
+                    Capsule()
+                        .fill(Theme.accentGradient)
+                        .frame(width: max(travel * fraction + 9, 6), height: 6)
+                        .shadow(color: Theme.solar.opacity(0.5), radius: 5)
+                }
                 ZStack {
                     Circle().fill(LinearGradient(colors: [Color(hex: 0xF4F4F6), Color(hex: 0xA9ABB3)],
                                                  startPoint: .top, endPoint: .bottom))
