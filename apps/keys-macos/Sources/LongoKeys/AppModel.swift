@@ -126,6 +126,11 @@ final class AppModel: ObservableObject {
             MainActor.assumeIsolated { self?.isEnabled.toggle() }
         }
         startTapIfPossible()
+        // Permissions change in System Settings without telling us, so re-check on focus and on a timer.
+        NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification,
+                                               object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.tick() }
+        }
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.tick() }
         }
@@ -267,10 +272,9 @@ final class AppModel: ObservableObject {
 
     private func tick() {
         let trusted = AXIsProcessTrusted()
-        if trusted != hasAccessibility {
-            hasAccessibility = trusted
-            startTapIfPossible()
-        }
+        if trusted != hasAccessibility { hasAccessibility = trusted }
+        // Also retried while trusted: right after a grant the tap can fail once before it takes.
+        startTapIfPossible()
         let secure = IsSecureEventInputEnabled()
         if secure != secureInput { secureInput = secure }
     }

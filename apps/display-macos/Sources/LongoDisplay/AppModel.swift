@@ -191,6 +191,11 @@ final class AppModel: ObservableObject {
                 self?.refreshSystemVolume()
             }
         }
+        // Permissions change in System Settings without telling us, so re-check on focus and on a timer.
+        NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification,
+                                               object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshPermissions() }
+        }
         permissionTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.refreshPermissions() }
         }

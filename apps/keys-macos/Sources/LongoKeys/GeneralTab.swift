@@ -54,7 +54,7 @@ private struct PermissionCard: View {
             if !model.hasAccessibility {
                 HStack(spacing: 10) {
                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.amber)
-                    Text(L("Until it's granted, Caps Lock set to Hyper stays a normal Caps Lock."))
+                    Text(L("Until it's granted, Caps Lock set to Hyper stays a normal Caps Lock. In the list, turn on “Longo Keys”."))
                         .font(.ui(12)).foregroundStyle(Theme.text)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 8)

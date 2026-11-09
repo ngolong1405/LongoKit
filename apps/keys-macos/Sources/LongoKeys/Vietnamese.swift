@@ -34,8 +34,8 @@ enum Vietnamese {
             "Đổi phím không cần quyền gì. Phím Hyper cần quyền Trợ năng.",
         "Granted": "Đã cấp",
         "Needed for Hyper": "Cần cho Hyper",
-        "Until it's granted, Caps Lock set to Hyper stays a normal Caps Lock.":
-            "Chưa cấp quyền thì Caps Lock đặt làm Hyper vẫn là Caps Lock bình thường.",
+        "Until it's granted, Caps Lock set to Hyper stays a normal Caps Lock. In the list, turn on “Longo Keys”.":
+            "Chưa cấp quyền thì Caps Lock đặt làm Hyper vẫn là Caps Lock bình thường. Trong danh sách, hãy bật mục “Longo Keys”.",
         "Grant Access…": "Cấp quyền…",
         "In password fields macOS turns on Secure Input and hides keys from every app like this one: there the Hyper key waits until you leave the field. Remapped keys keep working.":
             "Trong ô mật khẩu, macOS bật Bảo mật nhập liệu và giấu phím khỏi mọi app như app này: ở đó phím Hyper tạm ngưng tới khi bạn rời ô. Các phím đã đổi vẫn hoạt động.",
