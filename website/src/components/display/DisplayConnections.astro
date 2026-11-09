@@ -1,0 +1,85 @@
+---
+import { licenseURL } from "../../data/site";
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "However it's plugged in", title: "Picks the Right Way for Each Display",
+    lead: "Longo Display looks at how each screen is connected and controls it the best way it can, on its own.",
+    cards: [
+      ["USB-C · DisplayPort · Thunderbolt", "cable", "DDC/CI", "Hardware backlight and speaker volume, read back from the monitor.", "text-tertiary", "bg-tertiary/15"],
+      ["MacBook Pro HDMI port", "settings_input_hdmi", "DDC/CI · MCDP29XX", "The HDMI converter inside some MacBooks needs DDC sent its own way; Longo Display does that for you.", "text-primary", "bg-primary/15"],
+      ["No DDC (TVs, some docks)", "tv", "Software", "Dimmed in software when a monitor or adapter doesn't pass DDC on. You can also choose it by hand.", "text-secondary", "bg-secondary/15"],
+      ["MacBook & Apple displays", "laptop_mac", "macOS", "Brightness through macOS itself, so the keys and auto-brightness keep working.", "text-on-surface", "bg-surface-container-highest"],
+    ],
+    safeTitle: "Light, Safe & Native",
+    safeLead: "A small menu bar app that stays out of the way.",
+    safe: [
+      ["security", "No kext, no SIP changes", "Talks to displays through macOS's own interfaces. Nothing installed in the system.", "text-primary"],
+      ["speed", "~0% CPU when idle", "Swift and SwiftUI, no Electron. It only works when something changes.", "text-tertiary"],
+      ["code", "Source-available", "Read the code on GitHub. No account, no ads, no telemetry.", "text-secondary"],
+    ],
+    license: "LongoKit License",
+  },
+  vi: {
+    badge: "Cắm kiểu gì cũng được", title: "Tự Chọn Cách Đúng Cho Từng Màn",
+    lead: "Longo Display xem mỗi màn được kết nối thế nào và tự điều khiển theo cách tốt nhất có thể.",
+    cards: [
+      ["USB-C · DisplayPort · Thunderbolt", "cable", "DDC/CI", "Đèn nền phần cứng và âm lượng loa, đọc lại được từ màn hình.", "text-tertiary", "bg-tertiary/15"],
+      ["Cổng HDMI của MacBook Pro", "settings_input_hdmi", "DDC/CI · MCDP29XX", "Chip chuyển HDMI bên trong một số MacBook cần gửi DDC theo cách riêng; Longo Display tự lo việc đó.", "text-primary", "bg-primary/15"],
+      ["Không có DDC (TV, một số dock)", "tv", "Phần mềm", "Làm tối bằng phần mềm khi màn hoặc bộ chuyển không truyền DDC. Bạn cũng có thể tự chọn cách này.", "text-secondary", "bg-secondary/15"],
+      ["MacBook & màn hình Apple", "laptop_mac", "macOS", "Chỉnh độ sáng qua chính macOS, nên phím và tự động chỉnh độ sáng vẫn hoạt động.", "text-on-surface", "bg-surface-container-highest"],
+    ],
+    safeTitle: "Nhẹ, An Toàn & Native",
+    safeLead: "Một app nhỏ trên thanh menu, không làm phiền bạn.",
+    safe: [
+      ["security", "Không kext, không sửa SIP", "Giao tiếp với màn hình qua chính các giao diện của macOS. Không cài gì vào hệ thống.", "text-primary"],
+      ["speed", "~0% CPU khi rảnh", "Viết bằng Swift và SwiftUI, không Electron. Chỉ làm việc khi có thay đổi.", "text-tertiary"],
+      ["code", "Mã nguồn công khai", "Đọc mã trên GitHub. Không tài khoản, không quảng cáo, không telemetry.", "text-secondary"],
+    ],
+    license: "Giấy phép LongoKit",
+  },
+});
+---
+
+<section id="connections" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto mb-space-xl max-w-2xl text-center">
+    <span class="font-code text-label-badge uppercase tracking-wider text-primary">{t.badge}</span>
+    <h2 class="mt-space-xs text-headline-xl tracking-tight">{t.title}</h2>
+    <p class="mt-space-sm text-body-lg text-on-surface-variant">{t.lead}</p>
+  </div>
+  <div class="grid grid-cols-1 gap-gutter md:grid-cols-2 lg:grid-cols-4">
+    {t.cards.map(([name, icon, method, body, tint, chip]) => (
+      <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container-low p-space-lg shadow-lg transition-all hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <span class:list={["material-symbols-outlined text-[26px]", tint]}>{icon}</span>
+          <span class:list={["rounded px-2 py-0.5 font-code text-[11px] font-semibold", chip, tint]}>{method}</span>
+        </div>
+        <h3 class="text-headline-sm">{name}</h3>
+        <p class="text-body-sm text-on-surface-variant">{body}</p>
+      </div>
+    ))}
+  </div>
+
+  <div class="mx-auto mt-space-3xl mb-space-xl max-w-xl text-center">
+    <h2 class="text-headline-lg tracking-tight">{t.safeTitle}</h2>
+    <p class="mt-space-xs text-body-md text-on-surface-variant">{t.safeLead}</p>
+  </div>
+  <div class="grid grid-cols-1 gap-gutter md:grid-cols-3">
+    {t.safe.map(([icon, title, body, tint]) => (
+      <div class="flex flex-col items-center gap-space-sm rounded-2xl bg-surface-container-low p-space-lg text-center shadow-lg">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-container-high">
+          <span class:list={["material-symbols-outlined text-[26px]", tint]}>{icon}</span>
+        </div>
+        <h3 class="text-headline-sm">{title}</h3>
+        <p class="text-body-sm text-on-surface-variant">{body}</p>
+      </div>
+    ))}
+  </div>
+  <p class="mt-space-md text-center font-code text-xs text-on-surface-variant"><a class="hover:text-primary" href={licenseURL}>{t.license}</a></p>
+</section>

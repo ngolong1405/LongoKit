@@ -1,0 +1,80 @@
+---
+import ProductIcon from "../ProductIcon.astro";
+import { repo, displayDownload, displayReleaseNotes, displayVersion } from "../../data/site";
+import { localize, pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Free · Beta", title: "Get Longo Display",
+    lead: "No ads, no account, no data collection.",
+    macTitle: "macOS", macBody: "Apple Silicon & Intel · macOS 13 or later",
+    download: "Download the installer (.dmg)", notes: "Release notes",
+    intel: "Intel Macs use software dimming for now (DDC on Intel isn't supported yet).",
+    notarize: "This beta isn't notarized yet. If macOS blocks it: System Settings › Privacy & Security › Open Anyway.",
+    winTitle: "Windows", winBody: "Windows 10 & 11", soon: "Coming soon", follow: "Follow on GitHub",
+    more: "More from LongoKit:",
+  },
+  vi: {
+    badge: "Miễn phí · Beta", title: "Tải Longo Display",
+    lead: "Không quảng cáo, không tài khoản, không thu thập dữ liệu.",
+    macTitle: "macOS", macBody: "Apple Silicon & Intel · macOS 13 trở lên",
+    download: "Tải bản cài đặt (.dmg)", notes: "Ghi chú phát hành",
+    intel: "Máy Mac Intel hiện làm tối bằng phần mềm (chưa hỗ trợ DDC trên Intel).",
+    notarize: "Bản beta chưa notarize. Nếu macOS chặn: Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Vẫn mở.",
+    winTitle: "Windows", winBody: "Windows 10 & 11", soon: "Sắp có", follow: "Theo dõi trên GitHub",
+    more: "Khám phá thêm trong LongoKit:",
+  },
+});
+---
+
+<section id="downloads" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto mb-space-xl max-w-2xl text-center">
+    <span class="inline-flex items-center gap-space-xs rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-primary">
+      <span class="material-symbols-outlined text-[16px]">download</span>{t.badge} · v{displayVersion}
+    </span>
+    <h2 class="mt-space-sm text-headline-xl tracking-tight">{t.title}</h2>
+    <p class="mt-space-xs text-body-lg text-on-surface-variant">{t.lead}</p>
+  </div>
+
+  <div class="mx-auto grid max-w-4xl grid-cols-1 gap-gutter md:grid-cols-2">
+    <div class="flex flex-col gap-space-md rounded-2xl border-2 border-primary/40 bg-surface-container-low p-space-lg shadow-xl">
+      <div class="flex items-center gap-space-sm">
+        <ProductIcon product="display" class="h-12 w-12" />
+        <div>
+          <h3 class="text-headline-sm">{t.macTitle}</h3>
+          <span class="font-code text-xs text-primary">{t.macBody}</span>
+        </div>
+      </div>
+      <a href={displayDownload} class="flex items-center justify-center gap-space-xs rounded-xl bg-gradient-to-r from-primary-container to-secondary-container py-3 font-display text-sm font-semibold text-white shadow-md transition-all hover:opacity-95">
+        <span class="material-symbols-outlined text-[18px]">download</span>{t.download}
+      </a>
+      <a href={displayReleaseNotes} class="text-center font-code text-xs text-on-surface-variant hover:text-primary">{t.notes} · v{displayVersion}</a>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.notarize}</p>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.intel}</p>
+    </div>
+    <div class="flex flex-col gap-space-md rounded-2xl bg-surface-container-low p-space-lg opacity-80 shadow-xl">
+      <div class="flex items-center gap-space-sm">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-tertiary/15"><span class="material-symbols-outlined text-[28px] text-tertiary">desktop_windows</span></div>
+        <div>
+          <h3 class="text-headline-sm">{t.winTitle}</h3>
+          <span class="font-code text-xs text-tertiary">{t.winBody}</span>
+        </div>
+      </div>
+      <span class="flex cursor-not-allowed items-center justify-center gap-space-xs rounded-xl bg-surface-container-high py-3 text-sm text-on-surface-variant">{t.soon}</span>
+      <a href={repo} class="text-center font-code text-xs text-on-surface-variant hover:text-tertiary">{t.follow}</a>
+    </div>
+  </div>
+
+  <div class="mx-auto mt-space-xl flex max-w-4xl flex-wrap items-center justify-between gap-space-sm rounded-xl bg-surface-container-lowest p-space-md">
+    <span class="flex items-center gap-space-xs font-code text-xs text-on-surface-variant"><span class="material-symbols-outlined text-[18px] text-primary">apps</span>{t.more}</span>
+    <div class="flex gap-space-xs">
+      <a href={localize(lang, "/mouse")} class="rounded-lg bg-surface-container px-3 py-1.5 text-xs hover:text-primary">LongoMouse</a>
+      <a href={localize(lang, "/#pillars")} class="rounded-lg bg-surface-container px-3 py-1.5 text-xs hover:text-secondary">LongoKeys</a>
+    </div>
+  </div>
+</section>

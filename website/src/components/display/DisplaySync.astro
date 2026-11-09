@@ -1,0 +1,116 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Sync", title: "Every Display Follows Your MacBook",
+    lead: "Turn on Sync and the external displays follow the MacBook's brightness: when you press its keys, or when macOS adjusts it to the room with the ambient light sensor.",
+    points: [
+      "Each display moves within its own range, say 20–90%, so a bright monitor never blinds you.",
+      "Any display can step out with its own Sync switch and keep the brightness you set.",
+      "One \"All displays\" slider and 0–100% presets move everything at once.",
+    ],
+    hub: "Sync", macbook: "MacBook", leads: "Leads", follows: "Follows", own: "Own brightness",
+    range: "Range", slider: "MacBook brightness", syncOn: "Sync", tap: "Tap a display to take it out of Sync.",
+  },
+  vi: {
+    badge: "Đồng bộ", title: "Mọi Màn Hình Đi Theo MacBook",
+    lead: "Bật Đồng bộ là các màn ngoài đổi độ sáng theo MacBook: khi bạn bấm phím độ sáng, hoặc khi macOS tự chỉnh MacBook theo ánh sáng phòng bằng cảm biến.",
+    points: [
+      "Mỗi màn đi theo trong khoảng riêng, ví dụ 20–90%, để màn sáng không làm bạn chói mắt.",
+      "Màn nào cũng có công tắc Đồng bộ riêng để đứng ngoài và giữ độ sáng bạn đặt.",
+      "Một thanh \"Tất cả màn hình\" và các mức 0–100% chỉnh mọi màn cùng lúc.",
+    ],
+    hub: "Đồng bộ", macbook: "MacBook", leads: "Dẫn", follows: "Đi theo", own: "Độ sáng riêng",
+    range: "Khoảng", slider: "Độ sáng MacBook", syncOn: "Đồng bộ", tap: "Bấm vào một màn để đưa nó ra khỏi Đồng bộ.",
+  },
+});
+
+const screens = [
+  { id: "lg", name: "LG UltraGear", min: 20, max: 90, size: "h-24 w-40", tint: "text-tertiary", bar: "bg-tertiary" },
+  { id: "typec", name: "TYPEC", min: 0, max: 100, size: "h-28 w-20", tint: "text-secondary", bar: "bg-secondary" },
+];
+---
+
+<section id="sync" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <div class="order-2 flex flex-col gap-space-md lg:order-1">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-tertiary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-tertiary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+    </div>
+
+    <div class="order-1 rounded-2xl bg-surface-container-low p-space-lg shadow-xl lg:order-2" id="sync-demo">
+      <div class="mb-space-md flex items-center justify-between">
+        <span class="flex items-center gap-space-xs font-display text-headline-sm"><span class="material-symbols-outlined text-[22px] text-tertiary">sync</span>{t.hub}</span>
+        <span class="rounded bg-primary/10 px-2 py-0.5 font-code text-[11px] text-primary">{t.syncOn} ●</span>
+      </div>
+      <div class="mb-space-md flex items-end justify-center gap-gutter rounded-xl bg-surface-container-lowest p-space-lg">
+        <div class="flex flex-col items-center gap-1">
+          <div class="flex h-24 w-32 flex-col justify-between rounded-lg border-2 border-primary/80 bg-surface-container-high p-2">
+            <span class="font-code text-[10px] font-bold text-primary">{t.macbook}</span>
+            <span class="text-center font-display text-lg font-bold text-primary" data-value="mac">60%</span>
+            <div class="h-1 overflow-hidden rounded-full bg-surface-container-lowest"><div class="h-full rounded-full bg-primary transition-all" style="width: 60%" data-bar="mac"></div></div>
+          </div>
+          <span class="font-code text-[10px] text-primary">{t.leads}</span>
+        </div>
+        {screens.map((s) => (
+          <button type="button" class="group flex flex-col items-center gap-1" data-screen={s.id} data-min={s.min} data-max={s.max}>
+            <div class:list={["flex flex-col justify-between rounded-lg border-2 border-current bg-surface-container-high p-2 transition-all group-hover:scale-105", s.size, s.tint]} data-box>
+              <span class="flex items-center justify-between font-code text-[9px] font-bold">{s.name}<span class="material-symbols-outlined text-[12px]" data-link>link</span></span>
+              <span class="text-center font-display text-lg font-bold" data-value={s.id}>60%</span>
+              <div class="h-1 overflow-hidden rounded-full bg-surface-container-lowest"><div class:list={["h-full rounded-full transition-all", s.bar]} style="width: 60%" data-bar={s.id}></div></div>
+            </div>
+            <span class:list={["font-code text-[10px]", s.tint]} data-role={s.id}>{t.follows} · {s.min}–{s.max}%</span>
+          </button>
+        ))}
+      </div>
+      <label class="flex items-center gap-space-sm rounded-lg bg-surface-container p-space-sm font-code text-xs text-on-surface-variant">
+        <span class="material-symbols-outlined text-[18px] text-primary">laptop_mac</span>
+        <span class="whitespace-nowrap">{t.slider}</span>
+        <input type="range" min="0" max="100" value="60" data-mac class="h-1.5 flex-1 cursor-pointer accent-[#ff6b35]" />
+      </label>
+      <p class="mt-space-sm text-center font-code text-[11px] text-on-surface-variant">{t.tap}</p>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ t }}>
+  const demo = document.getElementById("sync-demo");
+  const mac = demo.querySelector("[data-mac]");
+  const own = { lg: 45, typec: 80 };
+  const synced = { lg: true, typec: true };
+  const set = (id, v) => {
+    demo.querySelector(`[data-value="${id}"]`).textContent = Math.round(v) + "%";
+    demo.querySelector(`[data-bar="${id}"]`).style.width = v + "%";
+  };
+  // The same mapping as the app: minimum + MacBook × (maximum − minimum).
+  const update = () => {
+    const b = +mac.value;
+    set("mac", b);
+    demo.querySelectorAll("[data-screen]").forEach((el) => {
+      const id = el.dataset.screen, min = +el.dataset.min, max = +el.dataset.max;
+      set(id, synced[id] ? min + b / 100 * (max - min) : own[id]);
+    });
+  };
+  demo.querySelectorAll("[data-screen]").forEach((el) => {
+    el.addEventListener("click", () => {
+      const id = el.dataset.screen;
+      synced[id] = !synced[id];
+      el.querySelector("[data-box]").classList.toggle("opacity-60", !synced[id]);
+      el.querySelector("[data-link]").textContent = synced[id] ? "link" : "link_off";
+      demo.querySelector(`[data-role="${id}"]`).textContent = synced[id] ? `${t.follows} · ${el.dataset.min}–${el.dataset.max}%` : t.own;
+      update();
+    });
+  });
+  mac.addEventListener("input", update);
+  update();
+</script>

@@ -1,0 +1,137 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Sound & power", title: "Speakers, and an Off Switch You Can Trust",
+    lead: "Set each monitor's speaker volume from the menu bar, and turn a display off as if you unplugged it: windows move to your other screens.",
+    points: [
+      "Volume over DDC/CI, mute in one click; the MacBook row sets the Mac's own volume.",
+      "Turning off asks to keep it off, and comes back by itself after 15 seconds if you don't answer.",
+      "The last display that's on can't be turned off; ⌃⌥⌘B brings every display back from anywhere.",
+    ],
+    panel: "Menu bar", speaker: "Monitor speakers", mute: "Mute", unmute: "Unmute", muteAll: "Mute all",
+    power: "Display power", lg: "LG UltraGear", typec: "TYPEC", builtin: "MacBook",
+    on: "On", off: "Off", last: "The last display on can't be turned off",
+    countdown: "Back on in", keep: "Keep off", now: "Turn on now",
+  },
+  vi: {
+    badge: "Âm thanh & nguồn", title: "Loa Màn Hình, Và Nút Tắt An Toàn",
+    lead: "Chỉnh âm lượng loa từng màn ngay trên thanh menu, và tắt một màn như khi rút dây: cửa sổ tự chuyển sang các màn còn lại.",
+    points: [
+      "Âm lượng qua DDC/CI, tắt tiếng bằng một cú bấm; dòng MacBook chỉnh âm lượng của chính máy Mac.",
+      "Khi tắt sẽ hỏi có giữ tắt không, và tự bật lại sau 15 giây nếu bạn không trả lời.",
+      "Không thể tắt màn cuối cùng đang bật; ⌃⌥⌘B bật lại mọi màn hình từ bất cứ đâu.",
+    ],
+    panel: "Thanh menu", speaker: "Loa màn hình", mute: "Tắt tiếng", unmute: "Bật tiếng", muteAll: "Tắt tiếng tất cả",
+    power: "Bật / tắt màn hình", lg: "LG UltraGear", typec: "TYPEC", builtin: "MacBook",
+    on: "Bật", off: "Tắt", last: "Không thể tắt màn cuối cùng đang bật",
+    countdown: "Tự bật lại sau", keep: "Giữ tắt", now: "Bật lại ngay",
+  },
+});
+---
+
+<section id="sound" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <div class="rounded-2xl bg-surface-container-low p-space-lg shadow-xl" id="sound-demo">
+      <div class="mb-space-md flex items-center justify-between">
+        <span class="flex items-center gap-space-xs font-display text-headline-sm"><span class="material-symbols-outlined text-[22px] text-tertiary">volume_up</span>{t.speaker}</span>
+        <span class="font-code text-[11px] text-on-surface-variant">{t.panel}</span>
+      </div>
+
+      <div class="mb-space-md flex flex-col gap-space-sm rounded-xl bg-surface-container p-space-md">
+        {[["lg", t.lg, 55], ["typec", t.typec, 30]].map(([id, name, value]) => (
+          <div class="flex items-center gap-space-sm" data-vol-row={id}>
+            <button type="button" class="material-symbols-outlined w-6 text-[18px] text-tertiary" data-mute={id} title={t.mute}>volume_up</button>
+            <span class="w-28 truncate text-sm">{name}</span>
+            <input type="range" min="0" max="100" value={value} data-vol={id} class="h-1 flex-1 cursor-pointer accent-[#00a8c4]" />
+            <span class="w-10 text-right font-code text-xs text-tertiary" data-vol-value={id}>{value}%</span>
+          </div>
+        ))}
+        <button type="button" data-mute-all class="mt-1 w-fit rounded-lg bg-surface-container-high px-3 py-1.5 text-xs font-semibold">{t.muteAll}</button>
+      </div>
+
+      <div class="rounded-xl bg-surface-container p-space-md">
+        <div class="mb-space-sm font-code text-xs font-semibold text-on-surface-variant">{t.power}</div>
+        <div class="grid grid-cols-3 gap-space-xs">
+          {[["builtin", t.builtin, "laptop_mac"], ["lg", t.lg, "desktop_windows"], ["typec", t.typec, "desktop_windows"]].map(([id, name, icon]) => (
+            <button type="button" data-power={id} class="flex flex-col items-center gap-1 rounded-lg border-2 border-emerald-500/60 bg-surface-container-high p-space-sm transition-all">
+              <span class="material-symbols-outlined text-[20px]">{icon}</span>
+              <span class="truncate text-xs font-semibold">{name}</span>
+              <span class="font-code text-[10px] text-emerald-500" data-power-state={id}>{t.on}</span>
+            </button>
+          ))}
+        </div>
+        <div class="mt-space-sm min-h-[40px] rounded-lg bg-surface-container-lowest px-3 py-2 font-code text-[11px] text-on-surface-variant" data-power-log></div>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-space-md">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-secondary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-secondary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ t }}>
+  const demo = document.getElementById("sound-demo");
+  const before = {};
+  const setVolume = (id, v) => {
+    demo.querySelector(`[data-vol="${id}"]`).value = v;
+    demo.querySelector(`[data-vol-value="${id}"]`).textContent = v + "%";
+    const icon = demo.querySelector(`[data-mute="${id}"]`);
+    icon.textContent = v > 0 ? "volume_up" : "volume_off";
+    icon.title = v > 0 ? t.mute : t.unmute;
+  };
+  demo.querySelectorAll("[data-vol]").forEach((el) => el.addEventListener("input", () => setVolume(el.dataset.vol, +el.value)));
+  demo.querySelectorAll("[data-mute]").forEach((el) => el.addEventListener("click", () => {
+    const id = el.dataset.mute, v = +demo.querySelector(`[data-vol="${id}"]`).value;
+    if (v > 0) { before[id] = v; setVolume(id, 0); } else { setVolume(id, before[id] ?? 50); }
+  }));
+  demo.querySelector("[data-mute-all]").addEventListener("click", () => {
+    const ids = ["lg", "typec"];
+    const allMuted = ids.every((id) => +demo.querySelector(`[data-vol="${id}"]`).value === 0);
+    ids.forEach((id) => {
+      const v = +demo.querySelector(`[data-vol="${id}"]`).value;
+      if (allMuted) setVolume(id, before[id] ?? 50); else if (v > 0) { before[id] = v; setVolume(id, 0); }
+    });
+  });
+
+  // Power, with the app's safety rules: never the last display, back by itself after 15 s.
+  const on = { builtin: true, lg: true, typec: true };
+  const timers = {};
+  const log = demo.querySelector("[data-power-log]");
+  const paint = (id) => {
+    const btn = demo.querySelector(`[data-power="${id}"]`);
+    btn.classList.toggle("opacity-40", !on[id]);
+    btn.classList.toggle("border-emerald-500/60", on[id]);
+    btn.classList.toggle("border-transparent", !on[id]);
+    const state = demo.querySelector(`[data-power-state="${id}"]`);
+    state.textContent = on[id] ? t.on : t.off;
+    state.className = "font-code text-[10px] " + (on[id] ? "text-emerald-500" : "text-on-surface-variant");
+  };
+  const turnOn = (id) => { clearInterval(timers[id]); delete timers[id]; on[id] = true; paint(id); log.textContent = ""; };
+  demo.querySelectorAll("[data-power]").forEach((btn) => btn.addEventListener("click", () => {
+    const id = btn.dataset.power;
+    if (!on[id]) { turnOn(id); return; }
+    if (Object.values(on).filter(Boolean).length === 1) { log.textContent = t.last; return; }
+    on[id] = false; paint(id);
+    let left = 15;
+    const tick = () => {
+      log.innerHTML = `${t.countdown} ${left}s · <button type="button" data-keep class="underline">${t.keep}</button> · <button type="button" data-now class="underline">${t.now}</button>`;
+      log.querySelector("[data-keep]").onclick = () => { clearInterval(timers[id]); delete timers[id]; log.textContent = "⌃⌥⌘B"; };
+      log.querySelector("[data-now]").onclick = () => turnOn(id);
+    };
+    tick();
+    timers[id] = setInterval(() => { left -= 1; if (left <= 0) turnOn(id); else tick(); }, 1000);
+  }));
+</script>

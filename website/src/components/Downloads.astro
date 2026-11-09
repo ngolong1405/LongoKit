@@ -1,7 +1,7 @@
 ---
 import Logo from "./Logo.astro";
 import { repo, mouseDownload, mouseReleaseNotes, mouseVersion, coffeeURL } from "../data/site";
-import { pick, type Lang } from "../i18n";
+import { localize, pick, type Lang } from "../i18n";
 
 interface Props {
   lang: Lang;
@@ -15,10 +15,10 @@ const t = pick(lang, {
     version: "Version", freeBeta: "Free during beta", download: "Download the installer (.dmg)",
     notarize: "Blocked on first launch? System Settings › Privacy & Security › Open Anyway.",
     winTitle: "LongoMouse for Windows", winBody: "Planned for Windows 10 & 11.",
-    status: "Status", soon: "Coming soon", follow: "Follow on GitHub",
+    status: "Status", soon: "Coming soon", available: "Available", follow: "Follow on GitHub",
     roadmap: [
       ["LongoKeys", "Key remapping, layers, and shortcuts for your keyboard."],
-      ["LongoDisplay", "External display brightness and multi-display layouts."],
+      ["LongoDisplay", "Brightness and volume for every display, with Sync to your MacBook."],
     ],
     coffeeTitle: "Like LongoMouse? Buy me a coffee", coffeeBody: "The app is free; every coffee buys more time for LongoKit.",
     history: "Release notes", source: "Build from source", issues: "Bugs & ideas",
@@ -29,10 +29,10 @@ const t = pick(lang, {
     version: "Phiên bản", freeBeta: "Miễn phí khi beta", download: "Tải bản cài đặt (.dmg)",
     notarize: "Bị chặn khi mở lần đầu? Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Vẫn mở.",
     winTitle: "LongoMouse cho Windows", winBody: "Đang lên kế hoạch cho Windows 10 & 11.",
-    status: "Trạng thái", soon: "Sắp có", follow: "Theo dõi trên GitHub",
+    status: "Trạng thái", soon: "Sắp có", available: "Có thể tải", follow: "Theo dõi trên GitHub",
     roadmap: [
       ["LongoKeys", "Đổi phím, lớp phím và phím tắt cho bàn phím."],
-      ["LongoDisplay", "Độ sáng màn hình ngoài và bố cục nhiều màn hình."],
+      ["LongoDisplay", "Độ sáng và âm lượng cho mọi màn hình, đồng bộ theo MacBook."],
     ],
     coffeeTitle: "Thích LongoMouse? Mời mình một ly cà phê", coffeeBody: "App miễn phí; mỗi ly cà phê giúp mình có thêm thời gian làm LongoKit.",
     history: "Ghi chú phát hành", source: "Tự build từ mã nguồn", issues: "Báo lỗi & góp ý",
@@ -40,8 +40,8 @@ const t = pick(lang, {
 });
 
 const roadmap = [
-  { icon: "keyboard", tint: "text-secondary", name: t.roadmap[0][0], body: t.roadmap[0][1] },
-  { icon: "desktop_windows", tint: "text-tertiary", name: t.roadmap[1][0], body: t.roadmap[1][1] },
+  { icon: "keyboard", tint: "text-secondary", name: t.roadmap[0][0], body: t.roadmap[0][1], href: null },
+  { icon: "desktop_windows", tint: "text-tertiary", name: t.roadmap[1][0], body: t.roadmap[1][1], href: localize(lang, "/display") },
 ];
 ---
 
@@ -118,16 +118,16 @@ const roadmap = [
     <div id="roadmap" class="mx-auto grid w-full max-w-4xl grid-cols-1 gap-gutter md:grid-cols-2">
       {
         roadmap.map((r) => (
-          <div class="flex items-start gap-space-sm rounded-xl bg-surface-container-low p-space-md">
+          <a href={r.href ?? undefined} class:list={["flex items-start gap-space-sm rounded-xl bg-surface-container-low p-space-md", r.href && "transition-colors hover:bg-surface-container"]}>
             <span class:list={["material-symbols-outlined text-[24px]", r.tint]}>{r.icon}</span>
             <div class="flex flex-col">
               <span class="flex items-center gap-2 font-display font-semibold">
                 {r.name}
-                <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] font-normal text-on-surface-variant">{t.soon}</span>
+                <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] font-normal text-on-surface-variant">{r.href ? t.available : t.soon}</span>
               </span>
               <span class="text-body-sm text-on-surface-variant">{r.body}</span>
             </div>
-          </div>
+          </a>
         ))
       }
     </div>

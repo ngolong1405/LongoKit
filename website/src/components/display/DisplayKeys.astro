@@ -1,0 +1,197 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Your Mac's brightness keys",
+    title: "The Brightness Keys, on Every Screen",
+    lead: "Point at an external display and press the brightness keys: that display changes, with a 16-step meter like macOS. On the MacBook screen the keys work as usual.",
+    points: [
+      "Hardware first: over DDC/CI the backlight itself goes down.",
+      "Below 0%, one more step: extra dimming darkens the picture for late nights.",
+    ],
+    keysTitle: "Try it", keysNote: "Press the buttons, or F1 / F2 (or [ / ]) on your keyboard.",
+    down: "Darker", up: "Brighter",
+    needs: "Needs Accessibility permission, asked once.",
+    compareBadge: "Side by side", compareTitle: "Backlight vs. picture",
+    compareLead: "Drag the divider. Longo Display uses the backlight whenever the monitor takes DDC; software dimming is the fallback.",
+    soft: "Software dimming", softBody: "The picture gets darker, the backlight stays as bright: dark scenes look washed out and no power is saved. Used for monitors without DDC, and below 0%.",
+    hard: "Hardware (DDC/CI)", hardBody: "The monitor lowers its own backlight, like its buttons would: deep blacks, less glare, less power.",
+    level: "Brightness", backlight: "Backlight", picture: "Picture",
+  },
+  vi: {
+    badge: "Phím độ sáng của Mac",
+    title: "Phím Độ Sáng Cho Mọi Màn Hình",
+    lead: "Đưa chuột lên màn ngoài và bấm phím độ sáng: màn đó đổi độ sáng, kèm thước 16 nấc như macOS. Trên màn MacBook, phím vẫn hoạt động như bình thường.",
+    points: [
+      "Ưu tiên phần cứng: qua DDC/CI, chính đèn nền được giảm xuống.",
+      "Dưới 0% còn một nấc nữa: làm tối thêm hình ảnh cho những đêm khuya.",
+    ],
+    keysTitle: "Thử ngay", keysNote: "Bấm các nút, hoặc F1 / F2 (hay [ / ]) trên bàn phím.",
+    down: "Tối hơn", up: "Sáng hơn",
+    needs: "Cần cấp quyền Trợ năng (Accessibility) một lần.",
+    compareBadge: "Đặt cạnh nhau", compareTitle: "Đèn nền vs. hình ảnh",
+    compareLead: "Kéo thanh phân cách. Longo Display dùng đèn nền mỗi khi màn nhận DDC; làm tối bằng phần mềm là phương án dự phòng.",
+    soft: "Làm tối bằng phần mềm", softBody: "Hình ảnh tối đi nhưng đèn nền vẫn sáng như cũ: cảnh tối bị bạc màu, không tiết kiệm điện. Dùng cho màn không có DDC và vùng dưới 0%.",
+    hard: "Phần cứng (DDC/CI)", hardBody: "Màn tự giảm đèn nền, như khi bấm nút trên màn: đen sâu hơn, bớt chói, tốn ít điện hơn.",
+    level: "Độ sáng", backlight: "Đèn nền", picture: "Hình ảnh",
+  },
+});
+---
+
+<section id="keys" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <!-- Keys + OSD -->
+    <div class="relative overflow-hidden rounded-2xl bg-surface-container-low p-space-lg shadow-xl" id="keys-demo">
+      <div class="mb-space-md flex items-center justify-between">
+        <span class="flex items-center gap-space-xs font-display text-headline-sm"><span class="material-symbols-outlined text-[22px] text-primary">keyboard</span>{t.keysTitle}</span>
+        <span class="rounded bg-surface-container-high px-2 py-0.5 font-code text-[11px] text-tertiary">OSD · 16</span>
+      </div>
+      <div class="relative flex items-center justify-center gap-gutter py-space-xl">
+        <div class="pointer-events-none absolute top-1/2 left-1/2 z-20 w-56 -translate-x-1/2 -translate-y-1/2 scale-95 rounded-2xl bg-[#141821]/90 p-space-md text-white opacity-0 shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-all duration-200" data-osd>
+          <div class="mb-2 flex items-center justify-between font-code text-[11px]">
+            <span class="material-symbols-outlined text-[18px] text-[#ffb59d]" data-osd-icon>light_mode</span>
+            <span class="text-white/70">LG UltraGear</span>
+            <span class="font-semibold text-[#ffb59d]" data-osd-value>75%</span>
+          </div>
+          <div class="flex h-2 gap-0.5" data-ticks></div>
+        </div>
+        {[["down", "brightness_low", t.down, "F1"], ["up", "brightness_high", t.up, "F2"]].map(([id, icon, label, key]) => (
+          <button type="button" data-key={id} class="flex w-32 flex-col items-center gap-1 rounded-xl border-2 border-primary/40 bg-surface-container-high p-space-md transition-all hover:scale-105 active:scale-95">
+            <span class="font-code text-[11px] font-bold text-primary">{key}</span>
+            <span class="material-symbols-outlined text-[30px] text-primary">{icon}</span>
+            <span class="text-xs text-on-surface-variant">{label}</span>
+          </button>
+        ))}
+      </div>
+      <p class="text-center font-code text-[11px] text-on-surface-variant">{t.keysNote}</p>
+      <p class="mt-1 text-center font-code text-[11px] text-on-surface-variant/80">{t.needs}</p>
+    </div>
+
+    <div class="flex flex-col gap-space-md">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-primary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-primary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+    </div>
+  </div>
+
+  <!-- Backlight vs picture -->
+  <div class="mt-space-2xl rounded-2xl bg-surface-container-low p-space-lg shadow-xl" id="compare">
+    <div class="mb-space-lg flex flex-col justify-between gap-space-md md:flex-row md:items-end">
+      <div>
+        <span class="font-code text-label-badge uppercase tracking-wider text-tertiary">{t.compareBadge}</span>
+        <h3 class="text-headline-md">{t.compareTitle}</h3>
+        <p class="mt-1 max-w-2xl text-body-sm text-on-surface-variant">{t.compareLead}</p>
+      </div>
+      <label class="flex min-w-[240px] items-center gap-space-sm font-code text-xs text-on-surface-variant">
+        {t.level}
+        <input type="range" min="5" max="100" value="30" data-level class="h-1.5 flex-1 cursor-pointer accent-[#ff6b35]" />
+        <span class="w-10 text-right text-primary" data-level-value>30%</span>
+      </label>
+    </div>
+
+    <div class="relative h-[320px] w-full overflow-hidden rounded-xl select-none md:h-[380px]" data-split>
+      <!-- Hardware: the backlight goes down, blacks stay black. -->
+      <div class="absolute inset-0 bg-black" data-hard>
+        <div class="absolute inset-0 transition-[filter] duration-150" data-hard-scene>
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,#ff6b35_0%,#7c3aed_45%,#0b0d12_80%)]"></div>
+          <div class="absolute right-[10%] bottom-[14%] h-24 w-24 rounded-full bg-[#ffd36b] blur-[2px]"></div>
+        </div>
+        <span class="absolute top-4 right-4 rounded-full bg-emerald-950/80 px-3 py-1 font-code text-[11px] font-semibold text-emerald-300">{t.hard} · {t.backlight} <span data-hard-value>30%</span></span>
+      </div>
+      <!-- Software: the same picture darkened, on a backlight at full: a grey veil lifts the blacks. -->
+      <div class="absolute inset-y-0 left-0 overflow-hidden" style="width: 50%" data-soft>
+        <div class="absolute inset-y-0 left-0 max-w-none bg-[#262a33]" data-soft-inner>
+          <div class="absolute inset-0 transition-[filter] duration-150" data-soft-scene>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,#ff6b35_0%,#7c3aed_45%,#0b0d12_80%)]"></div>
+          </div>
+          <div class="absolute inset-0 bg-[#5b606b] transition-opacity duration-150" data-veil></div>
+        </div>
+        <span class="absolute top-4 left-4 rounded-full bg-black/60 px-3 py-1 font-code text-[11px] font-semibold text-white/80">{t.soft} · {t.backlight} 100%</span>
+      </div>
+      <div class="pointer-events-none absolute inset-y-0 z-30 w-0.5 bg-gradient-to-b from-primary-container via-tertiary to-secondary" style="left: 50%" data-divider>
+        <div class="absolute top-1/2 left-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-primary bg-surface-container-lowest shadow-lg">
+          <span class="material-symbols-outlined text-[20px] text-primary">swap_horiz</span>
+        </div>
+      </div>
+      <input type="range" min="0" max="100" step="0.5" value="50" data-split-input class="absolute inset-0 z-40 h-full w-full cursor-ew-resize opacity-0" aria-label={t.compareTitle} />
+    </div>
+
+    <div class="mt-space-md grid grid-cols-1 gap-space-sm md:grid-cols-2">
+      <div class="flex gap-space-sm rounded-xl bg-surface-container-lowest p-space-md">
+        <span class="material-symbols-outlined text-[20px] text-on-surface-variant">contrast</span>
+        <div><div class="text-sm font-semibold">{t.soft}</div><p class="mt-0.5 text-body-sm text-on-surface-variant">{t.softBody}</p></div>
+      </div>
+      <div class="flex gap-space-sm rounded-xl bg-surface-container-lowest p-space-md">
+        <span class="material-symbols-outlined text-[20px] text-emerald-500">verified</span>
+        <div><div class="text-sm font-semibold">{t.hard}</div><p class="mt-0.5 text-body-sm text-on-surface-variant">{t.hardBody}</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  (() => {
+    // Brightness keys with the 16-step meter the app shows.
+    const demo = document.getElementById("keys-demo");
+    const osd = demo.querySelector("[data-osd]"), ticks = demo.querySelector("[data-ticks]");
+    let level = 12, hide = null; // in sixteenths
+    const render = () => {
+      ticks.innerHTML = "";
+      for (let i = 0; i < 16; i++) {
+        const tick = document.createElement("div");
+        tick.className = "h-full flex-1 rounded-[2px] " + (i < level ? "bg-[#ffb59d]" : "bg-white/15");
+        ticks.appendChild(tick);
+      }
+      demo.querySelector("[data-osd-value]").textContent = Math.round(level / 16 * 100) + "%";
+    };
+    const step = (up) => {
+      level = Math.max(0, Math.min(16, level + (up ? 1 : -1)));
+      render();
+      osd.classList.remove("opacity-0", "scale-95");
+      clearTimeout(hide);
+      hide = setTimeout(() => osd.classList.add("opacity-0", "scale-95"), 1400);
+    };
+    demo.querySelector('[data-key="down"]').addEventListener("click", () => step(false));
+    demo.querySelector('[data-key="up"]').addEventListener("click", () => step(true));
+    window.addEventListener("keydown", (e) => {
+      if (["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+      if (e.key === "F1" || e.key === "[") { e.preventDefault(); step(false); }
+      if (e.key === "F2" || e.key === "]") { e.preventDefault(); step(true); }
+    });
+    render();
+
+    // Backlight vs picture at the same brightness.
+    const cmp = document.getElementById("compare");
+    const levelInput = cmp.querySelector("[data-level]");
+    const applyLevel = () => {
+      const v = +levelInput.value / 100;
+      cmp.querySelector("[data-level-value]").textContent = levelInput.value + "%";
+      cmp.querySelector("[data-hard-value]").textContent = levelInput.value + "%";
+      cmp.querySelector("[data-hard-scene]").style.filter = `brightness(${0.15 + v * 0.85})`;
+      cmp.querySelector("[data-soft-scene]").style.filter = `brightness(${0.15 + v * 0.85})`;
+      // The full backlight shows through as a grey veil, stronger the darker the picture.
+      cmp.querySelector("[data-veil]").style.opacity = String(0.7 * (1 - v));
+    };
+    levelInput.addEventListener("input", applyLevel);
+    // The software side is the same picture, clipped: keep it as wide as the frame.
+    const frame = cmp.querySelector("[data-split]"), inner = cmp.querySelector("[data-soft-inner]");
+    const fit = () => { inner.style.width = frame.offsetWidth + "px"; };
+    window.addEventListener("resize", fit);
+    fit();
+    const split = cmp.querySelector("[data-split-input]");
+    split.addEventListener("input", () => {
+      cmp.querySelector("[data-soft]").style.width = split.value + "%";
+      cmp.querySelector("[data-divider]").style.left = split.value + "%";
+    });
+    applyLevel();
+  })();
+</script>

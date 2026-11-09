@@ -1,0 +1,159 @@
+---
+import ProductIcon from "../ProductIcon.astro";
+import { displayDownload, displayVersion } from "../../data/site";
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "DDC/CI hardware brightness",
+    title: ["Every Display,", "Under Control"],
+    lead: "Real backlight brightness and speaker volume for external monitors, sent over the cable with DDC/CI: USB-C, DisplayPort, or a MacBook Pro's HDMI port.",
+    download: "Download for macOS (.dmg)", windows: "Windows: coming soon",
+    facts: [["0", "Kext / SIP changes"], ["0 byte", "Telemetry"], ["~0%", "CPU when idle"]],
+    monitor: "LG UltraGear · HDMI", brightness: "Brightness (backlight)", volume: "Speaker volume",
+    power: "Turn off", ready: "Ready: drag a slider or press the power button.",
+    sent: "Sent over DDC/CI", off: "Display off, like unplugged. Back on by itself in", seconds: "s unless you keep it off.",
+    keep: "Keep off", on: "Turn on now", back: "Display back on.", kept: "Kept off: ⌃⌥⌘B turns every display back on.",
+    note: "Demo: drag the sliders or try the power button.",
+  },
+  vi: {
+    badge: "Độ sáng phần cứng qua DDC/CI",
+    title: ["Làm Chủ", "Mọi Màn Hình"],
+    lead: "Chỉnh độ sáng đèn nền thật và âm lượng loa của màn hình ngoài, gửi lệnh qua dây cáp bằng DDC/CI: USB-C, DisplayPort, hay cả cổng HDMI của MacBook Pro.",
+    download: "Tải cho macOS (.dmg)", windows: "Windows: sắp có",
+    facts: [["0", "Kext / sửa SIP"], ["0 byte", "Telemetry"], ["~0%", "CPU khi rảnh"]],
+    monitor: "LG UltraGear · HDMI", brightness: "Độ sáng (đèn nền)", volume: "Âm lượng loa",
+    power: "Tắt màn", ready: "Sẵn sàng: kéo thanh trượt hoặc bấm nút nguồn.",
+    sent: "Đã gửi qua DDC/CI", off: "Màn đã tắt, như rút dây. Tự bật lại sau", seconds: " giây nếu bạn không giữ tắt.",
+    keep: "Giữ tắt", on: "Bật lại ngay", back: "Màn đã bật lại.", kept: "Đang giữ tắt: ⌃⌥⌘B bật lại mọi màn hình.",
+    note: "Minh hoạ: kéo thanh trượt hoặc thử nút nguồn.",
+  },
+});
+---
+
+<section id="top" class="relative w-full overflow-hidden px-margin-mobile pt-space-xl pb-space-3xl md:px-margin-desktop">
+  <div class="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-gradient-to-b from-primary-container/20 via-tertiary/10 to-transparent blur-[130px]"></div>
+
+  <div class="relative mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-gutter-lg lg:grid-cols-12">
+    <div class="relative z-10 flex flex-col gap-space-lg lg:col-span-6">
+      <div class="inline-flex w-fit items-center gap-space-xs rounded-full bg-surface-container-low px-3 py-1.5 shadow-sm">
+        <ProductIcon product="display" class="h-5 w-5" />
+        <span class="font-code text-label-badge uppercase tracking-wider text-tertiary">{t.badge}</span>
+      </div>
+      <h1 class="text-display-hero tracking-tight">
+        {t.title[0]}{" "}
+        <span class="bg-gradient-to-r from-primary-container via-secondary to-tertiary bg-clip-text text-transparent">{t.title[1]}</span>
+      </h1>
+      <p class="max-w-xl text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-wrap items-center gap-space-sm">
+        <a href={displayDownload} class="flex items-center gap-space-xs rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-6 py-3.5 font-display text-sm font-semibold text-white shadow-[0_8px_28px_rgba(255,107,53,0.35)] transition-all hover:opacity-95">
+          <span class="material-symbols-outlined text-[20px]">laptop_mac</span>
+          {t.download}
+          <span class="rounded bg-white/20 px-1.5 font-code text-[11px]">v{displayVersion}</span>
+        </a>
+        <span class="flex cursor-not-allowed items-center gap-space-xs rounded-xl bg-surface-container-high px-5 py-3.5 text-sm text-on-surface-variant opacity-80">
+          <span class="material-symbols-outlined text-[20px] text-tertiary">desktop_windows</span>{t.windows}
+        </span>
+      </div>
+      <div class="flex flex-wrap gap-gutter pt-space-sm">
+        {t.facts.map(([value, label]) => (
+          <div class="flex flex-col">
+            <span class="font-display text-headline-sm text-on-surface">{value}</span>
+            <span class="font-code text-[11px] text-on-surface-variant">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Interactive monitor: brightness, volume and the safe power button, as in the app. -->
+    <div class="relative lg:col-span-6" id="hero-monitor">
+      <div class="absolute -inset-4 -z-10 rounded-3xl bg-gradient-to-r from-primary-container/20 to-tertiary/20 blur-2xl transition-opacity duration-300" data-glow></div>
+      <div class="rounded-2xl bg-surface-container-low p-space-lg shadow-[0_12px_40px_var(--c-shadow)]">
+        <div class="rounded-xl bg-surface-container-lowest p-space-md">
+          <div class="mb-space-md flex items-center justify-between border-b border-outline-variant/20 pb-space-sm">
+            <div class="flex items-center gap-space-sm">
+              <button type="button" data-power class="flex h-7 items-center gap-1 rounded-lg bg-surface-container-high px-2 font-code text-[11px] text-on-surface-variant transition-colors hover:text-primary" title={t.power}>
+                <span class="material-symbols-outlined text-[16px] text-tertiary">power_settings_new</span>{t.power}
+              </button>
+              <span class="font-code text-[11px] text-on-surface-variant">{t.monitor}</span>
+            </div>
+            <span class="rounded bg-tertiary/15 px-2 py-0.5 font-code text-[10px] font-semibold text-tertiary">DDC/CI · VCP 0x10</span>
+          </div>
+
+          <div class="relative mb-space-md overflow-hidden rounded-lg bg-[#10131a] p-space-md transition-[filter,opacity] duration-300" data-screen>
+            <div class="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-primary-container/40 blur-2xl"></div>
+            <div class="relative flex flex-col gap-space-md">
+              <div class="flex items-center justify-between text-white/90">
+                <span class="flex items-center gap-space-xs text-sm"><span class="material-symbols-outlined text-[20px] text-[#ffb59d]">light_mode</span>{t.brightness}</span>
+                <span class="font-display text-headline-sm text-[#ffb59d]" data-bright-value>70%</span>
+              </div>
+              <input type="range" min="0" max="100" value="70" data-bright class="h-2 w-full cursor-pointer accent-[#ff6b35]" aria-label={t.brightness} />
+              <div class="flex items-center justify-between text-white/90">
+                <span class="flex items-center gap-space-xs text-sm"><span class="material-symbols-outlined text-[20px] text-[#4cd7f6]">volume_up</span>{t.volume}</span>
+                <span class="font-code text-xs text-[#4cd7f6]" data-volume-value>40%</span>
+              </div>
+              <input type="range" min="0" max="100" value="40" data-volume class="h-1.5 w-full cursor-pointer accent-[#4cd7f6]" aria-label={t.volume} />
+            </div>
+          </div>
+
+          <div class="min-h-[52px] rounded-lg bg-surface-container px-3 py-2 font-code text-[11px] text-on-surface-variant" data-log>
+            <span class="text-tertiary">●</span> {t.ready}
+          </div>
+          <div class="mt-space-sm hidden items-center gap-space-sm" data-ask>
+            <button type="button" data-keep class="rounded-lg bg-surface-container-high px-3 py-1.5 text-xs font-semibold">{t.keep}</button>
+            <button type="button" data-on class="rounded-lg bg-primary-container px-3 py-1.5 text-xs font-semibold text-white">{t.on}</button>
+          </div>
+        </div>
+        <div class="mx-auto h-4 w-20 rounded-b-md bg-surface-container-highest/60"></div>
+        <div class="mx-auto mt-0.5 h-2 w-36 rounded-full bg-surface-container-high"></div>
+      </div>
+      <p class="mt-space-sm text-center font-code text-[11px] text-on-surface-variant">{t.note}</p>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ t }}>
+  const root = document.getElementById("hero-monitor");
+  const $ = (s) => root.querySelector(s);
+  const screen = $("[data-screen]"), glow = $("[data-glow]"), log = $("[data-log]"), ask = $("[data-ask]");
+  const bright = $("[data-bright]"), volume = $("[data-volume]");
+  const hex = (v) => "0x" + v.toString(16).toUpperCase().padStart(2, "0");
+  const say = (html) => { log.innerHTML = html; };
+  const showBright = () => {
+    const v = +bright.value;
+    $("[data-bright-value]").textContent = v + "%";
+    screen.style.filter = `brightness(${0.35 + v / 100 * 0.75})`;
+    glow.style.opacity = String(0.15 + v / 100 * 0.8);
+  };
+  bright.addEventListener("input", () => { showBright(); say(`<span class="text-tertiary">● ${t.sent}:</span> VCP 0x10 = ${bright.value} (${hex(+bright.value)})`); });
+  volume.addEventListener("input", () => { $("[data-volume-value]").textContent = volume.value + "%"; say(`<span class="text-tertiary">● ${t.sent}:</span> VCP 0x62 = ${volume.value} (${hex(+volume.value)})`); });
+
+  // Power: off like unplugging, back by itself after 15 s unless kept off — the app's safety net.
+  let timer = null;
+  const turnOn = (message) => {
+    clearInterval(timer); timer = null;
+    screen.style.opacity = "1"; ask.classList.add("hidden"); ask.classList.remove("flex");
+    showBright(); say(`<span class="text-tertiary">●</span> ${message}`);
+  };
+  $("[data-power]").addEventListener("click", () => {
+    if (timer) return;
+    let left = 15;
+    screen.style.opacity = "0.08"; glow.style.opacity = "0.05";
+    ask.classList.remove("hidden"); ask.classList.add("flex");
+    const tick = () => say(`<span class="text-primary">●</span> ${t.off} ${left}${t.seconds}`);
+    tick();
+    timer = setInterval(() => { left -= 1; if (left <= 0) turnOn(t.back); else tick(); }, 1000);
+  });
+  $("[data-on]").addEventListener("click", () => turnOn(t.back));
+  $("[data-keep]").addEventListener("click", () => {
+    clearInterval(timer); timer = null; ask.classList.add("hidden"); ask.classList.remove("flex");
+    say(`<span class="text-primary">●</span> ${t.kept}`);
+    setTimeout(() => { if (!timer) turnOn(t.back); }, 4000);
+  });
+  showBright();
+</script>

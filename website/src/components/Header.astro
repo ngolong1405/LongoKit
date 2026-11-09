@@ -5,7 +5,7 @@ import { counterpart, localize, pick, type Lang } from "../i18n";
 interface Props {
   lang: Lang;
   /** Which product page is open, to highlight it in the nav. */
-  active?: "mouse";
+  active?: "mouse" | "display";
 }
 
 const { lang, active } = Astro.props;
@@ -18,7 +18,7 @@ const t = pick(lang, {
 const products = [
   { id: "mouse", href: localize(lang, "/mouse"), icon: "mouse", tint: "text-primary", name: "LongoMouse", soon: false },
   { id: "keys", href: localize(lang, "/#pillars"), icon: "keyboard", tint: "text-secondary", name: "LongoKeys", soon: true },
-  { id: "display", href: localize(lang, "/#pillars"), icon: "desktop_windows", tint: "text-tertiary", name: "LongoDisplay", soon: true },
+  { id: "display", href: localize(lang, "/display"), icon: "desktop_windows", tint: "text-tertiary", name: "LongoDisplay", soon: false },
 ];
 ---
 
@@ -73,7 +73,7 @@ const products = [
         <span class="hidden dark:inline"><span class="material-symbols-outlined text-[18px] text-primary">light_mode</span></span>
       </button>
       <a
-        href={localize(lang, "/#downloads")}
+        href={active === "display" ? "#downloads" : localize(lang, "/#downloads")}
         class="flex items-center gap-space-xs rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-4 py-2 text-body-sm font-semibold text-white shadow-[0_4px_20px_rgba(255,107,53,0.3)] transition-all hover:opacity-95"
       >
         <span class="material-symbols-outlined text-[18px]">download</span>
