@@ -29,13 +29,26 @@ else
     codesign --force --sign - --identifier com.longngo.MouseMapper "$APP"
 fi
 
-# Disk image with the app next to an Applications shortcut, for drag-to-install.
-STAGE="$(mktemp -d)"
-trap 'rm -rf "$STAGE"' EXIT
-cp -R "$APP" "$STAGE/"
-ln -s /Applications "$STAGE/Applications"
+# Disk image: a designed installer window with the app next to an Applications shortcut (scripts/dmg).
+# dmgbuild lays out the window without driving Finder; it's installed into a local virtualenv on first use.
 rm -f "$DMG"
-hdiutil create -volname "Longo Mouse" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+VENV=build/.dmgvenv
+if [ ! -x "$VENV/bin/dmgbuild" ]; then
+    python3 -m venv "$VENV" && "$VENV/bin/pip" install --quiet dmgbuild || true
+fi
+if [ -x "$VENV/bin/dmgbuild" ]; then
+    tiffutil -cathidpicheck Support/dmg/background.png Support/dmg/background@2x.png -out build/dmg-background.tiff 2>/dev/null
+    "$VENV/bin/dmgbuild" -s scripts/dmg/settings.py \
+        -D app="$APP" -D background=build/dmg-background.tiff -D volume_icon=Support/AppIcon.icns \
+        "Longo Mouse" "$DMG" >/dev/null
+else
+    echo "warning: dmgbuild unavailable; building a plain disk image" >&2
+    STAGE="$(mktemp -d)"
+    trap 'rm -rf "$STAGE"' EXIT
+    cp -R "$APP" "$STAGE/Longo Mouse.app"
+    ln -s /Applications "$STAGE/Applications"
+    hdiutil create -volname "Longo Mouse" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+fi
 
 echo "Built $APP"
 echo "Built $DMG"
