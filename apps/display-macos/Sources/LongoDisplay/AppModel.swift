@@ -52,6 +52,19 @@ final class AppModel: ObservableObject {
     @Published private(set) var powerOff: [String: PowerOff] {
         didSet { save(powerOff, forKey: Keys.powerOff) }
     }
+    /// Paused, the app leaves displays alone: no Sync, no brightness keys, no software dimming.
+    @Published var isEnabled: Bool {
+        didSet {
+            defaults.set(isEnabled, forKey: Keys.enabled)
+            if isEnabled {
+                lastBuiltin = nil
+                switchedControl()
+            } else {
+                engine?.resetGamma()
+                reloadDisplays()
+            }
+        }
+    }
     @Published var keysEnabled: Bool {
         didSet {
             defaults.set(keysEnabled, forKey: Keys.keys)
@@ -108,6 +121,7 @@ final class AppModel: ObservableObject {
         static let appearance = "appearance"
         static let menuBarIcon = "showMenuBarIcon"
         static let powerOff = "displaysTurnedOff"
+        static let enabled = "enabled"
     }
 
     /// `live: false` for snapshots and the self-test: no display access, no event tap.
@@ -116,6 +130,7 @@ final class AppModel: ObservableObject {
         engine = live ? DisplayEngine() : nil
         settings = (defaults.data(forKey: Keys.settings)).flatMap { try? JSONDecoder().decode([String: DisplaySettings].self, from: $0) } ?? [:]
         powerOff = (defaults.data(forKey: Keys.powerOff)).flatMap { try? JSONDecoder().decode([String: PowerOff].self, from: $0) } ?? [:]
+        isEnabled = defaults.object(forKey: Keys.enabled) as? Bool ?? true
         mode = defaults.string(forKey: Keys.mode).flatMap(BrightnessMode.init(rawValue:)) ?? .manual
         keysEnabled = defaults.object(forKey: Keys.keys) as? Bool ?? true
         language = defaults.string(forKey: Keys.language).flatMap(AppLanguage.init(rawValue:)) ?? .systemDefault
@@ -250,6 +265,7 @@ final class AppModel: ObservableObject {
     private func switchedControl() {
         engine?.resetGamma()
         reloadDisplays()
+        guard isEnabled else { return }
         for shown in displays where isOn(shown) && shown.isActive { engine?.apply(settings(for: shown), to: shown) }
     }
 
@@ -336,7 +352,7 @@ final class AppModel: ObservableObject {
                 initial.brightness = engine.currentBrightness(of: display) ?? 1
                 settings[display.key] = initial
                 freshDisplays.insert(display.key)
-            } else if display.method != .native, display.isActive, isOn(display), !freshDisplays.contains(display.key) {
+            } else if isEnabled, display.method != .native, display.isActive, isOn(display), !freshDisplays.contains(display.key) {
                 // Saved displays get their brightness back; natively controlled ones keep macOS's.
                 engine.apply(settings(for: display), to: display)
             }
@@ -359,7 +375,7 @@ final class AppModel: ObservableObject {
         } else {
             settings[builtin.key]?.brightness = builtinValue
         }
-        guard mode == .sync else { return }
+        guard mode == .sync, isEnabled else { return }
         for display in externals where isOn(display) {
             let value = settings(for: display)
             setBrightness(SyncMath.map(builtin: builtinValue, minimum: value.minimum, maximum: value.maximum), for: display)
@@ -372,7 +388,7 @@ final class AppModel: ObservableObject {
         guard let screen = NSScreen.screens.first(where: { NSMouseInRect(point, $0.frame, false) }),
               let id = (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value,
               let display = displays.first(where: { $0.id == id }),
-              display.method != .native else { return false }
+              isEnabled, display.method != .native else { return false }
         let value = SyncMath.stepped(settings(for: display).level, up: up, lowest: levelRange(for: display).lowerBound)
         setLevel(value, for: display)
         BrightnessOSD.shared.show(max(value, 0), on: display.id)

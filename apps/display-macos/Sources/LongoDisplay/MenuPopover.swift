@@ -8,12 +8,44 @@ struct MenuPopover: View {
 
     private let presets: [Double] = [0, 0.25, 0.5, 0.75, 1]
 
+    /// Logo, name and status; theme; pause, like Longo Mouse's menu.
+    private var header: some View {
+        let color = model.isEnabled ? Theme.emerald : Theme.amber
+        return HStack(spacing: 10) {
+            AppLogo(size: 38).padding(-3)
+                .saturation(model.isEnabled ? 1 : 0)
+                .opacity(model.isEnabled ? 1 : 0.75)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(AppInfo.name).font(.display(14, .semibold)).foregroundStyle(Theme.text)
+                HStack(spacing: 5) {
+                    Circle().fill(color).frame(width: 6, height: 6).shadow(color: color, radius: 3)
+                    Text(model.isEnabled ? L("Running") : L("Paused")).font(.ui(11)).foregroundStyle(color).lineLimit(1)
+                }
+            }
+            Spacer(minLength: 4)
+            ThemeSwitcher(selection: $model.appearance)
+            Button { model.isEnabled.toggle() } label: {
+                Image(systemName: "power").font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(model.isEnabled ? Color.white : Theme.textMuted)
+                    .frame(width: 28, height: 28)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(model.isEnabled ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.slate))
+                    )
+                    .shadow(color: Theme.solar.opacity(model.isEnabled ? 0.45 : 0), radius: 6)
+            }
+            .buttonStyle(.plain)
+            .help(model.isEnabled ? L("Pause %@: displays keep their brightness, Sync, keys and software dimming stop", AppInfo.name)
+                  : L("Turn %@ back on", AppInfo.name))
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                AppLogo(size: 32).padding(-2)
-                Text(AppInfo.name).font(.display(14, .semibold)).foregroundStyle(Theme.text)
-            }
+            header
+            Hairline()
+            // Paused, the controls rest until it's turned back on.
+            VStack(alignment: .leading, spacing: 12) {
             Segmented(options: BrightnessMode.allCases, selection: $model.mode, title: { $0.title }, stretch: true)
             if model.mode == .sync && !model.externals.isEmpty {
                 Text(L("External displays follow the built-in display. Choose Manual to set each one yourself."))
@@ -45,6 +77,9 @@ struct MenuPopover: View {
                     .help(L("Set every display to %d%%", Int(value * 100)))
                 }
             }
+            }
+            .disabled(!model.isEnabled)
+            .opacity(model.isEnabled ? 1 : 0.45)
 
             Hairline()
             HStack {

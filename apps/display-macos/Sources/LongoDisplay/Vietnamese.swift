@@ -95,6 +95,11 @@ enum Vietnamese {
         "Brightness": "Độ sáng",
         "Speaker volume": "Âm lượng loa",
         "Mac volume": "Âm lượng của Mac",
+        "Running": "Đang chạy",
+        "Paused": "Tạm dừng",
+        "Pause %@: displays keep their brightness, Sync, keys and software dimming stop":
+            "Tạm dừng %@: màn hình giữ nguyên độ sáng, ngừng Đồng bộ, phím độ sáng và làm tối bằng phần mềm",
+        "Turn %@ back on": "Bật lại %@",
         "Up 5%": "Tăng 5%",
         "Down 5%": "Giảm 5%",
         "This monitor isn't answering DDC. MacBook HDMI ports often don't pass it on: plug it into a USB-C port, turn on DDC/CI in the monitor's menu, or use Software.":
