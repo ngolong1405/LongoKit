@@ -3,9 +3,9 @@ name: mouse-macos
 on:
   push:
     branches: [main]
-    paths: ["apps/mouse-macos/**", ".github/workflows/mouse-macos.yml"]
+    paths: ["apps/mouse-macos/**", "packages/ui-macos/**", ".github/workflows/mouse-macos.yml"]
   pull_request:
-    paths: ["apps/mouse-macos/**", ".github/workflows/mouse-macos.yml"]
+    paths: ["apps/mouse-macos/**", "packages/ui-macos/**", ".github/workflows/mouse-macos.yml"]
 
 jobs:
   build:

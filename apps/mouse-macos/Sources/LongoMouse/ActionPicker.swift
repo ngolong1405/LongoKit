@@ -1,3 +1,4 @@
+import LongoKitUI
 import SwiftUI
 
 /// Popover for choosing what a gesture does: standard macOS actions, a recorded shortcut, or an Apple key.

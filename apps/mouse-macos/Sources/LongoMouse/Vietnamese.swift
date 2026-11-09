@@ -1,4 +1,5 @@
 /// Vietnamese UI strings, keyed by the English text passed to `L(_:)`.
+import LongoKitUI
 enum Vietnamese {
     static let strings: [String: String] = [
         // Window & tabs

@@ -1,3 +1,4 @@
+import LongoKitUI
 import SwiftUI
 
 struct AboutTab: View {

@@ -1,3 +1,4 @@
+import LongoKitUI
 import SwiftUI
 
 /// Quick controls shown from the menu bar icon: on/off, theme, scrolling, and which mice use their own buttons.

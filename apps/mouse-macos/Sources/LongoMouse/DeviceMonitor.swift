@@ -1,6 +1,7 @@
 import Foundation
 import IOKit
 import IOKit.hid
+import LongoKitUI
 
 /// A connected pointing device, as reported by IOHID.
 struct MouseDevice: Identifiable, Equatable {

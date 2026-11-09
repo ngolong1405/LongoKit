@@ -1,5 +1,6 @@
 import AppKit
 import CoreGraphics
+import LongoKitUI
 
 /// Modifier keys we care about, stored as raw `CGEventFlags` bits.
 struct Modifiers: OptionSet, Codable, Hashable {

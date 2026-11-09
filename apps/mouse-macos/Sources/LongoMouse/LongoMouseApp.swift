@@ -1,3 +1,4 @@
+import LongoKitUI
 import SwiftUI
 
 @main
@@ -6,6 +7,10 @@ struct LongoMouseApp: App {
     @StateObject private var model = AppModel(startsEngine: !Snapshot.isRequested && !SelfTest.isRequested)
 
     init() {
+        Localizer.vietnamese = Vietnamese.strings
+        // `swift run` has no app bundle, so resources come straight from Support/.
+        Resource.developmentSupport = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().appendingPathComponent("../../Support").standardized
         Fonts.register()
     }
 

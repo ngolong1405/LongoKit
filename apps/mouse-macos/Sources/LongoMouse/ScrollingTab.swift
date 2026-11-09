@@ -1,3 +1,4 @@
+import LongoKitUI
 import SwiftUI
 
 /// A mouse's scroll settings, on its settings page.

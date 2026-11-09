@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import LongoKitUI
 
 /// Intercepts extra mouse buttons (middle and up) and the scroll wheel system-wide through a CGEventTap.
 /// The tap runs on the main run loop, so all state here is only touched from the main thread.

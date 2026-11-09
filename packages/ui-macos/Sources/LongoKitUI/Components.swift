@@ -4,89 +4,89 @@ import SwiftUI
 // Tokens from the "Solar Sunset & Cyber-Violet" design token system. Every color resolves per
 // appearance, so the whole UI follows the Light/Dark setting (or macOS when set to System).
 
-enum Theme {
-    static let windowWidth: CGFloat = 900
+public enum Theme {
+    public static let windowWidth: CGFloat = 900
     /// Height of the page area between the tab bar and the footer, the same on every tab.
-    static let contentHeight: CGFloat = 700
-    static let windowRadius: CGFloat = 16
+    public static let contentHeight: CGFloat = 700
+    public static let windowRadius: CGFloat = 16
 
     // Accents
-    static let solar = Color.dynamic(dark: 0xFF6B35, light: 0xEE5A22)
+    public static let solar = Color.dynamic(dark: 0xFF6B35, light: 0xEE5A22)
     /// Solar Flame on dark, Solar Deep on light: readable accent text in both.
-    static let solarLight = Color.dynamic(dark: 0xFFA26B, light: 0xD94814)
-    static let violet = Color.dynamic(dark: 0x8B5CF6, light: 0x7C3AED)
-    static let violetLight = Color.dynamic(dark: 0xA78BFA, light: 0x6D28D9)
+    public static let solarLight = Color.dynamic(dark: 0xFFA26B, light: 0xD94814)
+    public static let violet = Color.dynamic(dark: 0x8B5CF6, light: 0x7C3AED)
+    public static let violetLight = Color.dynamic(dark: 0xA78BFA, light: 0x6D28D9)
     /// Secondary highlight (listening, picked tiles); same Cyber-Violet family.
-    static let magenta = violet
-    static let magentaLight = violetLight
-    static let accentGradient = LinearGradient(colors: [solar, violet], startPoint: .topLeading, endPoint: .bottomTrailing)
+    public static let magenta = violet
+    public static let magentaLight = violetLight
+    public static let accentGradient = LinearGradient(colors: [solar, violet], startPoint: .topLeading, endPoint: .bottomTrailing)
 
     // Status
-    static let emerald = Color.dynamic(dark: 0x10B981, light: 0x059669)
-    static let amber = Color.dynamic(dark: 0xF59E0B, light: 0xD97706)
-    static let danger = Color.dynamic(dark: 0xEF4444, light: 0xDC2626)
-    static let info = Color(hex: 0x06B6D4)
+    public static let emerald = Color.dynamic(dark: 0x10B981, light: 0x059669)
+    public static let amber = Color.dynamic(dark: 0xF59E0B, light: 0xD97706)
+    public static let danger = Color.dynamic(dark: 0xEF4444, light: 0xDC2626)
+    public static let info = Color(hex: 0x06B6D4)
 
     // Surfaces
-    static let canvas = Color.dynamic(dark: 0x0B0C10, light: 0xF5F6F8)
-    static let canvasTop = Color.dynamic(dark: 0x121319, light: 0xFFFFFF)
-    static let pane = Color.dynamic(dark: 0x161820, light: 0xF8F9FA, darkOpacity: 0.72, lightOpacity: 0.9)
-    static let island = Color.dynamic(dark: 0x1A1B22, light: 0xFFFFFF, darkOpacity: 0.85, lightOpacity: 0.94)
-    static let well = Color.dynamic(dark: 0x0C0E13, light: 0xE9EBEF, darkOpacity: 0.8, lightOpacity: 1)
-    static let hover = Color.dynamic(dark: 0x242632, light: 0xEDF0F5)
-    static let slate = Color.dynamic(dark: 0x2F3242, light: 0xE1E5ED)
+    public static let canvas = Color.dynamic(dark: 0x0B0C10, light: 0xF5F6F8)
+    public static let canvasTop = Color.dynamic(dark: 0x121319, light: 0xFFFFFF)
+    public static let pane = Color.dynamic(dark: 0x161820, light: 0xF8F9FA, darkOpacity: 0.72, lightOpacity: 0.9)
+    public static let island = Color.dynamic(dark: 0x1A1B22, light: 0xFFFFFF, darkOpacity: 0.85, lightOpacity: 0.94)
+    public static let well = Color.dynamic(dark: 0x0C0E13, light: 0xE9EBEF, darkOpacity: 0.8, lightOpacity: 1)
+    public static let hover = Color.dynamic(dark: 0x242632, light: 0xEDF0F5)
+    public static let slate = Color.dynamic(dark: 0x2F3242, light: 0xE1E5ED)
     /// Footer and other chrome strips.
-    static let chrome = Color.dynamic(dark: 0x000000, light: 0x000000, darkOpacity: 0.25, lightOpacity: 0.03)
-    static let popoverTop = Color.dynamic(dark: 0x1B1A24, light: 0xFFFFFF)
-    static let popoverBottom = Color.dynamic(dark: 0x0B0C10, light: 0xF5F6F8)
-    static let showcaseTop = Color.dynamic(dark: 0x2A1A26, light: 0xFFF1EA)
-    static let showcaseBottom = Color.dynamic(dark: 0x16131D, light: 0xF4EEFF)
-    static let listenTop = Color.dynamic(dark: 0x241A3A, light: 0xF1EAFF)
-    static let listenBottom = Color.dynamic(dark: 0x16121F, light: 0xFBF8FF)
-    static let segmentTrack = Color.dynamic(dark: 0x0C0E13, light: 0xE6E8EC, darkOpacity: 0.8, lightOpacity: 1)
-    static let segmentSelected = Color.dynamic(dark: 0x2F3242, light: 0xFFFFFF)
+    public static let chrome = Color.dynamic(dark: 0x000000, light: 0x000000, darkOpacity: 0.25, lightOpacity: 0.03)
+    public static let popoverTop = Color.dynamic(dark: 0x1B1A24, light: 0xFFFFFF)
+    public static let popoverBottom = Color.dynamic(dark: 0x0B0C10, light: 0xF5F6F8)
+    public static let showcaseTop = Color.dynamic(dark: 0x2A1A26, light: 0xFFF1EA)
+    public static let showcaseBottom = Color.dynamic(dark: 0x16131D, light: 0xF4EEFF)
+    public static let listenTop = Color.dynamic(dark: 0x241A3A, light: 0xF1EAFF)
+    public static let listenBottom = Color.dynamic(dark: 0x16121F, light: 0xFBF8FF)
+    public static let segmentTrack = Color.dynamic(dark: 0x0C0E13, light: 0xE6E8EC, darkOpacity: 0.8, lightOpacity: 1)
+    public static let segmentSelected = Color.dynamic(dark: 0x2F3242, light: 0xFFFFFF)
     /// Soft card elevation (`--shadow-card`).
-    static let cardShadow = Color.dynamic(dark: 0x000000, light: 0x000000, darkOpacity: 0.35, lightOpacity: 0.07)
-    static let innerShadow = Color.dynamic(dark: 0x000000, light: 0x000000, darkOpacity: 0.6, lightOpacity: 0.12)
+    public static let cardShadow = Color.dynamic(dark: 0x000000, light: 0x000000, darkOpacity: 0.35, lightOpacity: 0.07)
+    public static let innerShadow = Color.dynamic(dark: 0x000000, light: 0x000000, darkOpacity: 0.6, lightOpacity: 0.12)
 
     // Borders
-    static let hairline = Color.dynamic(dark: 0xFFFFFF, light: 0x000000, darkOpacity: 0.08, lightOpacity: 0.08)
-    static let borderProminent = Color.dynamic(dark: 0xFFFFFF, light: 0x000000, darkOpacity: 0.16, lightOpacity: 0.14)
-    static let rim = LinearGradient(
+    public static let hairline = Color.dynamic(dark: 0xFFFFFF, light: 0x000000, darkOpacity: 0.08, lightOpacity: 0.08)
+    public static let borderProminent = Color.dynamic(dark: 0xFFFFFF, light: 0x000000, darkOpacity: 0.16, lightOpacity: 0.14)
+    public static let rim = LinearGradient(
         colors: [Color.dynamic(dark: 0xFFFFFF, light: 0x000000, darkOpacity: 0.14, lightOpacity: 0.1),
                  Color.dynamic(dark: 0xFFFFFF, light: 0x000000, darkOpacity: 0.04, lightOpacity: 0.06)],
         startPoint: .top, endPoint: .bottom)
-    static let cardRim = LinearGradient(colors: [solar.opacity(0.3), violet.opacity(0.3)],
+    public static let cardRim = LinearGradient(colors: [solar.opacity(0.3), violet.opacity(0.3)],
                                         startPoint: .topLeading, endPoint: .bottomTrailing)
 
     // Text
-    static let text = Color.dynamic(dark: 0xF3F4F6, light: 0x111827)
-    static let textSecondary = Color.dynamic(dark: 0xD1D5DB, light: 0x374151)
-    static let textMuted = Color.dynamic(dark: 0x9CA3AF, light: 0x4B5563)
-    static let textFaint = Color.dynamic(dark: 0x6B7280, light: 0x9CA3AF)
+    public static let text = Color.dynamic(dark: 0xF3F4F6, light: 0x111827)
+    public static let textSecondary = Color.dynamic(dark: 0xD1D5DB, light: 0x374151)
+    public static let textMuted = Color.dynamic(dark: 0x9CA3AF, light: 0x4B5563)
+    public static let textFaint = Color.dynamic(dark: 0x6B7280, light: 0x9CA3AF)
 
     /// Neutral overlay that reads on both themes: white on dark, black on light.
-    static func tint(_ opacity: Double) -> Color {
+    public static func tint(_ opacity: Double) -> Color {
         Color.dynamic(dark: 0xFFFFFF, light: 0x000000, darkOpacity: opacity, lightOpacity: opacity * 0.7)
     }
 }
 
 /// Shared animation curves so every transition in the app feels the same.
-enum Motion {
+public enum Motion {
     /// Selection pills sliding between options.
-    static let slide = Animation.spring(response: 0.3, dampingFraction: 0.86)
+    public static let slide = Animation.spring(response: 0.3, dampingFraction: 0.86)
     /// Rows appearing, disappearing or reordering.
-    static let list = Animation.spring(response: 0.34, dampingFraction: 0.88)
+    public static let list = Animation.spring(response: 0.34, dampingFraction: 0.88)
     /// Small state swaps such as hover or edit mode.
-    static let quick = Animation.easeOut(duration: 0.15)
+    public static let quick = Animation.easeOut(duration: 0.15)
     /// Inserted rows fade and drop in; removed rows fade out.
-    static let row = AnyTransition.asymmetric(insertion: .opacity.combined(with: .offset(y: -6)), removal: .opacity)
+    public static let row = AnyTransition.asymmetric(insertion: .opacity.combined(with: .offset(y: -6)), removal: .opacity)
 }
 
-enum AppAppearance: String, CaseIterable, Codable {
+public enum AppAppearance: String, CaseIterable, Codable {
     case system, dark, light
 
-    var title: String {
+    public var title: String {
         switch self {
         case .system: return L("System")
         case .light: return L("Light")
@@ -94,7 +94,7 @@ enum AppAppearance: String, CaseIterable, Codable {
         }
     }
 
-    var nsAppearance: NSAppearance? {
+    public var nsAppearance: NSAppearance? {
         switch self {
         case .system: return nil
         case .light: return NSAppearance(named: .aqua)
@@ -103,7 +103,7 @@ enum AppAppearance: String, CaseIterable, Codable {
     }
 }
 
-extension Color {
+public extension Color {
     init(hex: UInt32, opacity: Double = 1) {
         self.init(.sRGB,
                   red: Double((hex >> 16) & 0xFF) / 255,
@@ -125,7 +125,7 @@ extension Color {
     }
 }
 
-extension Font {
+public extension Font {
     /// Space Grotesk: titles, mode switchers.
     static func display(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {
         .custom("Space Grotesk", size: size).weight(weight)
@@ -142,9 +142,9 @@ extension Font {
     }
 }
 
-enum Fonts {
+public enum Fonts {
     /// Registers the bundled OFL fonts for this process. Missing files fall back to the system font.
-    static func register() {
+    public static func register() {
         for name in ["SpaceGrotesk", "Geist", "JetBrainsMono"] {
             if let url = Resource.url(for: "Fonts/\(name).ttf") {
                 CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
@@ -153,7 +153,7 @@ enum Fonts {
     }
 }
 
-extension View {
+public extension View {
     /// Level 1: obsidian translucent glass with a top-lit inner boundary.
     func panel(padding: CGFloat = 16, radius: CGFloat = 16) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
@@ -187,19 +187,23 @@ extension View {
     }
 }
 
-struct Hairline: View {
-    var color: Color = Theme.hairline
+public struct Hairline: View {
+    public var color: Color = Theme.hairline
 
-    var body: some View {
+    public init(color: Color = Theme.hairline) { self.color = color }
+
+    public var body: some View {
         Rectangle().fill(color).frame(height: 1)
     }
 }
 
 /// Uppercase JetBrains Mono micro label ("STARTUP & BEHAVIOR").
-struct SectionLabel: View {
-    let text: String
+public struct SectionLabel: View {
+    public let text: String
 
-    var body: some View {
+    public init(text: String) { self.text = text }
+
+    public var body: some View {
         Text(text.uppercased())
             .font(.mono(10, .medium))
             .tracking(0.5)
@@ -209,23 +213,22 @@ struct SectionLabel: View {
 
 // MARK: - Resources & icons
 
-enum Resource {
+public enum Resource {
     private static var imageCache: [String: NSImage] = [:]
+    /// The app's `Support` folder, used when running via `swift run` where there's no app bundle.
+    public static var developmentSupport: URL?
 
-    /// `Contents/Resources/<path>`, falling back to `Support/<path>` when run via `swift run`.
-    static func url(for path: String) -> URL? {
+    /// `Contents/Resources/<path>`, falling back to the app's `Support/<path>` when run via `swift run`.
+    public static func url(for path: String) -> URL? {
         if let resources = Bundle.main.resourceURL {
             let url = resources.appendingPathComponent(path)
             if FileManager.default.fileExists(atPath: url.path) { return url }
         }
-        let source = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .appendingPathComponent("../../Support/\(path)")
-            .standardized
+        guard let source = developmentSupport?.appendingPathComponent(path) else { return nil }
         return FileManager.default.fileExists(atPath: source.path) ? source : nil
     }
 
-    static func image(_ path: String, template: Bool = false) -> NSImage? {
+    public static func image(_ path: String, template: Bool = false) -> NSImage? {
         let key = template ? path + "#template" : path
         if let cached = imageCache[key] { return cached }
         guard let url = url(for: path), let image = NSImage(contentsOf: url) else { return nil }
@@ -236,12 +239,18 @@ enum Resource {
 }
 
 /// Rounded tile holding a glyph, tinted with an accent.
-struct GlyphTile<Glyph: View>: View {
-    var tint: Color = Theme.violet
-    var size: CGFloat = 32
-    @ViewBuilder let glyph: Glyph
+public struct GlyphTile<Glyph: View>: View {
+    public var tint: Color = Theme.violet
+    public var size: CGFloat = 32
+    @ViewBuilder public let glyph: Glyph
 
-    var body: some View {
+    public init(tint: Color = Theme.violet, size: CGFloat = 32, @ViewBuilder glyph: () -> Glyph) {
+        self.tint = tint
+        self.size = size
+        self.glyph = glyph()
+    }
+
+    public var body: some View {
         glyph
             .frame(width: size, height: size)
             .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(tint.opacity(0.15)))
@@ -252,11 +261,16 @@ struct GlyphTile<Glyph: View>: View {
 // MARK: - Controls
 
 /// Sequoia toggle: muted slate when off, bursting into Solar Amber with an ambient glow when on.
-struct DSSwitch: View {
-    let isOn: Bool
-    let action: () -> Void
+public struct DSSwitch: View {
+    public let isOn: Bool
+    public let action: () -> Void
 
-    var body: some View {
+    public init(isOn: Bool, action: @escaping () -> Void) {
+        self.isOn = isOn
+        self.action = action
+    }
+
+    public var body: some View {
         ZStack(alignment: .leading) {
             Capsule()
                 .fill(isOn ? AnyShapeStyle(LinearGradient(colors: [Theme.solar, Color(hex: 0xFF8A50)],
@@ -280,17 +294,22 @@ struct DSSwitch: View {
     }
 }
 
-extension DSSwitch {
+public extension DSSwitch {
     init(isOn: Binding<Bool>) {
         self.init(isOn: isOn.wrappedValue) { isOn.wrappedValue.toggle() }
     }
 }
 
-struct DSCheckbox: View {
-    let isOn: Bool
-    let action: () -> Void
+public struct DSCheckbox: View {
+    public let isOn: Bool
+    public let action: () -> Void
 
-    var body: some View {
+    public init(isOn: Bool, action: @escaping () -> Void) {
+        self.isOn = isOn
+        self.action = action
+    }
+
+    public var body: some View {
         let shape = RoundedRectangle(cornerRadius: 4, style: .continuous)
         ZStack {
             if isOn {
@@ -309,12 +328,18 @@ struct DSCheckbox: View {
 }
 
 /// Precision track: obsidian trench, glowing solar fill, sculpted metal thumb with an amber aperture.
-struct DSSlider: View {
-    @Binding var value: Double
-    let range: ClosedRange<Double>
-    var step: Double = 0.01
+public struct DSSlider: View {
+    @Binding public var value: Double
+    public let range: ClosedRange<Double>
+    public var step: Double = 0.01
 
-    var body: some View {
+    public init(value: Binding<Double>, range: ClosedRange<Double>, step: Double = 0.01) {
+        self._value = value
+        self.range = range
+        self.step = step
+    }
+
+    public var body: some View {
         GeometryReader { geometry in
             let travel = geometry.size.width - 18
             let fraction = (value - range.lowerBound) / (range.upperBound - range.lowerBound)
@@ -346,16 +371,23 @@ struct DSSlider: View {
     }
 }
 
-struct Segmented<Option: Hashable>: View {
-    let options: [Option]
-    @Binding var selection: Option
-    let title: (Option) -> String
+public struct Segmented<Option: Hashable>: View {
+    public let options: [Option]
+    @Binding public var selection: Option
+    public let title: (Option) -> String
     /// The profile picker fills its row; the compact one hugs its labels.
-    var stretch = false
+    public var stretch = false
+
+    public init(options: [Option], selection: Binding<Option>, title: @escaping (Option) -> String, stretch: Bool = false) {
+        self.options = options
+        self._selection = selection
+        self.title = title
+        self.stretch = stretch
+    }
 
     @Namespace private var pill
 
-    var body: some View {
+    public var body: some View {
         HStack(spacing: 2) {
             ForEach(options, id: \.self) { option in
                 let selected = option == selection
@@ -390,11 +422,11 @@ struct Segmented<Option: Hashable>: View {
 // MARK: - Chips
 
 /// Translucent pill token with JetBrains Mono text.
-struct Chip: View {
-    enum Tone {
+public struct Chip: View {
+    public enum Tone {
         case emerald, amber, solar, magenta, violet, neutral
 
-        var color: Color {
+        public var color: Color {
             switch self {
             case .emerald: return Theme.emerald
             case .amber: return Theme.amber
@@ -405,7 +437,7 @@ struct Chip: View {
             }
         }
 
-        var text: Color {
+        public var text: Color {
             switch self {
             case .emerald: return Color.dynamic(dark: 0x6EE7B7, light: 0x047857)
             case .amber: return Color.dynamic(dark: 0xFCD34D, light: 0xB45309)
@@ -417,17 +449,17 @@ struct Chip: View {
         }
     }
 
-    let text: String
-    var tone: Tone = .neutral
-    var dot = false
+    public let text: String
+    public var tone: Tone = .neutral
+    public var dot = false
 
-    init(_ text: String, tone: Tone = .neutral, dot: Bool = false) {
+    public init(_ text: String, tone: Tone = .neutral, dot: Bool = false) {
         self.text = text
         self.tone = tone
         self.dot = dot
     }
 
-    var body: some View {
+    public var body: some View {
         HStack(spacing: 5) {
             if dot {
                 Circle().fill(tone.color).frame(width: 5, height: 5).shadow(color: tone.color.opacity(0.9), radius: 3)
@@ -443,13 +475,15 @@ struct Chip: View {
     }
 
     /// Marks settings whose behavior isn't implemented yet.
-    static var soon: Chip { Chip(L("Coming soon")) }
+    public static var soon: Chip { Chip(L("Coming soon")) }
 }
 
-struct KeyCap: View {
-    let text: String
+public struct KeyCap: View {
+    public let text: String
 
-    var body: some View {
+    public init(text: String) { self.text = text }
+
+    public var body: some View {
         Text(text)
             .font(.mono(10))
             .foregroundStyle(Theme.magentaLight)
@@ -464,11 +498,13 @@ struct KeyCap: View {
 // MARK: - Buttons
 
 /// Solar→violet gradient with an inset highlight and an orange outer glow.
-struct PrimaryButtonStyle: ButtonStyle {
+public struct PrimaryButtonStyle: ButtonStyle {
     /// Shorter variant for inline controls that must not change a row's height.
-    var compact = false
+    public var compact = false
 
-    func makeBody(configuration: Configuration) -> some View {
+    public init(compact: Bool = false) { self.compact = compact }
+
+    public func makeBody(configuration: Configuration) -> some View {
         let shape = RoundedRectangle(cornerRadius: compact ? 6 : 8, style: .continuous)
         return configuration.label
             .font(.ui(compact ? 11 : 12, .medium))
@@ -486,11 +522,16 @@ struct PrimaryButtonStyle: ButtonStyle {
 }
 
 /// Obsidian glass with a 1px hairline.
-struct GhostButtonStyle: ButtonStyle {
-    var tint: Color = Theme.text
-    var compact = false
+public struct GhostButtonStyle: ButtonStyle {
+    public var tint: Color = Theme.text
+    public var compact = false
 
-    func makeBody(configuration: Configuration) -> some View {
+    public init(tint: Color = Theme.text, compact: Bool = false) {
+        self.tint = tint
+        self.compact = compact
+    }
+
+    public func makeBody(configuration: Configuration) -> some View {
         let shape = RoundedRectangle(cornerRadius: compact ? 6 : 8, style: .continuous)
         return configuration.label
             .font(.ui(compact ? 11 : 12, .medium))
@@ -504,11 +545,11 @@ struct GhostButtonStyle: ButtonStyle {
     }
 }
 
-extension ButtonStyle where Self == PrimaryButtonStyle {
+public extension ButtonStyle where Self == PrimaryButtonStyle {
     static var primary: PrimaryButtonStyle { PrimaryButtonStyle() }
 }
 
-extension ButtonStyle where Self == GhostButtonStyle {
+public extension ButtonStyle where Self == GhostButtonStyle {
     static var ghost: GhostButtonStyle { GhostButtonStyle() }
 }
 
@@ -517,14 +558,23 @@ extension ButtonStyle where Self == GhostButtonStyle {
 /// Title + detail on the left, a control on the right.
 /// Title block for a settings card: tinted icon tile, title and a short line about the card,
 /// separated from the rows below by a hairline.
-struct CardHeader<Trailing: View>: View {
-    let symbol: String
-    let title: String
-    var subtitle: String?
-    var tint: Color = Theme.violet
-    @ViewBuilder let trailing: Trailing
+public struct CardHeader<Trailing: View>: View {
+    public let symbol: String
+    public let title: String
+    public var subtitle: String?
+    public var tint: Color = Theme.violet
+    @ViewBuilder public let trailing: Trailing
 
-    var body: some View {
+    public init(symbol: String, title: String, subtitle: String? = nil, tint: Color = Theme.violet,
+                @ViewBuilder trailing: () -> Trailing) {
+        self.symbol = symbol
+        self.title = title
+        self.subtitle = subtitle
+        self.tint = tint
+        self.trailing = trailing()
+    }
+
+    public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
                 GlyphTile(tint: tint, size: 34) {
@@ -544,13 +594,20 @@ struct CardHeader<Trailing: View>: View {
     }
 }
 
-struct SettingRow<Accessory: View>: View {
-    let title: String
-    let detail: String
-    var soon = false
-    @ViewBuilder let accessory: Accessory
+public struct SettingRow<Accessory: View>: View {
+    public let title: String
+    public let detail: String
+    public var soon = false
+    @ViewBuilder public let accessory: Accessory
 
-    var body: some View {
+    public init(title: String, detail: String, soon: Bool = false, @ViewBuilder accessory: () -> Accessory) {
+        self.title = title
+        self.detail = detail
+        self.soon = soon
+        self.accessory = accessory()
+    }
+
+    public var body: some View {
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
@@ -571,14 +628,23 @@ struct SettingRow<Accessory: View>: View {
 /// ScrollView with the system scroller hidden and a slim themed one drawn on top.
 /// It appears while scrolling or hovering and fades out shortly after. The thumb sits in the pages'
 /// side padding, so the content keeps the same width whether or not it overflows.
-struct SlimScrollView<Content: View>: View {
-    var contentHeight: Binding<CGFloat>?
-    var scrollTarget: UUID?
+public struct SlimScrollView<Content: View>: View {
+    public var contentHeight: Binding<CGFloat>?
+    public var scrollTarget: UUID?
     /// Changing this jumps back to the top, e.g. when another page is shown in the same scroll view.
-    var resetID: AnyHashable?
+    public var resetID: AnyHashable?
     /// Room kept on the right for the thumb, for content that runs edge to edge (pages have their own padding).
-    var gutter: CGFloat = 0
-    @ViewBuilder let content: Content
+    public var gutter: CGFloat = 0
+    @ViewBuilder public let content: Content
+
+    public init(contentHeight: Binding<CGFloat>? = nil, scrollTarget: UUID? = nil, resetID: AnyHashable? = nil,
+                gutter: CGFloat = 0, @ViewBuilder content: () -> Content) {
+        self.contentHeight = contentHeight
+        self.scrollTarget = scrollTarget
+        self.resetID = resetID
+        self.gutter = gutter
+        self.content = content()
+    }
 
     @State private var metrics = ScrollMetrics()
     @State private var viewport: CGFloat = 0
@@ -588,7 +654,7 @@ struct SlimScrollView<Content: View>: View {
     private let space = "slim-scroll"
     private static var topAnchor: String { "slim-scroll-top" }
 
-    var body: some View {
+    public var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.vertical) {
                 VStack(spacing: 0) {
@@ -668,129 +734,40 @@ private struct ScrollMetricsKey: PreferenceKey {
     }
 }
 
-/// A device name that turns into a text field in place, with Save and Cancel, when its edit icon is clicked.
-struct InlineRename: View {
-    @EnvironmentObject private var model: AppModel
-    let deviceID: String
-    var font: Font = .display(14, .semibold)
-    var color: Color = Theme.text
-
-    @State private var editing = false
-    @State private var text = ""
-    @FocusState private var focused: Bool
-    @State private var frame: CGRect = .zero
-    @State private var clickMonitor: Any?
-
-    var body: some View {
-        HStack(spacing: 6) {
-            if editing {
-                Group {
-                TextField(model.profiles[deviceID]?.product ?? "", text: $text)
-                    .textFieldStyle(.plain)
-                    .font(font)
-                    .foregroundStyle(Theme.text)
-                    .padding(.horizontal, 8)
-                    .frame(minWidth: 110, maxWidth: 220, minHeight: 24, maxHeight: 24)
-                    .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Theme.segmentTrack))
-                    .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(Theme.solar.opacity(0.7)))
-                    .focused($focused)
-                    .onSubmit(save)
-                    .onExitCommand(perform: cancel)
-                Button(L("Save"), action: save).buttonStyle(PrimaryButtonStyle(compact: true))
-                Button(L("Cancel"), action: cancel).buttonStyle(GhostButtonStyle(compact: true))
-                }
-                .transition(.opacity)
-            } else {
-                Text(model.displayName(deviceID)).font(font).foregroundStyle(color).lineLimit(1)
-                Button(action: begin) {
-                    Image(systemName: "square.and.pencil")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Theme.solar)
-                        .frame(width: 22, height: 22)
-                        .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Theme.solar.opacity(0.1)))
-                        .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(Theme.solar.opacity(0.3)))
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .help(L("Rename this mouse"))
-            }
-        }
-        // Same height whether showing the name or the field, so nothing below shifts.
-        .frame(height: 26)
-        .animation(Motion.quick, value: editing)
-        .background(GeometryReader { geometry in
-            Color.clear
-                .onAppear { frame = geometry.frame(in: .global) }
-                .onChange(of: geometry.frame(in: .global)) { frame = $0 }
-        })
-        // Leaving the field (tabbing away, switching apps, closing the page) ends editing without saving.
-        .onChange(of: focused) { isFocused in
-            if !isFocused && editing { cancel() }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
-            if editing { cancel() }
-        }
-        .onDisappear(perform: stopWatchingClicks)
-    }
-
-    private func begin() {
-        text = model.displayName(deviceID)
-        editing = true
-        DispatchQueue.main.async { focused = true }
-        watchClicks()
-    }
-
-    /// Clicking empty parts of the window doesn't take focus from a text field, so clicks outside
-    /// the field and its buttons are watched for directly.
-    private func watchClicks() {
-        stopWatchingClicks()
-        clickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { event in
-            if let content = event.window?.contentView {
-                let point = content.convert(event.locationInWindow, from: nil)
-                let flipped = content.isFlipped ? point : CGPoint(x: point.x, y: content.bounds.height - point.y)
-                if !frame.insetBy(dx: -4, dy: -4).contains(flipped) { cancel() }
-            }
-            return event
-        }
-    }
-
-    private func stopWatchingClicks() {
-        if let clickMonitor { NSEvent.removeMonitor(clickMonitor) }
-        clickMonitor = nil
-    }
-
-    private func save() {
-        let name = text.trimmingCharacters(in: .whitespaces)
-        // Saving the original product name (or nothing) goes back to the default name.
-        model.setNickname(deviceID, name == model.profiles[deviceID]?.product ? nil : name)
-        editing = false
-        stopWatchingClicks()
-    }
-
-    private func cancel() {
-        editing = false
-        stopWatchingClicks()
-    }
-}
-
 /// One choice in a `Dropdown`.
-struct DropdownItem: Identifiable {
-    let id: String
-    let title: String
-    var detail: String?
-    var symbol: String?
-    var selected = false
-    let action: () -> Void
+public struct DropdownItem: Identifiable {
+    public let id: String
+    public let title: String
+    public var detail: String?
+    public var symbol: String?
+    public var selected = false
+    public let action: () -> Void
+
+    public init(id: String, title: String, detail: String? = nil, symbol: String? = nil, selected: Bool = false,
+                action: @escaping () -> Void) {
+        self.id = id
+        self.title = title
+        self.detail = detail
+        self.symbol = symbol
+        self.selected = selected
+        self.action = action
+    }
 }
 
 /// A themed dropdown: the label opens a popover listing the choices, grouped into sections.
-struct Dropdown<Label: View>: View {
-    let sections: [[DropdownItem]]
-    var width: CGFloat = 260
-    @ViewBuilder let label: () -> Label
+public struct Dropdown<Label: View>: View {
+    public let sections: [[DropdownItem]]
+    public var width: CGFloat = 260
+    @ViewBuilder public let label: () -> Label
     @State private var open = false
 
-    var body: some View {
+    public init(sections: [[DropdownItem]], width: CGFloat = 260, @ViewBuilder label: @escaping () -> Label) {
+        self.sections = sections
+        self.width = width
+        self.label = label
+    }
+
+    public var body: some View {
         Button { open.toggle() } label: { label() }
             .buttonStyle(.plain)
             .popover(isPresented: $open, arrowEdge: .bottom) {
@@ -813,11 +790,11 @@ struct Dropdown<Label: View>: View {
 }
 
 private struct DropdownRow: View {
-    let item: DropdownItem
-    let action: () -> Void
+    public let item: DropdownItem
+    public let action: () -> Void
     @State private var hovering = false
 
-    var body: some View {
+    public var body: some View {
         Button(action: action) {
             HStack(spacing: 10) {
                 if let symbol = item.symbol {

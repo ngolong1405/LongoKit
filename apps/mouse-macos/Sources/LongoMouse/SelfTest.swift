@@ -1,4 +1,5 @@
 import AppKit
+import LongoKitUI
 
 /// `LongoMouse --selftest` drives the engine with synthetic mouse events and checks which actions it would send.
 /// Nothing reaches the system: ActionPerformer reports into a recorder instead.

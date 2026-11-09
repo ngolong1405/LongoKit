@@ -1,3 +1,4 @@
+import LongoKitUI
 import SwiftUI
 
 /// `LongoMouse --snapshot <dir>` renders each tab to PNG and quits, for comparing against the Figma frames.

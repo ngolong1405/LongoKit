@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import IOKit.hid
+import LongoKitUI
 import ServiceManagement
 
 /// Everything the UI shows: bindings, settings and permission state. Mirrors what the engine needs into it.

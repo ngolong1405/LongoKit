@@ -1,33 +1,35 @@
 import Foundation
 
-enum AppLanguage: String, CaseIterable, Codable {
+public enum AppLanguage: String, CaseIterable, Codable {
     case english = "en"
     case vietnamese = "vi"
 
     /// Shown in its own language so it's recognizable either way.
-    var title: String {
+    public var title: String {
         switch self {
         case .english: return "English"
         case .vietnamese: return "Tiếng Việt"
         }
     }
 
-    static var systemDefault: AppLanguage {
+    public static var systemDefault: AppLanguage {
         Locale.preferredLanguages.first?.hasPrefix("vi") == true ? .vietnamese : .english
     }
 }
 
-enum Localizer {
-    static var language: AppLanguage = .english
+public enum Localizer {
+    public static var language: AppLanguage = .english
+    /// English → Vietnamese for every string the app (and this package) shows; each app provides its own.
+    public static var vietnamese: [String: String] = [:]
 }
 
 /// Translates an English UI string into the chosen app language; unknown strings stay in English.
-func L(_ english: String) -> String {
+public func L(_ english: String) -> String {
     guard Localizer.language == .vietnamese else { return english }
-    return Vietnamese.strings[english] ?? english
+    return Localizer.vietnamese[english] ?? english
 }
 
 /// Formats a translated template, e.g. `L("%d bindings", count)`.
-func L(_ english: String, _ arguments: CVarArg...) -> String {
+public func L(_ english: String, _ arguments: CVarArg...) -> String {
     String(format: L(english), arguments: arguments)
 }

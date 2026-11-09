@@ -1,4 +1,5 @@
 import Foundation
+import LongoKitUI
 
 /// Branding and links shown on the About tab. Fill in the optional URLs to show the sponsor button and link tiles.
 enum AppInfo {
