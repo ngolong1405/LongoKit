@@ -114,6 +114,9 @@ enum Vietnamese {
         "In Sync, this display follows the MacBook's brightness, within this range.":
             "Ở chế độ Đồng bộ, màn này đổi độ sáng theo MacBook, trong khoảng này.",
         "Use Sync": "Bật Đồng bộ",
+        "Sync is on: external displays follow the MacBook's brightness, so their sliders are locked.":
+            "Đang Đồng bộ: các màn ngoài đổi độ sáng theo MacBook, nên thanh của chúng bị khoá.",
+        "Switch to Manual": "Chuyển sang Thủ công",
         "Used only in Sync mode": "Chỉ dùng ở chế độ Đồng bộ",
         "On": "Đang bật",
         "Min": "Thấp nhất",

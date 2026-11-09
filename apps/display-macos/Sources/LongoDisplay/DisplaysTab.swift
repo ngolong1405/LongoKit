@@ -66,6 +66,9 @@ private struct DisplayList: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             SectionLabel(text: L("Connected displays") + " (\(model.displays.count))")
+            if model.mode == .sync && !model.externals.isEmpty {
+                SyncBanner()
+            }
             VStack(spacing: 0) {
                 ForEach(Array(model.displays.enumerated()), id: \.element.key) { index, display in
                     if index > 0 { Hairline() }
@@ -164,6 +167,28 @@ struct DisplayLevels: View {
     }
 }
 
+/// Sync is on: says why the external displays' sliders are locked, with the way out.
+private struct SyncBanner: View {
+    @EnvironmentObject private var model: AppModel
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "link").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.violetLight)
+            Text(L("Sync is on: external displays follow the MacBook's brightness, so their sliders are locked."))
+                .font(.ui(12))
+                .foregroundStyle(Theme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 8)
+            Button(L("Switch to Manual")) { model.mode = .manual }
+                .buttonStyle(.ghost)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.violet.opacity(0.1)))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.violet.opacity(0.3)))
+    }
+}
+
 /// Brightness and extra dimming on one slider: right of the 0 tick is the backlight, left of it (violet, with a
 /// moon) darkens the picture further. Displays dimmed in software only go down to 0.
 struct BrightnessLevel: View {
@@ -174,10 +199,11 @@ struct BrightnessLevel: View {
         let level = model.settings(for: display).level
         let range = model.levelRange(for: display)
         let dimming = level < 0
+        let following = model.followsBuiltin(display)
         HStack(spacing: 8) {
-            Image(systemName: dimming ? "moon.fill" : "sun.max.fill")
-                .font(.system(size: 11))
-                .foregroundStyle(dimming ? Theme.violetLight : Theme.solar)
+            Image(systemName: following ? "link" : dimming ? "moon.fill" : "sun.max.fill")
+                .font(.system(size: 11, weight: following ? .bold : .regular))
+                .foregroundStyle(following ? Theme.violetLight : dimming ? Theme.violetLight : Theme.solar)
                 .frame(width: 16)
             StepButton(symbol: "minus") { model.setLevel(level - StepButton.step, for: display) }
             DSSlider(value: Binding(get: { level }, set: { model.setLevel($0, for: display) }), range: range, step: 0.01,

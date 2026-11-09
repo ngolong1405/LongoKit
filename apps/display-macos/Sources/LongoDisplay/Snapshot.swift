@@ -50,6 +50,17 @@ enum Snapshot {
                     }, model, scheme, to: directory.appendingPathComponent("\(scheme)-\(language.rawValue)-\(name).png"))
                 }
                 render(MenuPopover(), model, scheme, to: directory.appendingPathComponent("\(scheme)-\(language.rawValue)-popover.png"))
+                // The list in Sync: external sliders locked, with the banner saying so.
+                model.mode = .sync
+                model.tab = .displays
+                model.openDisplayKey = nil
+                render(WindowFrame(blur: false) {
+                    TitleBar()
+                    TabBar()
+                    TabContent(tab: .displays)
+                    WindowFooter(tab: .displays)
+                }, model, scheme, to: directory.appendingPathComponent("\(scheme)-\(language.rawValue)-5-sync.png"))
+                model.mode = .manual
             }
         }
         // The menu bar icon, enlarged, on both menu bar colors.

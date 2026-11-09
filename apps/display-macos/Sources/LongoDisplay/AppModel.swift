@@ -248,9 +248,27 @@ final class AppModel: ObservableObject {
         for display in displays where isOn(display) { setBrightness(value, for: display) }
     }
 
+    /// Back to the default range, control and dimming. The brightness it's at stays (there's no "right" default
+    /// brightness to jump to), and in Sync an external display lines up with the built-in one again.
     func resetDisplay(_ display: Display) {
-        settings[display.key] = DisplaySettings()
-        if isOn(display) { engine?.apply(DisplaySettings(), to: display) }
+        var fresh = DisplaySettings()
+        fresh.brightness = settings(for: display).brightness
+        fresh.volume = settings(for: display).volume
+        let controlChanged = settings(for: display).control != fresh.control
+        settings[display.key] = fresh
+        if controlChanged {
+            switchedControl()
+        } else if isOn(display) {
+            engine?.apply(fresh, to: display)
+        }
+        if mode == .sync, isEnabled, !display.isBuiltin, isOn(display), let builtin {
+            setBrightness(SyncMath.map(builtin: settings(for: builtin).brightness, minimum: fresh.minimum, maximum: fresh.maximum), for: display)
+        }
+    }
+
+    /// Whether an external display's brightness is following the built-in one (Sync), so it can't be set by hand.
+    func followsBuiltin(_ display: Display) -> Bool {
+        mode == .sync && !display.isBuiltin
     }
 
     /// The speaker volume shown for a DDC display: what it reported or was last set to, else halfway.
