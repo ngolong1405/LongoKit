@@ -1,0 +1,391 @@
+import LongoKitUI
+import SwiftUI
+
+/// Every keyboard; picking one (or "All keyboards") opens its page.
+struct KeyboardsTab: View {
+    @EnvironmentObject private var model: AppModel
+
+    var body: some View {
+        Group {
+            if let id = model.openKeyboard, id == AppModel.allKeyboards || model.keyboard(id) != nil {
+                KeyboardPage(id: id)
+            } else {
+                KeyboardList()
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 18)
+    }
+}
+
+extension CapsMode {
+    var title: String {
+        switch self {
+        case .unchanged: return L("Unchanged")
+        case .escape: return "Esc"
+        case .control: return "⌃ Control"
+        case .hyper: return "Hyper"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .unchanged: return L("Caps Lock works as usual.")
+        case .escape: return L("Caps Lock is a second Esc.")
+        case .control: return L("Caps Lock is a Control key, easier to reach.")
+        case .hyper: return L("Tap: Esc. Hold: Hyper (⌃⌥⇧⌘) and the Hyper layer.")
+        }
+    }
+}
+
+// MARK: - List
+
+private struct KeyboardList: View {
+    @EnvironmentObject private var model: AppModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            KeyboardRow(id: AppModel.allKeyboards, symbol: "square.stack.3d.up.fill", name: L("All keyboards"),
+                        detail: L("Shared settings, used by every keyboard without its own"))
+                .panel(padding: 0)
+
+            SectionLabel(text: L("Connected keyboards") + " (\(model.keyboards.count))")
+            VStack(spacing: 0) {
+                ForEach(Array(model.keyboards.enumerated()), id: \.element.id) { index, keyboard in
+                    if index > 0 { Hairline() }
+                    KeyboardRow(id: keyboard.id, symbol: keyboard.symbol, name: model.displayName(keyboard),
+                                detail: L(keyboard.connection) + " · " + (model.hasOwnSettings(keyboard.id) ? L("Own settings") : L("Shared settings")))
+                }
+                if model.keyboards.isEmpty {
+                    Text(L("No keyboard found.")).font(.ui(12)).foregroundStyle(Theme.textMuted).padding(14)
+                }
+            }
+            .panel(padding: 0)
+
+            KeyTester()
+        }
+    }
+}
+
+private struct KeyboardRow: View {
+    @EnvironmentObject private var model: AppModel
+    let id: String
+    let symbol: String
+    let name: String
+    let detail: String
+
+    var body: some View {
+        let profile = model.profile(for: id)
+        HStack(spacing: 12) {
+            Image(systemName: symbol)
+                .font(.system(size: 16))
+                .foregroundStyle(Theme.violetLight)
+                .frame(width: 38, height: 38)
+                .recessed(radius: 10)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(name).font(.display(14, .semibold)).foregroundStyle(Theme.text)
+                Text(detail).font(.ui(11)).foregroundStyle(Theme.textMuted)
+            }
+            Spacer()
+            if profile.caps != .unchanged { Chip("Caps → " + profile.caps.title, tone: profile.caps == .hyper ? .solar : .violet) }
+            if !profile.remaps.isEmpty { Chip(L("%d remaps", profile.remaps.count)) }
+            Button { model.openKeyboard = id } label: {
+                HStack(spacing: 4) {
+                    Text(L("Customize"))
+                    Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold))
+                }
+            }
+            .buttonStyle(.ghost)
+        }
+        .padding(14)
+    }
+}
+
+/// Press keys to see what reaches apps: the remapped key, with Hyper when it's held.
+private struct KeyTester: View {
+    @EnvironmentObject private var model: AppModel
+    @State private var listening = false
+    @State private var heard: [String] = []
+    @State private var monitor: Any?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            CardHeader(symbol: "ear", title: L("Try your keys"),
+                       subtitle: L("Shows what apps receive, after remaps and Hyper."), tint: Theme.violet) {
+                Button(listening ? L("Stop") : L("Listen")) { listening ? stop() : start() }
+                    .buttonStyle(listening ? AnyButtonStyle(.primary) : AnyButtonStyle(.ghost))
+            }
+            if heard.isEmpty {
+                Text(listening ? L("Press any key…") : L("Click Listen, then press keys."))
+                    .font(.mono(11)).foregroundStyle(Theme.textMuted)
+            }
+            ForEach(Array(heard.enumerated()), id: \.offset) { _, line in
+                Text(line).font(.mono(12, .semibold)).foregroundStyle(Theme.text)
+            }
+        }
+        .panel()
+        .onDisappear(perform: stop)
+    }
+
+    private func start() {
+        listening = true
+        monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { event in
+            if event.type == .keyDown, !event.isARepeat {
+                let key = Key.usage(forKeyCode: Int(event.keyCode))?.name ?? "#\(event.keyCode)"
+                let mods = Self.symbols(event.modifierFlags)
+                let hyper = event.modifierFlags.isSuperset(of: [.control, .option, .shift, .command])
+                heard.insert((hyper ? "Hyper + " : mods) + key + "   ·   code \(event.keyCode)", at: 0)
+                if heard.count > 5 { heard.removeLast() }
+                return nil
+            }
+            return event
+        }
+    }
+
+    private func stop() {
+        listening = false
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
+    }
+
+    private static func symbols(_ flags: NSEvent.ModifierFlags) -> String {
+        var s = ""
+        if flags.contains(.control) { s += "⌃" }
+        if flags.contains(.option) { s += "⌥" }
+        if flags.contains(.shift) { s += "⇧" }
+        if flags.contains(.command) { s += "⌘" }
+        return s.isEmpty ? "" : s + " "
+    }
+}
+
+/// A ButtonStyle chosen at runtime.
+struct AnyButtonStyle: ButtonStyle {
+    private let make: (Configuration) -> AnyView
+    init<S: ButtonStyle>(_ style: S) { make = { AnyView(style.makeBody(configuration: $0)) } }
+    func makeBody(configuration: Configuration) -> some View { make(configuration) }
+}
+
+// MARK: - Keyboard page
+
+private struct KeyboardPage: View {
+    @EnvironmentObject private var model: AppModel
+    let id: String
+
+    var body: some View {
+        let keyboard = model.keyboard(id)
+        let isAll = id == AppModel.allKeyboards
+        let editable = isAll || model.hasOwnSettings(id)
+        VStack(alignment: .leading, spacing: 16) {
+            Button { model.openKeyboard = nil } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.left").font(.system(size: 10, weight: .bold))
+                    Text(L("Keyboards"))
+                }
+                .font(.ui(12, .medium))
+                .foregroundStyle(Theme.textSecondary)
+            }
+            .buttonStyle(.plain)
+
+            HStack(spacing: 14) {
+                GlyphTile(tint: Theme.violet, size: 44) {
+                    Image(systemName: isAll ? "square.stack.3d.up.fill" : keyboard?.symbol ?? "keyboard")
+                        .font(.system(size: 19, weight: .semibold)).foregroundStyle(Theme.violet)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(isAll ? L("All keyboards") : keyboard.map(model.displayName) ?? "").font(.display(20, .bold)).foregroundStyle(Theme.text)
+                    Text(isAll ? L("Shared settings, used by every keyboard without its own") : keyboard.map { L($0.connection) } ?? "")
+                        .font(.ui(12)).foregroundStyle(Theme.textMuted)
+                }
+                Spacer()
+                if !isAll {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        DSSwitch(isOn: model.hasOwnSettings(id)) { model.setOwnSettings(id, !model.hasOwnSettings(id)) }
+                        Text(L("Own settings")).font(.mono(10, .semibold)).foregroundStyle(Theme.textFaint)
+                    }
+                }
+            }
+            .panel()
+
+            Group {
+                CapsCard(id: id)
+                RemapsCard(id: id)
+            }
+            .disabled(!editable)
+            .opacity(editable ? 1 : 0.5)
+            if !editable {
+                Text(L("This keyboard uses the shared settings. Turn on Own settings to change them just for it."))
+                    .font(.ui(12)).foregroundStyle(Theme.textMuted)
+            }
+        }
+    }
+}
+
+private struct CapsCard: View {
+    @EnvironmentObject private var model: AppModel
+    let id: String
+
+    var body: some View {
+        let caps = model.profile(for: id).caps
+        VStack(alignment: .leading, spacing: 12) {
+            CardHeader(symbol: "capslock", title: L("Caps Lock"), subtitle: caps.detail, tint: Theme.solar) { EmptyView() }
+            Segmented(options: CapsMode.allCases, selection: Binding(get: { caps }, set: { mode in model.change(id) { $0.caps = mode } }),
+                      title: { $0.title }, stretch: true)
+            if caps == .hyper && !model.hasAccessibility {
+                Text(L("Hyper needs Accessibility permission (General tab); until then Caps Lock stays as it is."))
+                    .font(.ui(11)).foregroundStyle(Theme.amber)
+            }
+        }
+        .panel()
+    }
+}
+
+/// The keyboard picture: click a key to choose what it sends.
+private struct RemapsCard: View {
+    @EnvironmentObject private var model: AppModel
+    let id: String
+
+    var body: some View {
+        let profile = model.profile(for: id)
+        VStack(alignment: .leading, spacing: 12) {
+            CardHeader(symbol: "keyboard", title: L("Remap keys"),
+                       subtitle: L("Click a key to choose what it sends. Works everywhere, even in password fields."),
+                       tint: Theme.violet) {
+                Button(profile.swapsCommandOption ? L("Unswap ⌘ ⌥") : L("Swap ⌘ ⌥")) {
+                    model.change(id) { p in
+                        if p.swapsCommandOption {
+                            p.remaps.removeAll { KeyboardProfile.swapCommandOption.contains($0) }
+                        } else {
+                            p.remaps.removeAll { r in KeyboardProfile.swapCommandOption.contains { $0.from == r.from } }
+                            p.remaps += KeyboardProfile.swapCommandOption
+                        }
+                    }
+                }
+                .buttonStyle(.ghost)
+                .help(L("For keyboards made for Windows, where ⊞ and Alt sit the other way round."))
+            }
+            KeyboardPicture(id: id)
+            if !profile.remaps.isEmpty {
+                VStack(spacing: 6) {
+                    ForEach(profile.remaps, id: \.self) { remap in
+                        HStack(spacing: 8) {
+                            Text(remap.from.name).font(.mono(12, .semibold)).foregroundStyle(Theme.text)
+                            Image(systemName: "arrow.right").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.textFaint)
+                            Text(remap.to.name).font(.mono(12, .semibold)).foregroundStyle(Theme.solar)
+                            Spacer()
+                            Button { model.change(id) { $0.remaps.removeAll { $0 == remap } } } label: {
+                                Image(systemName: "xmark").font(.system(size: 10, weight: .bold))
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(Theme.textMuted)
+                            .help(L("Remove"))
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .recessed(radius: 8)
+                    }
+                }
+            }
+        }
+        .panel()
+    }
+}
+
+private struct KeyboardPicture: View {
+    @EnvironmentObject private var model: AppModel
+    let id: String
+
+    var body: some View {
+        VStack(spacing: 5) {
+            ForEach(Array(KeyboardLayout.rows.enumerated()), id: \.offset) { _, row in
+                GeometryReader { geometry in
+                    let unit = (geometry.size.width - CGFloat(row.count - 1) * 5) / CGFloat(row.reduce(0) { $0 + $1.width })
+                    HStack(spacing: 5) {
+                        ForEach(row) { cap in
+                            KeyCapButton(id: id, cap: cap).frame(width: unit * cap.width)
+                        }
+                    }
+                }
+                .frame(height: 32)
+            }
+        }
+        .padding(12)
+        .recessed(radius: 12)
+    }
+}
+
+private struct KeyCapButton: View {
+    @EnvironmentObject private var model: AppModel
+    let id: String
+    let cap: KeyboardLayout.Cap
+    @State private var picking = false
+
+    var body: some View {
+        let profile = model.profile(for: id)
+        let target = cap.key.flatMap(profile.target)
+        let isCaps = cap.key == .capsLock && profile.caps != .unchanged
+        let changed = target != nil || isCaps
+        Button { if cap.key != nil && cap.key != .capsLock { picking = true } } label: {
+            VStack(spacing: 1) {
+                Text(cap.label).font(.ui(10, .medium)).lineLimit(1).minimumScaleFactor(0.6)
+                if let target {
+                    Text("→ " + target.name).font(.mono(8, .bold)).lineLimit(1).minimumScaleFactor(0.5)
+                } else if isCaps {
+                    Text("→ " + profile.caps.title).font(.mono(8, .bold)).lineLimit(1).minimumScaleFactor(0.5)
+                }
+            }
+            .foregroundStyle(changed ? Color.white : (cap.key == nil ? Theme.textFaint : Theme.text))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(changed ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.tint(0.06))))
+            .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(Theme.hairline))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(cap.key == nil)
+        .help(cap.key == .capsLock ? L("Set Caps Lock in the card above.") : "")
+        .popover(isPresented: $picking, arrowEdge: .bottom) {
+            if let key = cap.key {
+                TargetPicker(current: target) { new in
+                    picking = false
+                    model.change(id) { p in
+                        p.remaps.removeAll { $0.from == key }
+                        if let new, new != key { p.remaps.append(Remap(from: key, to: new)) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// What a key can send instead, plus "as it is".
+private struct TargetPicker: View {
+    let current: Key?
+    let choose: (Key?) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Button { choose(nil) } label: {
+                Label(L("As it is"), systemImage: "arrow.uturn.backward").font(.ui(12, .medium))
+            }
+            .buttonStyle(.ghost)
+            ForEach(KeyboardLayout.targets, id: \.0) { group, keys in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(L(group).uppercased()).font(.mono(9, .semibold)).foregroundStyle(Theme.textFaint)
+                    LazyVGrid(columns: Array(repeating: GridItem(.fixed(78), spacing: 6), count: 4), spacing: 6) {
+                        ForEach(keys) { key in
+                            Button { choose(key) } label: {
+                                Text(key.name).font(.ui(11, .medium)).lineLimit(1).minimumScaleFactor(0.7)
+                                    .frame(width: 78, height: 26)
+                                    .background(RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .fill(current == key ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.tint(0.07))))
+                                    .foregroundStyle(current == key ? Color.white : Theme.text)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(14)
+    }
+}

@@ -1,0 +1,27 @@
+name: keys-macos
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/keys-macos/**", "packages/ui-macos/**", ".github/workflows/keys-macos.yml"]
+  pull_request:
+    paths: ["apps/keys-macos/**", "packages/ui-macos/**", ".github/workflows/keys-macos.yml"]
+
+jobs:
+  build:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: apps/keys-macos
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build
+      - name: Engine self-test
+        run: .build/debug/LongoKeys --selftest
+      - name: App bundle and disk image
+        run: ./scripts/build-app.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LongoKeys
+          path: apps/keys-macos/build/LongoKeys.dmg

@@ -6,7 +6,8 @@ Tools for customizing mice, keyboards, and displays on macOS and Windows, by Lon
 |---|---|---|---|
 | **Longo Mouse** | [`apps/mouse-macos`](apps/mouse-macos) | macOS 13+ | In progress |
 | Longo Mouse | `apps/mouse-windows` | Windows | Planned |
-| Longo Keys | `apps/keys-macos`, `apps/keys-windows` | macOS, Windows | Planned |
+| **Longo Keys** | [`apps/keys-macos`](apps/keys-macos) | macOS 13+ | In progress |
+| Longo Keys | `apps/keys-windows` | Windows | Planned |
 | **Longo Display** | [`apps/display-macos`](apps/display-macos) | macOS 13+ | In progress |
 | Longo Display | `apps/display-windows` | Windows | Planned |
 | Website | [`website`](website) | Web (Astro) | Landing page |
