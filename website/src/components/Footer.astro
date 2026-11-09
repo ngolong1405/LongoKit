@@ -1,5 +1,5 @@
 ---
-import logo from "../../../brand/logo/logo-dark.png";
+import Logo from "./Logo.astro";
 import { repo, mouseVersion, coffeeURL, licenseURL } from "../data/site";
 import { localize, pick, type Lang } from "../i18n";
 
@@ -32,7 +32,7 @@ const t = pick(lang, {
     <div class="grid grid-cols-1 gap-gutter-lg pb-space-2xl md:grid-cols-2 lg:grid-cols-5">
       <div class="flex flex-col gap-space-md lg:col-span-2">
         <div class="flex items-center gap-space-sm">
-          <img src={logo.src} alt="" class="h-8 w-8 rounded-lg object-contain shadow-sm" />
+          <Logo class="h-8 w-8 rounded-lg object-contain shadow-sm" />
           <span class="font-display text-headline-sm">LongoKit</span>
         </div>
         <p class="max-w-sm text-body-sm text-on-surface-variant">{t.blurb}</p>

@@ -1,5 +1,5 @@
 ---
-import logoLight from "../../../brand/logo/logo-light.png";
+import Logo from "./Logo.astro";
 import { repo, mouseDownload, mouseReleaseNotes, mouseVersion, coffeeURL } from "../data/site";
 import { pick, type Lang } from "../i18n";
 
@@ -50,7 +50,7 @@ const roadmap = [
   <div class="relative z-10 mx-auto flex max-w-[1440px] flex-col gap-space-2xl">
     <div class="mx-auto flex max-w-2xl flex-col items-center gap-space-xs text-center">
       <div class="inline-flex items-center gap-2 rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge text-primary uppercase">
-        <img src={logoLight.src} alt="" class="h-4 w-4 rounded-sm object-cover" />
+        <Logo class="h-4 w-4 rounded-sm object-cover" />
         {t.badge}
       </div>
       <h2 class="text-headline-lg">{t.title}</h2>

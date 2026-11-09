@@ -8,36 +8,30 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    title: "Dual Native Operating Stacks",
-    lead: "No Electron, no WebViews. Each platform gets its own native app built on the operating system's own APIs.",
-    build: "Build", status: "Status", planned: "Planned", soon: "Coming soon",
+    title: "Native on Every Platform",
+    lead: "No Electron, no web views — real native apps that stay light.",
+    status: "Status", worksOn: "Works on", builtWith: "Built with",
+    available: "Available · v0.2 beta", soon: "Coming soon", planned: "Planned",
+    mac: "Apple Silicon & Intel · macOS 13+", win: "Windows 10 & 11",
   },
   vi: {
-    title: "Hai Nền Tảng Native Song Song",
-    lead: "Không Electron, không WebView. Mỗi nền tảng có app native riêng, dùng API gốc của hệ điều hành.",
-    build: "Bản dựng", status: "Trạng thái", planned: "Đang lên kế hoạch", soon: "Sắp có",
+    title: "Native Trên Mọi Nền Tảng",
+    lead: "Không Electron, không web view — app native thật sự, luôn nhẹ.",
+    status: "Trạng thái", worksOn: "Chạy trên", builtWith: "Viết bằng",
+    available: "Đã có · v0.2 beta", soon: "Sắp có", planned: "Đang lên kế hoạch",
+    mac: "Apple Silicon & Intel · macOS 13+", win: "Windows 10 & 11",
   },
 });
 
 const stacks = [
   {
-    icon: "laptop_mac", tint: "text-tertiary", title: "macOS Core Engine", badge: "ARM64 & x86-64",
-    rows: [
-      ["HID Capture", "CGEventTap + IOHIDManager"],
-      ["UI Rendering", "SwiftUI + AppKit"],
-      [t.build, "Universal binary · macOS 13+"],
-      [t.status, "LongoMouse 0.2 beta"],
-    ],
+    icon: "laptop_mac", tint: "text-tertiary", title: "macOS", badge: "ARM64 & x86-64",
+    rows: [[t.worksOn, t.mac], [t.builtWith, "Swift + SwiftUI"], [t.status, t.available]],
     highlight: "text-primary-container",
   },
   {
-    icon: "window", tint: "text-secondary", title: "Windows 11 Fluent Engine", badge: t.planned,
-    rows: [
-      ["HID Capture", "Raw Input + low-level hooks"],
-      ["Luminance Channel", "Monitor Configuration API (DDC/CI)"],
-      ["UI Rendering", "WinUI 3 + Mica"],
-      [t.status, t.soon],
-    ],
+    icon: "window", tint: "text-secondary", title: "Windows", badge: t.planned,
+    rows: [[t.worksOn, t.win], [t.builtWith, "WinUI 3"], [t.status, t.soon]],
     highlight: "text-secondary",
   },
 ];

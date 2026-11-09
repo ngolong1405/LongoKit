@@ -8,37 +8,37 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    title: "Three Pillars of Absolute Precision",
-    lead: "Instead of a pile of vendor helper apps: one small, native, driverless set of tools.",
+    title: "Three Tools, One Kit",
+    lead: "Small, native apps instead of heavy vendor software.",
     available: "Available", soon: "Coming soon", planned: "Planned",
     mouse: {
-      body: "The mouse wheel glides like a trackpad. Map side buttons to Mission Control, Spaces, Launchpad, or any shortcut, per mouse.",
-      points: ["Smooth scrolling with adjustable glide time", "Mouse scroll direction separate from the trackpad", "Click, double click, hold, drag, and click + scroll per button"],
+      body: "Smooth scrolling and gestures for every button, set up per mouse.",
+      points: ["Trackpad-like smooth scrolling", "Gestures for every extra button", "Separate settings for each mouse"],
     },
     display: {
-      body: "Planned: use your brightness keys to adjust external displays over HDMI, DisplayPort, and Thunderbolt, with extra software dimming for late-night coding.",
-      points: ["Brightness & volume over DDC/CI", "Brightness synced across displays", "Software dimming below 0%"],
+      body: "Control external display brightness from your keyboard.",
+      points: ["Brightness & volume over DDC/CI", "Works with multiple displays"],
     },
     keys: {
-      body: "Planned: turn CapsLock into the ultimate modifier — tap for Esc, hold for Hyper — and build navigation layers without flashing firmware.",
-      points: ["Dual-role keys: tap / hold", "Vim H J K L navigation layer", "Per-app profiles that switch automatically"],
+      body: "Remap keys and build shortcut layers — no firmware needed.",
+      points: ["CapsLock as Esc / Hyper", "Vim-style arrow keys"],
     },
   },
   vi: {
-    title: "Ba Trụ Cột Chính Xác Tuyệt Đối",
-    lead: "Thay cho cả chục phần mềm đi kèm của từng hãng: một bộ công cụ gọn nhẹ, native, không cần driver.",
+    title: "Ba Công Cụ, Một Bộ",
+    lead: "Các app nhỏ, native, thay cho phần mềm nặng của từng hãng.",
     available: "Có thể tải", soon: "Sắp có", planned: "Đang lên kế hoạch",
     mouse: {
-      body: "Bánh xe chuột trượt mượt như trackpad. Gán nút hông cho Mission Control, Spaces, Launchpad hay bất kỳ phím tắt nào, riêng cho từng con chuột.",
-      points: ["Cuộn mượt với thời gian trượt tuỳ chỉnh", "Hướng cuộn riêng cho chuột, trackpad giữ nguyên", "Nhấn, nhấn đúp, giữ, kéo, click + cuộn cho mỗi nút"],
+      body: "Cuộn mượt và cử chỉ cho từng nút, cài đặt riêng cho từng con chuột.",
+      points: ["Cuộn mượt như trackpad", "Cử chỉ cho mọi nút phụ", "Cài đặt riêng cho từng chuột"],
     },
     display: {
-      body: "Dự kiến: dùng phím độ sáng để chỉnh màn hình ngoài qua HDMI, DisplayPort và Thunderbolt, kèm làm tối thêm bằng phần mềm khi code ban đêm.",
-      points: ["Độ sáng & âm lượng qua DDC/CI", "Đồng bộ độ sáng nhiều màn hình", "Làm tối dưới mức 0% bằng phần mềm"],
+      body: "Chỉnh độ sáng màn hình ngoài ngay từ bàn phím.",
+      points: ["Độ sáng & âm lượng qua DDC/CI", "Hỗ trợ nhiều màn hình"],
     },
     keys: {
-      body: "Dự kiến: biến CapsLock thành phím bổ trợ mạnh nhất — nhấn là Esc, giữ là Hyper — và tạo lớp phím điều hướng mà không cần nạp firmware.",
-      points: ["Phím hai vai trò: nhấn / giữ", "Lớp điều hướng Vim H J K L", "Tự đổi cấu hình theo từng app"],
+      body: "Đổi phím và tạo lớp phím tắt — không cần nạp firmware.",
+      points: ["CapsLock thành Esc / Hyper", "Phím mũi tên kiểu Vim"],
     },
   },
 });

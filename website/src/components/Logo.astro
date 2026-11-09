@@ -1,0 +1,15 @@
+---
+// The LongoKit mark in the current theme: white tile in light mode, dark tile in dark mode.
+import dark from "../../../brand/logo/logo-dark.png";
+import light from "../../../brand/logo/logo-light.png";
+
+interface Props {
+  class?: string;
+  alt?: string;
+}
+
+const { class: className = "", alt = "" } = Astro.props;
+---
+
+<img src={light.src} alt={alt} class:list={[className, "dark:hidden"]} />
+<img src={dark.src} alt={alt} class:list={[className, "hidden dark:block"]} />

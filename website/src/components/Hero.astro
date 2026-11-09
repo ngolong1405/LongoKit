@@ -1,5 +1,5 @@
 ---
-import logo from "../../../brand/logo/logo-dark.png";
+import Logo from "./Logo.astro";
 import { mouseVersion, buildFromSource } from "../data/site";
 import { pick, type Lang } from "../i18n";
 
@@ -52,7 +52,7 @@ const tiles = [
     <!-- Copy & CTAs -->
     <div class="relative z-10 flex flex-col gap-space-lg lg:col-span-6">
       <div class="inline-flex w-fit items-center gap-space-xs rounded-full bg-surface-container-low px-3 py-1.5 shadow-sm">
-        <img src={logo.src} alt="" class="h-5 w-5 rounded-md object-cover" />
+        <Logo class="h-5 w-5 rounded-md object-cover" />
         <span class="font-code text-label-badge uppercase tracking-wider text-primary">Smooth Scroll &amp; Gesture Engine</span>
       </div>
       <div class="flex flex-col gap-space-xs">

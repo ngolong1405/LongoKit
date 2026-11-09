@@ -1,5 +1,5 @@
 ---
-import logo from "../../../../brand/logo/logo-dark.png";
+import Logo from "../Logo.astro";
 import { repo, mouseDownload, mouseVersion, licenseURL } from "../../data/site";
 import { pick, type Lang } from "../../i18n";
 
@@ -10,26 +10,26 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    title: "Download Just the Tools You Need.",
-    lead: "Each tool is a small, standalone app. Use the one you need — or wait for the full LongoKit suite once all three are ready.",
+    title: "Download What You Need.",
+    lead: "Each tool is a small, standalone app.",
     soon: "Coming soon",
-    mouse: "Trackpad-smooth scrolling, gestures for extra mouse buttons, and separate settings for each mouse.",
-    keys: "Turn CapsLock into a Hyperkey and build a Vim H J K L navigation layer without flashing QMK/VIA firmware.",
-    display: "Adjust external display brightness and volume with F1/F2 or a slider.",
-    suiteTitle: "The Full LongoKit Universal Suite",
-    suiteBody: "Once LongoKeys and LongoDisplay ship, all three come in one package for macOS and Windows. Follow on GitHub to hear about new releases.",
+    mouse: "Smooth scrolling and gestures for any mouse.",
+    keys: "Remap keys and build shortcut layers.",
+    display: "Control external display brightness.",
+    suiteTitle: "The Full LongoKit Suite",
+    suiteBody: "All three tools in one app once they're ready. Follow on GitHub for updates.",
     getMouse: "Get LongoMouse for macOS", follow: "Follow on GitHub",
     noTelemetry: "No telemetry", notarize: "Beta isn't notarized yet: if blocked, System Settings › Privacy & Security › Open Anyway",
   },
   vi: {
-    title: "Tải Về Đúng Bộ Tiện Ích Bạn Cần.",
-    lead: "Mỗi tiện ích là một app nhỏ, độc lập. Dùng cái bạn cần — hoặc chờ trọn bộ LongoKit khi cả ba đã sẵn sàng.",
+    title: "Tải Về Thứ Bạn Cần.",
+    lead: "Mỗi công cụ là một app nhỏ, độc lập.",
     soon: "Sắp có",
-    mouse: "Cuộn mượt như trackpad Apple, gán cử chỉ cho nút chuột phụ và cài đặt riêng cho từng con chuột.",
-    keys: "Biến CapsLock thành Hyperkey, tạo lớp phím điều hướng Vim H J K L mà không cần nạp firmware QMK/VIA.",
-    display: "Chỉnh độ sáng, âm lượng màn hình ngoài bằng phím F1/F2 hoặc thanh trượt.",
-    suiteTitle: "Trọn Bộ LongoKit Universal Suite",
-    suiteBody: "Khi LongoKeys và LongoDisplay ra mắt, cả ba sẽ có trong một gói duy nhất cho macOS và Windows. Theo dõi trên GitHub để biết khi có bản mới.",
+    mouse: "Cuộn mượt và cử chỉ cho mọi con chuột.",
+    keys: "Đổi phím và tạo lớp phím tắt.",
+    display: "Chỉnh độ sáng màn hình ngoài.",
+    suiteTitle: "Trọn Bộ LongoKit",
+    suiteBody: "Cả ba công cụ trong một app khi đã sẵn sàng. Theo dõi trên GitHub để cập nhật.",
     getMouse: "Tải LongoMouse cho macOS", follow: "Theo dõi trên GitHub",
     noTelemetry: "Không telemetry", notarize: "Bản beta chưa notarize: nếu bị chặn, Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Vẫn mở",
   },
@@ -108,7 +108,7 @@ const kits = [
     <div class="pointer-events-none absolute inset-0 bg-gradient-to-tr from-primary-container/20 via-secondary-container/25 to-tertiary/15 blur-3xl"></div>
     <div class="relative z-10 flex max-w-3xl flex-col items-center">
       <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-primary-container to-secondary-container shadow-lg">
-        <img src={logo.src} alt="" class="h-10 w-10 rounded-xl object-contain shadow" />
+        <Logo class="h-10 w-10 rounded-xl object-contain shadow" />
       </div>
       <h3 class="font-display text-headline-xl tracking-tight md:text-[2.75rem]">{t.suiteTitle}</h3>
       <p class="mt-3 max-w-xl text-body-md text-on-surface-variant">{t.suiteBody}</p>
