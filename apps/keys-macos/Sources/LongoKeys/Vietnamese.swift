@@ -184,5 +184,7 @@ enum Vietnamese {
         "Turn on": "Bật",
         "Changes the shared settings, for every keyboard without its own.": "Đổi cài đặt chung, cho mọi bàn phím không có cài đặt riêng.",
         "No changes": "Chưa đổi gì",
+        "Hide keys": "Ẩn bàn phím",
+        "Show keys": "Hiện bàn phím",
     ]
 }

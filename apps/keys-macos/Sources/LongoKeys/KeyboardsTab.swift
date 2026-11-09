@@ -84,10 +84,11 @@ private struct AllKeyboardsRow: View {
     }
 }
 
-/// A connected keyboard: on/off, what it does at a glance, and Caps Lock right here.
+/// A connected keyboard: on/off, what it does at a glance, and Caps Lock and its keys right here.
 private struct KeyboardRow: View {
     @EnvironmentObject private var model: AppModel
     let keyboard: KeyboardDevice
+    @State private var expanded = true
 
     var body: some View {
         let on = model.isOn(keyboard.id)
@@ -113,8 +114,18 @@ private struct KeyboardRow: View {
                     .frame(width: 32, height: 18)
                     .help(on ? L("Turn off: this keyboard types as usual") : L("Turn on"))
                 CustomizeButton { model.openKeyboard = keyboard.id }
+                Button { withAnimation(.easeOut(duration: 0.2)) { expanded.toggle() } } label: {
+                    Image(systemName: "chevron.down").font(.system(size: 11, weight: .bold))
+                        .rotationEffect(.degrees(expanded && on ? 0 : -90))
+                        .foregroundStyle(Theme.textMuted)
+                        .frame(width: 22, height: 22)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(!on)
+                .help(expanded ? L("Hide keys") : L("Show keys"))
             }
-            if on {
+            if on && expanded {
                 HStack(spacing: 10) {
                     Text(L("Caps Lock")).font(.ui(11)).foregroundStyle(Theme.textSecondary)
                     Segmented(options: CapsMode.allCases,
@@ -124,6 +135,8 @@ private struct KeyboardRow: View {
                 }
                 .padding(.leading, 50)
                 .help(own ? "" : L("Changes the shared settings, for every keyboard without its own."))
+                // The keyboard as set up now; clicking a key remaps it for this keyboard only.
+                KeyboardPicture(id: keyboard.id)
             }
         }
         .padding(14)
