@@ -62,13 +62,12 @@ const products = [
         id="lang-switch"
         href={other.href}
         data-lang={other.lang}
-        class="flex items-center gap-1.5 rounded-xl bg-surface-container-low px-3 py-2 font-code text-xs shadow-sm transition-all hover:bg-surface-container"
+        class="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-container-low font-code text-[11px] font-semibold text-on-surface-variant shadow-sm transition-all hover:bg-surface-container hover:text-primary"
         title={t.language}
+        aria-label={t.language}
         hreflang={other.lang}
       >
-        <span class="material-symbols-outlined text-[16px] text-tertiary">language</span>
-        <span class="font-medium">{lang.toUpperCase()}</span>
-        <span class="text-on-surface-variant">→ {other.lang.toUpperCase()}</span>
+        {other.lang.toUpperCase()}
       </a>
       <button
         id="theme-toggle"
