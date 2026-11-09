@@ -204,6 +204,7 @@ enum Vietnamese {
         "Natural": "Tự nhiên",
         "Reversed": "Đảo ngược",
         "Classic": "Cổ điển",
+        "All permissions granted. Restarting %@ to finish setting up…": "Đã cấp đủ quyền. Đang khởi động lại %@ để hoàn tất…",
         "Listening… press a mouse button": "Đang nghe… nhấn một nút chuột",
         "Click to stop, or press Esc": "Bấm để dừng, hoặc nhấn Esc",
         "Press any mouse button to add it or find it": "Nhấn nút chuột bất kỳ để thêm hoặc tìm nút đó",

@@ -209,7 +209,7 @@ struct TrafficLights: View {
     var body: some View {
         HStack(spacing: 8) {
             light(0xFF5F57, glyph: "xmark", tip: L("Close window (keeps running in the menu bar)")) {
-                MainWindowRef.window?.orderOut(nil)
+                MainWindowRef.hide()
             }
             light(0xFEBC2E, glyph: "minus", tip: L("Minimize")) { MainWindowRef.window?.miniaturize(nil) }
             light(0x28C840, glyph: "plus", tip: L("This window has a fixed size")) {}
@@ -313,6 +313,24 @@ struct WindowFooter: View {
 
 enum MainWindowRef {
     static weak var window: NSWindow?
+    /// Off while the menu bar icon is shown: then a hidden window also hides the Dock icon, like other menu bar apps.
+    static var keepsDockIconWhenHidden = false
+
+    /// Closing only hides the window; the app keeps running from the menu bar until Quit.
+    static func hide() {
+        window?.orderOut(nil)
+        if !keepsDockIconWhenHidden { NSApp.setActivationPolicy(.accessory) }
+    }
+
+    /// Brings the window (and the Dock icon) back. Returns false when SwiftUI hasn't created the window yet.
+    @discardableResult
+    static func show() -> Bool {
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        guard let window else { return false }
+        window.makeKeyAndOrderFront(nil)
+        return true
+    }
 }
 
 struct VisualEffectBackground: NSViewRepresentable {

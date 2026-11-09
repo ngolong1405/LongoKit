@@ -89,7 +89,11 @@ final class AppModel: ObservableObject {
     }
 
     @Published var showMenuBarIcon: Bool {
-        didSet { defaults.set(showMenuBarIcon, forKey: Keys.menuBarIcon) }
+        didSet {
+            defaults.set(showMenuBarIcon, forKey: Keys.menuBarIcon)
+            // Without the menu bar icon, the Dock icon is the only way back to a hidden window.
+            MainWindowRef.keepsDockIconWhenHidden = !showMenuBarIcon
+        }
     }
 
     @Published var autoCheckUpdates: Bool {
@@ -124,6 +128,10 @@ final class AppModel: ObservableObject {
     private var lastClickStop = Date.distantPast
     private var runningOverride: Bool?
     private var permissionTimer: Timer?
+    /// Input Monitoring granted after launch only takes effect in a new process.
+    private let launchedWithInputMonitoring = AppModel.checkInputMonitoring()
+    /// Shown on the General tab during the short pause before restarting.
+    @Published private(set) var isRelaunching = false
     private var appearanceObservation: NSKeyValueObservation?
     private let deviceMonitor = DeviceMonitor()
 
@@ -144,7 +152,9 @@ final class AppModel: ObservableObject {
         bindings = Self.load([MouseBinding].self, from: defaults, forKey: Keys.bindings) ?? Self.defaultBindings()
         isEnabled = defaults.object(forKey: Keys.enabled) as? Bool ?? true
         scroll = Self.load(ScrollSettings.self, from: defaults, forKey: Keys.scroll) ?? ScrollSettings()
-        showMenuBarIcon = defaults.object(forKey: Keys.menuBarIcon) as? Bool ?? true
+        let menuBarIcon = defaults.object(forKey: Keys.menuBarIcon) as? Bool ?? true
+        showMenuBarIcon = menuBarIcon
+        MainWindowRef.keepsDockIconWhenHidden = !menuBarIcon
         autoCheckUpdates = defaults.object(forKey: Keys.autoUpdates) as? Bool ?? true
         profiles = Self.load([String: DeviceProfile].self, from: defaults, forKey: Keys.profiles) ?? [:]
         autoSwitchProfiles = defaults.object(forKey: Keys.autoSwitch) as? Bool ?? true
@@ -181,6 +191,8 @@ final class AppModel: ObservableObject {
 
     func refreshPermissions() {
         let accessibility = MouseEngine.hasAccessibility
+        let inputMonitoring = Self.checkInputMonitoring()
+        let gained = (accessibility && !hasAccessibility) || (inputMonitoring && !hasInputMonitoring)
         if accessibility != hasAccessibility {
             // Without access the switch reads off; once access arrives, turn remapping on.
             isEnabled = accessibility
@@ -188,13 +200,40 @@ final class AppModel: ObservableObject {
         } else if !accessibility && isEnabled {
             isEnabled = false
         }
-        let inputMonitoring = Self.checkInputMonitoring()
         if inputMonitoring != hasInputMonitoring { hasInputMonitoring = inputMonitoring }
+        var tapFailed = false
         if accessibility && !MouseEngine.shared.isRunning {
-            MouseEngine.shared.start()
+            tapFailed = !MouseEngine.shared.start()
             objectWillChange.send()
         }
         syncEngine()
+        if gained { permissionGranted(tapFailed: tapFailed) }
+    }
+
+    /// A permission just came through in System Settings: come back to the front, and once everything is granted,
+    /// restart if this process can't pick the change up by itself.
+    private func permissionGranted(tapFailed: Bool) {
+        MainWindowRef.show()
+        guard allPermissionsGranted, !isRelaunching,
+              tapFailed || !launchedWithInputMonitoring else { return }
+        isRelaunching = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { Self.relaunch() }
+    }
+
+    /// Starts a fresh copy of the app once this one has quit, then quits.
+    private static func relaunch() {
+        let bundle = Bundle.main.bundlePath
+        guard bundle.hasSuffix(".app") else { return } // `swift run` has no bundle to reopen
+        let pid = ProcessInfo.processInfo.processIdentifier
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/sh")
+        task.arguments = ["-c", "while kill -0 \(pid) 2>/dev/null; do sleep 0.1; done; /usr/bin/open \"$0\"", bundle]
+        do {
+            try task.run()
+            NSApp.terminate(nil)
+        } catch {
+            NSLog("Relaunch failed: \(error.localizedDescription)")
+        }
     }
 
     func toggleEnabled() {

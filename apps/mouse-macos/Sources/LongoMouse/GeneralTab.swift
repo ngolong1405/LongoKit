@@ -57,6 +57,7 @@ private struct StatusCard: View {
     }
 
     private var subtitle: String {
+        if model.isRelaunching { return L("All permissions granted. Restarting %@ to finish setting up…", AppInfo.name) }
         if !model.hasAccessibility {
             return L("Mouse click capture, gestures, and scrolling are suspended until permissions are granted.")
         }

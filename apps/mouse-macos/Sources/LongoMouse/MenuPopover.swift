@@ -159,12 +159,7 @@ struct MenuPopover: View {
     /// Brings up the main window, optionally on a mouse's button configuration.
     private func openMain(_ deviceID: String?) {
         if let deviceID { model.configure(deviceID) }
-        if let window = MainWindowRef.window {
-            window.makeKeyAndOrderFront(nil)
-        } else {
-            openWindow(id: "main")
-        }
-        NSApp.activate(ignoringOtherApps: true)
+        if !MainWindowRef.show() { openWindow(id: "main") }
     }
 }
 
