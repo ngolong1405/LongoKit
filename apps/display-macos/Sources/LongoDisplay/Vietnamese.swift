@@ -95,6 +95,8 @@ enum Vietnamese {
         "Brightness": "Độ sáng",
         "Speaker volume": "Âm lượng loa",
         "Mac volume": "Âm lượng của Mac",
+        "Up 5%": "Tăng 5%",
+        "Down 5%": "Giảm 5%",
         "This monitor isn't answering DDC. MacBook HDMI ports often don't pass it on: plug it into a USB-C port, turn on DDC/CI in the monitor's menu, or use Software.":
             "Màn này không trả lời DDC. Cổng HDMI của MacBook thường không truyền DDC: hãy cắm qua cổng USB-C, bật DDC/CI trong menu của màn, hoặc chọn Phần mềm.",
 

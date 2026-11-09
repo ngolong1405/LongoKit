@@ -181,13 +181,35 @@ struct BrightnessLevel: View {
                 .font(.system(size: 11))
                 .foregroundStyle(dimming ? Theme.violetLight : Theme.solar)
                 .frame(width: 16)
+            StepButton(symbol: "minus") { model.setLevel(level - StepButton.step, for: display) }
             DSSlider(value: Binding(get: { level }, set: { model.setLevel($0, for: display) }), range: range, step: 0.01,
                      origin: range.lowerBound < 0 ? 0 : nil)
+            StepButton(symbol: "plus") { model.setLevel(level + StepButton.step, for: display) }
             Text("\(Int((level * 100).rounded()))%")
                 .font(.mono(11, .semibold))
                 .foregroundStyle(dimming ? Theme.violetLight : Theme.solar)
                 .frame(width: 40, alignment: .trailing)
         }
+    }
+}
+
+/// − / + at the ends of a slider, for 5% at a time without dragging.
+struct StepButton: View {
+    static let step = 0.05
+    let symbol: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(Theme.textSecondary)
+                .frame(width: 20, height: 20)
+                .background(Circle().fill(Theme.tint(0.07)))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .help(symbol == "plus" ? L("Up 5%") : L("Down 5%"))
     }
 }
 
@@ -204,11 +226,13 @@ struct LevelSlider: View {
                 .font(.system(size: 11))
                 .foregroundStyle(tint)
                 .frame(width: 16)
+            StepButton(symbol: "minus") { set(max(value - StepButton.step, 0)) }
             DSSlider(value: Binding(get: { value }, set: set), range: 0...1, step: 0.01)
+            StepButton(symbol: "plus") { set(min(value + StepButton.step, 1)) }
             Text("\(Int((value * 100).rounded()))%")
                 .font(.mono(11, .semibold))
                 .foregroundStyle(tint)
-                .frame(width: 36, alignment: .trailing)
+                .frame(width: 40, alignment: .trailing)
         }
     }
 }

@@ -57,7 +57,7 @@ struct MenuPopover: View {
             .foregroundStyle(Theme.textSecondary)
         }
         .padding(14)
-        .frame(width: 320)
+        .frame(width: 380)
         .background(LinearGradient(colors: [Theme.popoverTop, Theme.popoverBottom], startPoint: .top, endPoint: .bottom))
         .id(model.language)
     }

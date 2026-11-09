@@ -388,7 +388,8 @@ public struct DSSlider: View {
                 .offset(x: travel * fraction)
             }
             .frame(height: 18)
-            .contentShape(Rectangle())
+            // Grabbable a little above and below the track too, without taking more room.
+            .contentShape(Rectangle().inset(by: -6))
             .gesture(DragGesture(minimumDistance: 0).onChanged { drag in
                 let f = min(max((drag.location.x - 9) / travel, 0), 1)
                 let raw = range.lowerBound + f * (range.upperBound - range.lowerBound)
