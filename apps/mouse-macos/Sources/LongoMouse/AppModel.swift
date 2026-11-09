@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import Combine
 import IOKit.hid
 import LongoKitUI
@@ -129,6 +130,7 @@ final class AppModel: ObservableObject {
     private var lastClickStop = Date.distantPast
     private var runningOverride: Bool?
     private var permissionTimer: Timer?
+    private var pauseKey: GlobalHotKey?
     /// Input Monitoring granted after launch only takes effect in a new process.
     private let launchedWithInputMonitoring = AppModel.checkInputMonitoring()
     /// Shown on the General tab during the short pause before restarting.
@@ -168,6 +170,12 @@ final class AppModel: ObservableObject {
         applyEngineScroll()
         syncEngine()
         guard startsEngine else { return }
+
+        // The way out if a mapping gets in the way: every button and the wheel back to normal, from any app.
+        pauseKey = GlobalHotKey(controlOptionCommand: kVK_ANSI_M, id: 2) { [weak self] in
+            guard let self, self.hasAccessibility else { return }
+            self.isEnabled.toggle()
+        }
 
         refreshPermissions()
         // Permissions change in System Settings without telling us, so re-check on focus and on a timer.

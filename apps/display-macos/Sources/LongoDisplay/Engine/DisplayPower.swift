@@ -1,4 +1,3 @@
-import Carbon.HIToolbox
 import CoreGraphics
 import Foundation
 
@@ -9,7 +8,7 @@ import Foundation
 ///   macOS itself turns every display back on. A display can't be left off by a broken app.
 /// - The last display that's on can never be turned off.
 /// - Only displays this app turned off are ever turned on again; it never touches a closed MacBook lid.
-/// - ⌃⌥⌘B turns every display back on, from anywhere, without any permission (see `EmergencyHotKey`).
+/// - ⌃⌥⌘B turns every display back on, from anywhere, without any permission (see `AppModel`).
 enum DisplayPower {
     private typealias ConfigureEnabled = @convention(c) (CGDisplayConfigRef?, CGDirectDisplayID, Bool) -> CGError
 
@@ -56,29 +55,5 @@ enum DisplayPower {
         var ids = [CGDirectDisplayID](repeating: 0, count: Int(count))
         CGGetOnlineDisplayList(count, &ids, &count)
         return ids.prefix(Int(count)).filter { CGDisplayIsActive($0) == 0 }
-    }
-}
-
-/// ⌃⌥⌘B, registered as a system hot key: works in any app and needs no Accessibility permission.
-final class EmergencyHotKey {
-    private var hotKey: EventHotKeyRef?
-    private var handler: EventHandlerRef?
-    private let action: () -> Void
-
-    init(action: @escaping () -> Void) {
-        self.action = action
-        var type = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-        InstallEventHandler(GetApplicationEventTarget(), { _, _, context in
-            Unmanaged<EmergencyHotKey>.fromOpaque(context!).takeUnretainedValue().action()
-            return noErr
-        }, 1, &type, Unmanaged.passUnretained(self).toOpaque(), &handler)
-        let id = EventHotKeyID(signature: OSType(0x4C4B4442), id: 1) // "LKDB"
-        RegisterEventHotKey(UInt32(kVK_ANSI_B), UInt32(cmdKey | optionKey | controlKey), id,
-                            GetApplicationEventTarget(), 0, &hotKey)
-    }
-
-    deinit {
-        if let hotKey { UnregisterEventHotKey(hotKey) }
-        if let handler { RemoveEventHandler(handler) }
     }
 }

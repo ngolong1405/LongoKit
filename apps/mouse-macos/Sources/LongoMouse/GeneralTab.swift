@@ -49,6 +49,11 @@ private struct StatusCard: View {
                     .font(.ui(12))
                     .foregroundStyle(Theme.textMuted)
                     .fixedSize(horizontal: false, vertical: true)
+                if model.hasAccessibility {
+                    Text(L("⌃⌥⌘M pauses or resumes it from any app."))
+                        .font(.ui(11))
+                        .foregroundStyle(Theme.textFaint)
+                }
             }
             Spacer(minLength: 12)
             DSSwitch(isOn: running) { model.toggleEnabled() }

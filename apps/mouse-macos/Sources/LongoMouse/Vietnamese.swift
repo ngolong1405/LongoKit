@@ -24,6 +24,7 @@ enum Vietnamese {
         "%@ is paused": "%@ đang tạm dừng",
         "%@ is paused. Flip the switch to turn it back on.": "%@ đang tạm dừng. Bật công tắc để chạy lại.",
         "%@ is paused; mouse buttons work as normal": "%@ đang tạm dừng, nút chuột hoạt động như bình thường",
+        "⌃⌥⌘M pauses or resumes it from any app.": "Nhấn ⌃⌥⌘M ở bất kỳ ứng dụng nào để tạm dừng hoặc bật lại.",
         "Pause %@": "Tạm dừng %@",
         "Turn %@ back on": "Bật lại %@",
         "No mouse connected yet.": "Chưa có chuột nào được kết nối.",

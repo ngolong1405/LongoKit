@@ -7,7 +7,10 @@ import LongoKitUI
 final class MouseEngine {
     static let shared = MouseEngine()
 
-    var isEnabled = true
+    var isEnabled = true {
+        // Paused mid-gesture: drop it, so no hold or click fires afterwards.
+        didSet { if !isEnabled { forgetGestures() } }
+    }
     var scroll = ScrollSettings()
     /// macOS "Natural scrolling" (System Settings › Mouse/Trackpad), which the wheel already follows before we see it.
     var systemNaturalScrolling = MouseEngine.readSystemNaturalScrolling()
@@ -24,6 +27,7 @@ final class MouseEngine {
         var dragX = 0.0
         var dragY = 0.0
         var holdTimer: DispatchWorkItem?
+        var started = Date()
     }
 
     private var tap: CFMachPort?
@@ -42,6 +46,13 @@ final class MouseEngine {
     private static let holdDelay = 0.4
     private static let dragThreshold = 40.0
     private static let captureDragThreshold = 12.0
+    /// Smooth scrolling never has more than this left to scroll (pixels per axis), however fast the wheel spins.
+    static let maxGlide = 4000.0
+
+    /// Whether a button is physically held, from the hardware state (it doesn't see what the tap swallows).
+    var isButtonDown: (Int) -> Bool = { button in
+        CGMouseButton(rawValue: UInt32(button)).map { CGEventSource.buttonState(.hidSystemState, button: $0) } ?? true
+    }
 
     var isRunning: Bool { tap != nil }
 
@@ -105,17 +116,37 @@ final class MouseEngine {
 
     /// Self-test only: forget any half-finished gesture between cases.
     func resetState() {
+        forgetGestures()
+        pendingCapture?.work.cancel()
+        pendingCapture = nil
+    }
+
+    /// Self-test only: pixels smooth scrolling still has to scroll vertically.
+    var pendingGlide: Double { abs(glide.vertical) }
+
+    /// Drops held buttons, waiting clicks and any glide in progress.
+    private func forgetGestures() {
+        presses.values.forEach { $0.holdTimer?.cancel() }
         presses.removeAll()
         pendingClicks.values.forEach { $0.cancel() }
         pendingClicks.removeAll()
-        pendingCapture?.work.cancel()
-        pendingCapture = nil
         stopGlide()
+    }
+
+    /// A button released while the tap was off (macOS pauses a slow tap) never sends us its mouse-up. Without this
+    /// the wheel would stay hijacked by a "held" button that isn't, e.g. zooming on every scroll.
+    private func dropStalePresses() {
+        for (button, press) in presses where Date().timeIntervalSince(press.started) > 0.5 && !isButtonDown(button) {
+            press.holdTimer?.cancel()
+            presses.removeValue(forKey: button)
+        }
     }
 
     private func handle(_ type: CGEventType, _ event: CGEvent) -> Unmanaged<CGEvent>? {
         let pass = Unmanaged.passUnretained(event)
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+            // Events were missed while off; start clean rather than finish a gesture half-seen.
+            forgetGestures()
             if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
             return pass
         }
@@ -126,6 +157,7 @@ final class MouseEngine {
         switch type {
         case .otherMouseDown, .leftMouseDown, .rightMouseDown:
             stopGlide() // a click means the user has arrived
+            dropStalePresses()
             let modifiers = Modifiers(event.flags)
             // Plain left/right clicks are how you use the Mac (and this app); only modified ones can be remapped.
             if button < 2 && modifiers.isEmpty { return pass }
@@ -260,6 +292,7 @@ final class MouseEngine {
     }
 
     private func scrollWheel(_ event: CGEvent) -> Bool {
+        dropStalePresses()
         // A held button with a scroll binding turns the wheel into that action.
         for (button, var press) in presses {
             if press.capturing {
@@ -330,8 +363,8 @@ final class MouseEngine {
         // Turning the wheel back cancels what's left in the old direction.
         if vertical != 0, (glide.vertical > 0) != (vertical > 0) { glide.vertical = 0 }
         if horizontal != 0, (glide.horizontal > 0) != (horizontal > 0) { glide.horizontal = 0 }
-        glide.vertical += vertical * Self.pixelsPerLine
-        glide.horizontal += horizontal * Self.pixelsPerLine
+        glide.vertical = min(max(glide.vertical + vertical * Self.pixelsPerLine, -Self.maxGlide), Self.maxGlide)
+        glide.horizontal = min(max(glide.horizontal + horizontal * Self.pixelsPerLine, -Self.maxGlide), Self.maxGlide)
         guard glideTimer == nil else { return }
         lastGlideFrame = Date()
         let timer = Timer(timeInterval: 1.0 / 120, repeats: true) { [weak self] _ in self?.stepGlide() }

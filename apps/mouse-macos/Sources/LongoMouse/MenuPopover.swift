@@ -49,7 +49,7 @@ struct MenuPopover: View {
                     .shadow(color: Theme.solar.opacity(model.isRunning ? 0.45 : 0), radius: 6)
             }
             .buttonStyle(.plain)
-            .help(model.isRunning ? L("Pause %@", AppInfo.name) : L("Turn %@ back on", AppInfo.name))
+            .help((model.isRunning ? L("Pause %@", AppInfo.name) : L("Turn %@ back on", AppInfo.name)) + " (⌃⌥⌘M)")
         }
     }
 

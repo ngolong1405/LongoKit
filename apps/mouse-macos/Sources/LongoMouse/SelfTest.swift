@@ -9,10 +9,13 @@ enum SelfTest {
     private static var recorded: [String] = []
     private static var failures = 0
     private static let engine = MouseEngine.shared
+    /// Buttons the synthetic events hold down, standing in for the hardware state.
+    private static var held: Set<Int> = []
 
     @MainActor
     static func runAndExit() {
         ActionPerformer.recorder = { recorded.append($0) }
+        engine.isButtonDown = { held.contains($0) }
         engine.isEnabled = true
         engine.scroll = ScrollSettings()
         engine.scroll.inertia = false
@@ -99,6 +102,30 @@ enum SelfTest {
             engine.isEnabled = true
         }
 
+        // Safety: nothing stays stuck.
+        check("Held button still turns the wheel into its action", [bind(b4, .scroll, .scrollZoom)], expect: ["key 24⌘"]) {
+            press(3); wait(0.6); scroll(1); release(3)
+        }
+        check("A button released unseen stops hijacking the wheel", [bind(b4, .scroll, .scrollZoom)], expect: []) {
+            press(3); wait(0.6)
+            held.remove(3) // its mouse-up never reached the tap
+            assertSwallowed(scroll(1), false)
+        }
+        check("Pausing mid-hold cancels the hold", [bind(b4, .hold, .missionControl)], expect: []) {
+            press(3)
+            engine.isEnabled = false
+            wait(0.6)
+            engine.isEnabled = true
+            release(3)
+        }
+        check("macOS pausing the tap drops half-seen gestures", [bind(b4, .hold, .missionControl)], expect: []) {
+            press(3)
+            _ = engine.process(.tapDisabledByTimeout, mouseEvent(.otherMouseDown, 3))
+            wait(0.6)
+            held.remove(3)
+        }
+        expectGlideCap()
+
         // Scroll wheel reshaping.
         engine.systemNaturalScrolling = true
         expectScroll("Wheel is untouched by default", ScrollSettings(), delta: 1, expected: 1)
@@ -134,6 +161,7 @@ enum SelfTest {
 
     private static func check(_ name: String, _ bindings: [MouseBinding], expect: [String], _ steps: () -> Void) {
         engine.resetState()
+        held = []
         engine.update(bindings)
         recorded = []
         steps()
@@ -196,6 +224,20 @@ enum SelfTest {
         engine.scroll.inertia = false
     }
 
+    /// Spinning the wheel hard can't queue up minutes of smooth scrolling.
+    private static func expectGlideCap() {
+        engine.resetState()
+        engine.update([])
+        engine.scroll = ScrollSettings()
+        let event = CGEvent(scrollWheelEvent2Source: nil, units: .line, wheelCount: 1, wheel1: 2000, wheel2: 0, wheel3: 0)!
+        event.setIntegerValueField(.scrollWheelEventIsContinuous, value: 0)
+        _ = engine.process(.scrollWheel, event)
+        report("Smooth scrolling never queues more than \(Int(MouseEngine.maxGlide)) px",
+               engine.pendingGlide > 0 && engine.pendingGlide <= MouseEngine.maxGlide, "pending \(engine.pendingGlide)")
+        engine.resetState()
+        engine.scroll.inertia = false
+    }
+
     private static func expectCapture(_ name: String, _ expected: ClickType, _ steps: () -> Void) {
         engine.resetState()
         engine.update([])
@@ -252,12 +294,14 @@ enum SelfTest {
 
     @discardableResult
     private static func press(_ button: Int, flags: CGEventFlags = []) -> Bool {
-        send(button == 0 ? .leftMouseDown : button == 1 ? .rightMouseDown : .otherMouseDown, button, flags: flags)
+        held.insert(button)
+        return send(button == 0 ? .leftMouseDown : button == 1 ? .rightMouseDown : .otherMouseDown, button, flags: flags)
     }
 
     @discardableResult
     private static func release(_ button: Int) -> Bool {
-        send(button == 0 ? .leftMouseUp : button == 1 ? .rightMouseUp : .otherMouseUp, button)
+        held.remove(button)
+        return send(button == 0 ? .leftMouseUp : button == 1 ? .rightMouseUp : .otherMouseUp, button)
     }
 
     private static func drag(_ button: Int, dx: Int64 = 0, dy: Int64 = 0) {
@@ -267,9 +311,10 @@ enum SelfTest {
         _ = engine.process(button == 0 ? .leftMouseDragged : .otherMouseDragged, event)
     }
 
-    private static func scroll(_ lines: Int32) {
+    @discardableResult
+    private static func scroll(_ lines: Int32) -> Bool {
         let event = CGEvent(scrollWheelEvent2Source: nil, units: .line, wheelCount: 1, wheel1: lines, wheel2: 0, wheel3: 0)!
-        _ = engine.process(.scrollWheel, event)
+        return engine.process(.scrollWheel, event)
     }
 
     private static func send(_ type: CGEventType, _ button: Int, flags: CGEventFlags = []) -> Bool {

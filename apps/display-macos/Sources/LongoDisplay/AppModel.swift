@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import Carbon.HIToolbox
 import LongoKitUI
 import ServiceManagement
 
@@ -86,7 +87,7 @@ final class AppModel: ObservableObject {
     private let defaults: UserDefaults
     private let engine: DisplayEngine?
     private let keys = BrightnessKeys()
-    private var emergencyKey: EmergencyHotKey?
+    private var emergencyKey: GlobalHotKey?
     private var syncTimer: Timer?
     private var permissionTimer: Timer?
     private var lastBuiltin: Double?
@@ -124,7 +125,7 @@ final class AppModel: ObservableObject {
         // app ends, see DisplayPower).
         if !powerOff.isEmpty, engine.turnOn(keys: Set(powerOff.keys)) { powerOff = [:] }
         engine.turnedOff = Set(powerOff.keys)
-        emergencyKey = EmergencyHotKey { [weak self] in
+        emergencyKey = GlobalHotKey(controlOptionCommand: kVK_ANSI_B, id: 1) { [weak self] in
             MainActor.assumeIsolated { self?.turnAllOn() }
         }
 
