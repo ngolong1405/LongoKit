@@ -142,6 +142,7 @@ enum SelfTest {
         fast.speed = 2
         expectGlide()
         expectScroll("Scroll speed scales the wheel", fast, delta: 1, expected: 2)
+        expectSideways()
 
         // Recording classifies each gesture.
         expectCapture("Recording: click", .click) { press(3); release(3); wait(NSEvent.doubleClickInterval + 0.2) }
@@ -180,6 +181,45 @@ enum SelfTest {
         let result = event.getIntegerValueField(.scrollWheelEventPointDeltaAxis1)
         report(name, result == 10, "expected 10, got \(result)")
         engine.scroll = ScrollSettings()
+    }
+
+    /// ⇧ + wheel turns sideways; ⌃⇧ + wheel goes back / forward a page; both can be switched off.
+    private static func expectSideways() {
+        func wheel(_ flags: CGEventFlags) -> CGEvent {
+            let event = CGEvent(scrollWheelEvent2Source: nil, units: .line, wheelCount: 1, wheel1: 1, wheel2: 0, wheel3: 0)!
+            event.setIntegerValueField(.scrollWheelEventIsContinuous, value: 0)
+            event.flags = flags
+            return event
+        }
+        engine.resetState()
+        engine.update([])
+        engine.systemNaturalScrolling = false
+        engine.scroll = ScrollSettings()
+        engine.scroll.inertia = false
+        engine.scroll.invertDirection = true // classic on a classic Mac: the wheel isn't flipped
+
+        var event = wheel(.maskShift)
+        let passed = !engine.process(.scrollWheel, event)
+        report("⇧ + wheel scrolls sideways", passed && event.getIntegerValueField(.scrollWheelEventDeltaAxis1) == 0
+               && event.getIntegerValueField(.scrollWheelEventDeltaAxis2) == 1,
+               "axis1 \(event.getIntegerValueField(.scrollWheelEventDeltaAxis1)), axis2 \(event.getIntegerValueField(.scrollWheelEventDeltaAxis2))")
+
+        engine.scroll.horizontalSwipe = false
+        event = wheel(.maskShift)
+        _ = engine.process(.scrollWheel, event)
+        report("⇧ + wheel left alone when switched off", event.getIntegerValueField(.scrollWheelEventDeltaAxis1) == 1, "")
+
+        recorded = []
+        let swallowed = engine.process(.scrollWheel, wheel([.maskShift, .maskControl]))
+        report("⌃⇧ + wheel up goes back a page", swallowed && recorded == ["key 33⌘"], "got \(recorded)")
+        engine.scroll.swipeNavigation = false
+        recorded = []
+        _ = engine.process(.scrollWheel, wheel([.maskShift, .maskControl]))
+        report("⌃⇧ + wheel does nothing special when switched off", recorded.isEmpty, "got \(recorded)")
+
+        engine.systemNaturalScrolling = true
+        engine.scroll = ScrollSettings()
+        engine.scroll.inertia = false
     }
 
     private static func expectScroll(_ name: String, _ settings: ScrollSettings, delta: Int32, expected: Int64,

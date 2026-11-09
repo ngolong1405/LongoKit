@@ -199,6 +199,12 @@ enum Vietnamese {
 
         // Scrolling
         "Smooth Scrolling": "Cuộn mượt",
+        "Scroll sideways with ⇧": "Cuộn ngang với ⇧",
+        "Hold ⇧ Shift and scroll to move left and right, as smoothly as up and down, in every app.":
+            "Giữ ⇧ Shift và lăn để cuộn sang trái/phải, mượt như cuộn dọc, ở mọi app.",
+        "Back & forward with ⌃⇧": "Quay lại / tiến tới với ⌃⇧",
+        "Hold ⌃⇧ and scroll up to go back a page, down to go forward, like a two-finger swipe.":
+            "Giữ ⌃⇧ rồi lăn lên để quay lại trang trước, lăn xuống để tiến tới, như vuốt hai ngón trên trackpad.",
         "Smooth": "Mượt",
         "This mouse uses the shared scrolling, so these change it for every mouse without its own.":
             "Chuột này dùng cài đặt cuộn chung, nên thay đổi ở đây áp dụng cho mọi chuột không có cài đặt riêng.",

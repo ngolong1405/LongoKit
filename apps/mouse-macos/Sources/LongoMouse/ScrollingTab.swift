@@ -132,6 +132,18 @@ private struct WheelCard: View {
             .recessed(radius: 12)
             .opacity(scroll.smoothEnabled ? 1 : 0.4)
             .disabled(!scroll.smoothEnabled)
+
+            Hairline()
+
+            SettingRow(title: L("Scroll sideways with ⇧"),
+                       detail: L("Hold ⇧ Shift and scroll to move left and right, as smoothly as up and down, in every app.")) {
+                DSSwitch(isOn: $model.editingScroll.horizontalSwipe)
+            }
+
+            SettingRow(title: L("Back & forward with ⌃⇧"),
+                       detail: L("Hold ⌃⇧ and scroll up to go back a page, down to go forward, like a two-finger swipe.")) {
+                DSSwitch(isOn: $model.editingScroll.swipeNavigation)
+            }
             }
             .opacity(locked ? 0.5 : 1)
             .disabled(locked)
@@ -148,8 +160,6 @@ private struct UpcomingCard: View {
                        subtitle: L("Planned scrolling features."), tint: Theme.solar) { Chip.soon }
             UpcomingRow(symbol: "gauge.with.dots.needle.67percent", title: L("Dynamic Acceleration"),
                         detail: L("Accelerates speed when the wheel is spun quickly"))
-            UpcomingRow(symbol: "arrow.left.and.right", title: L("Horizontal Swipe Navigation"),
-                        detail: L("Hold ⇧ Shift and scroll to go back or forward a page."))
             UpcomingRow(symbol: "plus.magnifyingglass", title: L("Screen & Canvas Zoom"),
                         detail: L("Hold ⌃ Control and scroll to zoom."))
         }

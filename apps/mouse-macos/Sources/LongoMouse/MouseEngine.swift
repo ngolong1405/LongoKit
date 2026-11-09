@@ -35,6 +35,7 @@ final class MouseEngine {
     private var pendingClicks: [Int: DispatchWorkItem] = [:]
     private var pendingCapture: (button: Int, work: DispatchWorkItem)?
     private var lastSpaceSwitch = Date.distantPast
+    private var lastPageSwipe = Date.distantPast
     /// Smooth scrolling: pixels still to scroll on each axis, and the fractions not yet posted.
     private var glide = (vertical: 0.0, horizontal: 0.0, carryV: 0.0, carryH: 0.0)
     private var glideTimer: Timer?
@@ -335,6 +336,23 @@ final class MouseEngine {
             stopGlide()
             return false
         }
+        let shift = event.flags.contains(.maskShift)
+        // ⌃⇧ + wheel: back (wheel up) or forward (wheel down) a page, once per flick of the wheel.
+        if scroll.swipeNavigation, shift, event.flags.contains(.maskControl) {
+            let raw = event.getDoubleValueField(.scrollWheelEventFixedPtDeltaAxis1)
+            // The wheel arrives following macOS's direction setting; undo that to know which way it turned.
+            let wheelUp = (systemNaturalScrolling ? -raw : raw) > 0
+            if raw != 0, Date().timeIntervalSince(lastPageSwipe) > 0.35 {
+                lastPageSwipe = Date()
+                ActionPerformer.postKey(wheelUp ? 33 : 30, [.command]) // ⌘[ / ⌘]
+            }
+            return true
+        }
+        // ⇧ + wheel: sideways. The vertical turn becomes horizontal before the rest applies to it.
+        if scroll.horizontalSwipe, shift, event.getDoubleValueField(.scrollWheelEventFixedPtDeltaAxis2) == 0 {
+            swapAxes(event)
+        }
+
         // The wheel arrives already following the system setting; flip it when the chosen direction differs.
         let wantsNatural = !scroll.invertDirection
         var factor = wantsNatural == systemNaturalScrolling ? 1.0 : -1.0

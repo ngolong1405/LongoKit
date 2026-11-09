@@ -233,7 +233,10 @@ struct ScrollSettings: Codable, Equatable {
     var speed = 1.0
     var dynamicAcceleration = true
     var invertDirection = false
+    /// Hold ⇧ and scroll to scroll sideways, smoothly like vertical scrolling.
     var horizontalSwipe = true
+    /// Hold ⌃⇧ and scroll to go back (up) or forward (down) a page, like a two-finger swipe.
+    var swipeNavigation = true
     var zoomModifier: ZoomModifier = .control
     /// The page keeps gliding and slows down after the wheel stops; `smoothness` sets how far.
     var inertia = true
@@ -256,6 +259,7 @@ extension ScrollSettings {
         dynamicAcceleration = try value(.dynamicAcceleration, defaults.dynamicAcceleration)
         invertDirection = try value(.invertDirection, defaults.invertDirection)
         horizontalSwipe = try value(.horizontalSwipe, defaults.horizontalSwipe)
+        swipeNavigation = try value(.swipeNavigation, defaults.swipeNavigation)
         zoomModifier = try value(.zoomModifier, defaults.zoomModifier)
         inertia = try value(.inertia, defaults.inertia)
     }
