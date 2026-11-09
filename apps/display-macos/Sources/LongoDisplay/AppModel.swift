@@ -577,8 +577,7 @@ final class AppModel: ObservableObject {
 
     private var appearanceObservation: NSKeyValueObservation?
 
-    /// NSApp may not exist yet during launch, so apply on the next turn of the run loop. The Dock icon follows:
-    /// white tile in light mode, dark tile in dark mode.
+    /// NSApp may not exist yet during launch, so apply on the next turn of the run loop.
     private func applyAppearance() {
         let appearance = appearance.nsAppearance
         DispatchQueue.main.async { [weak self] in
@@ -593,10 +592,9 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// The Dock icon is the dark tile in every appearance, like the app icon and the other LongoKit apps.
     private static func updateDockIcon() {
-        guard let app = NSApp else { return }
-        let dark = app.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        app.applicationIconImage = Resource.image(dark ? "Logo.png" : "LogoLight.png")
+        NSApp?.applicationIconImage = Resource.image("Logo.png")
     }
 
     private func save<T: Encodable>(_ value: T, forKey key: String) {

@@ -319,11 +319,9 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// Dock icon matching the current appearance: white tile in light mode, dark tile in dark mode.
+    /// The Dock icon is the dark tile in every appearance, like the app icon and the other LongoKit apps.
     private static func updateDockIcon() {
-        guard let app = NSApp else { return }
-        let dark = app.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        app.applicationIconImage = Brand.logo(dark: dark)
+        NSApp?.applicationIconImage = Brand.logo(dark: true)
     }
 
     private func syncEngine() {
