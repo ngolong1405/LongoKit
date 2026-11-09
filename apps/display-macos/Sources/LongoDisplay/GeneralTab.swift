@@ -26,7 +26,7 @@ private struct ModeCard: View {
             Text(model.mode == .sync
                  ? (model.builtin == nil
                     ? L("Sync needs a built-in display. On this Mac, external displays keep their own brightness.")
-                    : L("External displays follow the built-in display, within each display's minimum and maximum."))
+                    : L("External displays follow the built-in display, each within its own Sync range (set on its page)."))
                  : L("Each display keeps the brightness you set."))
                 .font(.ui(12))
                 .foregroundStyle(Theme.textMuted)
@@ -42,7 +42,7 @@ private struct KeysCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             CardHeader(symbol: "keyboard", title: L("Brightness Keys"),
-                       subtitle: L("Use the brightness keys on the display under the pointer."),
+                       subtitle: L("Point at an external display and press the brightness keys to change that display."),
                        tint: Theme.violet) {
                 DSSwitch(isOn: $model.keysEnabled)
             }
@@ -58,8 +58,9 @@ private struct KeysCard: View {
                 .padding(12)
                 .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.amber.opacity(0.1)))
             } else {
-                Text(model.keysActive ? L("Brightness keys work on external displays.")
-                                      : L("Brightness keys only change the built-in display."))
+                Text(model.keysEnabled ? L("On: with the pointer on an external display, the brightness keys change that display and show its level. On the MacBook screen they work as usual.")
+                                      : L("Off: the brightness keys only change the MacBook screen, as macOS does by itself."))
+                    .fixedSize(horizontal: false, vertical: true)
                     .font(.ui(12))
                     .foregroundStyle(Theme.textMuted)
             }

@@ -69,7 +69,6 @@ private struct DisplayList: View {
                 SectionLabel(text: L("Connected displays") + " (\(model.displays.count))")
                 Spacer()
                 Segmented(options: BrightnessMode.allCases, selection: $model.mode, title: { $0.title })
-                    .frame(width: 220)
                     .help(L("Manual: each display keeps its own brightness. Sync: external displays follow the MacBook."))
             }
             if model.mode == .sync && !model.externals.isEmpty {
