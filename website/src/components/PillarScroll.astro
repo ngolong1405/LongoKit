@@ -18,11 +18,13 @@ const t = pick(lang, {
     smoothNote: "120 Hz glide with a natural ease-out",
     tune: "Tune glide & scroll speed", perMouse: "Per mouse", glide: "Glide time", speed: "Scroll speed", soon: "Coming soon",
     tryIt: "Scroll with your mouse over either side: both move together.",
-    modifiers: "Hold ⌥ to scroll slowly, ⌘ to scroll fast.", slow: "⌥ held: precise, ¼ speed", fast: "⌘ held: turbo, 4× speed",
+    modifiers: "Hold ⌥ to scroll slowly, ⌘ to scroll fast.", slow: "⌥ held: precise, ¼ speed", fast: "⌘ held: turbo, 4× speed", sideways: "⇧ held: in the app this scrolls sideways (these lists only go up and down).",
     micro: [
       ["Smooth notch by notch", "No more jumpy scrolling."],
       ["Mouse-only direction", "Natural or Classic, without touching the trackpad."],
       ["Speed & modifiers", "0.5× to 2×. Hold ⌥ for slow, ⌘ for fast."],
+      ["Sideways with ⇧", "Hold ⇧ and scroll left or right, just as smoothly."],
+      ["Back & forward with ⌃⇧", "Scroll up to go back a page, down to go forward."],
       ["Per-app speed", "Different speeds for different apps."],
     ],
   },
@@ -37,11 +39,13 @@ const t = pick(lang, {
     smoothNote: "Trượt 120 Hz, chậm dần tự nhiên",
     tune: "Tuỳ chỉnh độ trượt & tốc độ cuộn", perMouse: "Theo từng chuột", glide: "Thời gian trượt", speed: "Tốc độ cuộn", soon: "Sắp có",
     tryIt: "Lăn chuột trên một trong hai bên: cả hai cùng cuộn.",
-    modifiers: "Giữ ⌥ để cuộn chậm, ⌘ để cuộn nhanh.", slow: "Đang giữ ⌥: cuộn chính xác, tốc độ ¼", fast: "Đang giữ ⌘: cuộn nhanh, tốc độ 4×",
+    modifiers: "Giữ ⌥ để cuộn chậm, ⌘ để cuộn nhanh.", slow: "Đang giữ ⌥: cuộn chính xác, tốc độ ¼", fast: "Đang giữ ⌘: cuộn nhanh, tốc độ 4×", sideways: "Đang giữ ⇧: trong app sẽ cuộn ngang (danh sách ở đây chỉ cuộn dọc).",
     micro: [
       ["Cuộn mượt từng nấc", "Không còn giật cục khi cuộn."],
       ["Hướng cuộn riêng cho chuột", "Tự nhiên hoặc Cổ điển, trackpad giữ nguyên."],
       ["Tốc độ & phím bổ trợ", "Từ 0.5× đến 2×. Giữ ⌥ để chậm, ⌘ để nhanh."],
+      ["Cuộn ngang với ⇧", "Giữ ⇧ rồi lăn để cuộn trái/phải, mượt như cuộn dọc."],
+      ["Quay lại / tiến tới với ⌃⇧", "Lăn lên để quay lại trang trước, lăn xuống để tiến tới."],
       ["Tốc độ theo từng app", "Mỗi app một tốc độ cuộn riêng."],
     ],
   },
@@ -51,6 +55,8 @@ const style = [
   { icon: "speed", tint: "text-primary", bg: "bg-primary-container/20" },
   { icon: "swap_vert", tint: "text-tertiary", bg: "bg-tertiary-container/30" },
   { icon: "keyboard_option_key", tint: "text-secondary", bg: "bg-secondary-container/30" },
+  { icon: "swap_horiz", tint: "text-tertiary", bg: "bg-tertiary-container/30" },
+  { icon: "arrow_back", tint: "text-primary", bg: "bg-primary-container/20" },
   { icon: "apps", tint: "text-primary", bg: "bg-surface-bright", soon: true },
 ];
 const micro = style.map((s, i) => ({ ...s, title: t.micro[i][0], body: t.micro[i][1] }));
@@ -115,7 +121,7 @@ const micro = style.map((s, i) => ({ ...s, title: t.micro[i][0], body: t.micro[i
         </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-space-md lg:col-span-5">
+      <div class="grid grid-cols-1 gap-space-sm lg:col-span-5">
         {
           micro.map((m) => (
             <div class="flex items-start gap-space-sm rounded-xl bg-surface-container-low p-space-md shadow-sm">
@@ -163,7 +169,7 @@ const micro = style.map((s, i) => ({ ...s, title: t.micro[i][0], body: t.micro[i
     e.preventDefault();
     let factor = +speed.value / 100;
     if (e.altKey) factor *= 0.25; else if (e.metaKey) factor *= 4;
-    mod.textContent = e.altKey ? t.slow : e.metaKey ? t.fast : t.modifiers;
+    mod.textContent = e.shiftKey ? t.sideways : e.altKey ? t.slow : e.metaKey ? t.fast : t.modifiers;
     // A notched wheel reports ±120 per notch (wheelDeltaY); a notch is about 40 px of page.
     // Trackpads and smooth wheels report pixels, which both sides follow as they are.
     const notches = e.wheelDeltaY && e.wheelDeltaY % 120 === 0 ? -e.wheelDeltaY / 120 : e.deltaMode === 1 ? e.deltaY : 0;
