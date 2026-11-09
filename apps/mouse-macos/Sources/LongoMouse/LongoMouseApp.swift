@@ -38,6 +38,14 @@ struct LongoMouseApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var closeShortcutMonitor: Any?
 
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        if Snapshot.isRequested || SelfTest.isRequested {
+            AppLaunch.runInBackground()
+        } else if !AppLaunch.claimSingleInstance() {
+            exit(0)
+        }
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         if Snapshot.isRequested { MainActor.assumeIsolated { Snapshot.renderAndExit() } }
         if SelfTest.isRequested { MainActor.assumeIsolated { SelfTest.runAndExit() } }
