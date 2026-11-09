@@ -72,7 +72,7 @@ private struct DisplayList: View {
                     .help(L("Manual: each display keeps its own brightness. Sync: external displays follow the MacBook."))
             }
             if model.mode == .sync && !model.externals.isEmpty {
-                SyncBanner()
+                AllDisplaysRow()
             }
             VStack(spacing: 0) {
                 ForEach(Array(model.displays.enumerated()), id: \.element.key) { index, display in
@@ -172,23 +172,62 @@ struct DisplayLevels: View {
     }
 }
 
-/// Sync is on: says why the external displays' sliders are locked (the Manual / Sync switch is right above).
-private struct SyncBanner: View {
+/// "All displays", in Sync: one brightness for every display (the built-in one leads, the others follow it within
+/// their ranges, so with the default 0–100% they all sit at the same level), presets, and mute for every speaker.
+private struct AllDisplaysRow: View {
     @EnvironmentObject private var model: AppModel
+    private let presets: [Double] = [0, 0.25, 0.5, 0.75, 1]
 
     var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "link").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.violetLight)
-            Text(L("Sync is on: external displays follow the MacBook's brightness, so their sliders are locked."))
-                .font(.ui(12))
-                .foregroundStyle(Theme.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "square.stack.3d.up.fill")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Theme.violet)
+                    .frame(width: 38, height: 38)
+                    .recessed(radius: 10)
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text(L("All displays")).font(.display(14, .semibold)).foregroundStyle(Theme.text)
+                        Chip(L("Sync"), tone: .violet, dot: true)
+                    }
+                    Text(L("One brightness for every display: the MacBook leads and the others follow it, each within its Sync range."))
+                        .font(.ui(11))
+                        .foregroundStyle(Theme.textMuted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                if !model.speakerDisplays.isEmpty {
+                    let muted = model.allMuted
+                    Button(action: model.toggleMuteAll) {
+                        Label(muted ? L("Unmute all") : L("Mute all"), systemImage: muted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                    }
+                    .buttonStyle(.ghost)
+                }
+            }
+            if let builtin = model.builtin, model.isOn(builtin) {
+                HStack(spacing: 18) {
+                    BrightnessLevel(display: builtin)
+                    HStack(spacing: 6) {
+                        ForEach(presets, id: \.self) { value in
+                            Button { model.applyPreset(value) } label: {
+                                Text("\(Int(value * 100))%")
+                                    .font(.mono(11, .semibold))
+                                    .frame(width: 44)
+                                    .padding(.vertical, 5)
+                                    .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Theme.tint(0.06)))
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(Theme.textSecondary)
+                        }
+                    }
+                }
+                .padding(.leading, 50)
+            }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.violet.opacity(0.1)))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.violet.opacity(0.3)))
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.violet.opacity(0.08)))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.violet.opacity(0.3)))
     }
 }
 

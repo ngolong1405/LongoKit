@@ -57,6 +57,8 @@ final class AppModel: ObservableObject {
     private var offDisplays: [String: Display] {
         didSet { save(offDisplays, forKey: Keys.offDisplays) }
     }
+    /// Each external speaker's volume before Mute All, to come back to.
+    private var volumesBeforeMute: [String: Double] = [:]
     /// Turned-off displays asked to come back on; forgotten once they show a picture.
     private var turningOn: Set<String> = []
     /// Paused, the app leaves displays alone: no Sync, no brightness keys, no software dimming.
@@ -227,6 +229,11 @@ final class AppModel: ObservableObject {
     func setLevel(_ value: Double, for display: Display) {
         let range = levelRange(for: display)
         update(display) { $0.setLevel(min(max(value, range.lowerBound), range.upperBound)) }
+        // In Sync the external displays follow right away, not at the next check of the built-in display.
+        if display.isBuiltin, mode == .sync {
+            lastBuiltin = nil
+            followBuiltin()
+        }
     }
 
     /// How low a display's level goes: below 0 is extra dimming, except where brightness is already done in
@@ -245,7 +252,32 @@ final class AppModel: ObservableObject {
 
     /// Presets set every display at once.
     func applyPreset(_ value: Double) {
+        // In Sync the built-in display leads and the external ones follow it.
+        if mode == .sync, let builtin, isOn(builtin) {
+            setLevel(value, for: builtin)
+            for display in externals where isOn(display) && !followsBuiltin(display) { setBrightness(value, for: display) }
+            return
+        }
         for display in displays where isOn(display) { setBrightness(value, for: display) }
+    }
+
+    /// External displays with speakers we can set (over DDC).
+    var speakerDisplays: [Display] { externals.filter { isOn($0) && $0.method == .ddc } }
+
+    /// Whether every external speaker is silent.
+    var allMuted: Bool { speakerDisplays.allSatisfy { volume(for: $0) == 0 } }
+
+    /// Mutes every external display's speakers, or brings them back to where they were.
+    func toggleMuteAll() {
+        if allMuted {
+            for display in speakerDisplays { setVolume(volumesBeforeMute[display.key] ?? 0.5, for: display) }
+            volumesBeforeMute = [:]
+        } else {
+            for display in speakerDisplays where volume(for: display) > 0 {
+                volumesBeforeMute[display.key] = volume(for: display)
+                setVolume(0, for: display)
+            }
+        }
     }
 
     /// Back to the default range, control and dimming. The brightness it's at stays (there's no "right" default
