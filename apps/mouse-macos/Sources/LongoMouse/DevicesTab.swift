@@ -80,6 +80,7 @@ private struct SharedRow: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
         HStack(spacing: 12) {
             Image(systemName: "square.stack.3d.up.fill")
                 .font(.system(size: 15))
@@ -93,6 +94,8 @@ private struct SharedRow: View {
             Spacer()
             OpenButton { model.open(nil) }
         }
+            QuickScroll(id: nil)
+        }
         .padding(14)
     }
 }
@@ -103,6 +106,7 @@ private struct DeviceRow: View {
 
     var body: some View {
         let inUse = model.activeDevice?.id == device.id
+        VStack(alignment: .leading, spacing: 12) {
         HStack(spacing: 12) {
             Image(systemName: device.symbol)
                 .font(.system(size: 16))
@@ -120,6 +124,8 @@ private struct DeviceRow: View {
             OwnBadges(id: device.id)
             OpenButton { model.open(device.id) }
         }
+            QuickScroll(id: device.id)
+        }
         .padding(14)
     }
 
@@ -127,6 +133,41 @@ private struct DeviceRow: View {
         var parts = [device.manufacturer.isEmpty ? device.product : "\(device.manufacturer) \(device.product)", device.connection]
         if let battery = device.battery { parts.append("\(battery)% " + L("battery")) }
         return parts.joined(separator: " · ")
+    }
+}
+
+/// The everyday scroll settings right in the list: direction, smooth scrolling and speed. A mouse without its own
+/// scrolling changes the shared settings, and says so.
+private struct QuickScroll: View {
+    @EnvironmentObject private var model: AppModel
+    let id: String?
+
+    var body: some View {
+        let value = model.scrollSettings(for: id)
+        let shared = id != nil && model.profiles[id!]?.scroll == nil
+        HStack(spacing: 14) {
+            Segmented(options: [false, true],
+                      selection: Binding(get: { value.invertDirection },
+                                         set: { new in model.updateScroll(for: id) { $0.invertDirection = new } }),
+                      title: { $0 ? L("Classic") : L("Natural") })
+            HStack(spacing: 6) {
+                Text(L("Smooth")).font(.ui(11)).foregroundStyle(Theme.textSecondary)
+                QuickSwitch(isOn: value.inertia) { model.updateScroll(for: id) { $0.inertia.toggle() } }
+            }
+            HStack(spacing: 8) {
+                Image(systemName: "tortoise").font(.system(size: 10)).foregroundStyle(Theme.textMuted)
+                DSSlider(value: Binding(get: { value.speed },
+                                        set: { new in model.updateScroll(for: id) { $0.speed = new; $0.smoothEnabled = true } }),
+                         range: ScrollSettings.speedRange, step: 0.05)
+                Image(systemName: "hare").font(.system(size: 10)).foregroundStyle(Theme.textMuted)
+                Text(value.smoothEnabled ? String(format: "%.2f×", value.speed) : "1.00×")
+                    .font(.mono(11, .semibold))
+                    .foregroundStyle(Theme.solar)
+                    .frame(width: 44, alignment: .trailing)
+            }
+        }
+        .padding(.leading, 50)
+        .help(shared ? L("This mouse uses the shared scrolling, so these change it for every mouse without its own.") : "")
     }
 }
 

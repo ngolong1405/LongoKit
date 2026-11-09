@@ -199,6 +199,9 @@ enum Vietnamese {
 
         // Scrolling
         "Smooth Scrolling": "Cuộn mượt",
+        "Smooth": "Mượt",
+        "This mouse uses the shared scrolling, so these change it for every mouse without its own.":
+            "Chuột này dùng cài đặt cuộn chung, nên thay đổi ở đây áp dụng cho mọi chuột không có cài đặt riêng.",
         "Custom Scroll Speed": "Tùy chỉnh tốc độ cuộn",
         "Changes how far each wheel notch scrolls. Hold ⌥ to slow down, ⌘ to speed up.":
             "Đổi quãng cuộn của mỗi nấc bánh xe. Giữ ⌥ để cuộn chậm, ⌘ để cuộn nhanh.",

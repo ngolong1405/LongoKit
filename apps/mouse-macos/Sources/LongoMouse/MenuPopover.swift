@@ -165,7 +165,7 @@ struct MenuPopover: View {
 }
 
 /// A DSSwitch scaled down to fit popover rows.
-private struct QuickSwitch: View {
+struct QuickSwitch: View {
     let isOn: Bool
     let action: () -> Void
 

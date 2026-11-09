@@ -644,6 +644,21 @@ final class AppModel: ObservableObject {
     }
 
     /// Turning own scrolling on starts from a copy of the shared settings.
+    /// The scrolling a mouse uses: its own, or the shared settings (`nil` is "All mice").
+    func scrollSettings(for id: String?) -> ScrollSettings {
+        id.flatMap { profiles[$0]?.scroll } ?? scroll
+    }
+
+    /// Changes a mouse's scrolling: its own if it has them, otherwise the shared settings.
+    func updateScroll(for id: String?, _ change: (inout ScrollSettings) -> Void) {
+        if let id, var own = profiles[id]?.scroll {
+            change(&own)
+            profiles[id]?.scroll = own
+        } else {
+            change(&scroll)
+        }
+    }
+
     func setOwnScroll(_ id: String, _ on: Bool) {
         guard profiles[id] != nil else { return }
         profiles[id]?.scroll = on ? (profiles[id]?.scroll ?? scroll) : nil

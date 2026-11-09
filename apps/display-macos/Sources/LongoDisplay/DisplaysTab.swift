@@ -90,6 +90,7 @@ private struct DisplayRow: View {
     let display: Display
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
         HStack(spacing: 12) {
             Image(systemName: display.isBuiltin ? "laptopcomputer" : "display")
                 .font(.system(size: 16))
@@ -125,7 +126,32 @@ private struct DisplayRow: View {
             }
             .buttonStyle(.ghost)
         }
+            if model.isOn(display) {
+                QuickBrightness(display: display)
+            }
+        }
         .padding(14)
+    }
+}
+
+/// Brightness right in the list. Locked for external displays in Sync, where they follow the built-in one.
+private struct QuickBrightness: View {
+    @EnvironmentObject private var model: AppModel
+    let display: Display
+
+    var body: some View {
+        let locked = model.mode == .sync && !display.isBuiltin
+        HStack(spacing: 10) {
+            Image(systemName: "sun.min").font(.system(size: 11)).foregroundStyle(Theme.textMuted)
+            DSSlider(value: Binding(get: { model.settings(for: display).brightness },
+                                    set: { model.setBrightness($0, for: display) }),
+                     range: 0...1, step: 0.01)
+            Image(systemName: "sun.max.fill").font(.system(size: 11)).foregroundStyle(Theme.solar)
+        }
+        .disabled(locked)
+        .opacity(locked ? 0.5 : 1)
+        .padding(.leading, 50)
+        .help(locked ? L("Follows the built-in display in Sync mode") : "")
     }
 }
 
