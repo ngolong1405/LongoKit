@@ -34,10 +34,13 @@ public struct WindowFrame<Content: View>: View {
 /// System / Dark / Light, as three small icons.
 public struct ThemeSwitcher: View {
     @Binding public var selection: AppAppearance
+    /// Settings-row size, matching the Segmented controls next to it; the default is the compact menu size.
+    public var large = false
     @Namespace private var pill
 
-    public init(selection: Binding<AppAppearance>) {
+    public init(selection: Binding<AppAppearance>, large: Bool = false) {
         self._selection = selection
+        self.large = large
     }
 
     public var body: some View {
@@ -46,12 +49,12 @@ public struct ThemeSwitcher: View {
                 let selected = selection == option
                 Button { withAnimation(Motion.slide) { selection = option } } label: {
                     Image(systemName: symbol(option))
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(.system(size: large ? 13 : 11, weight: .semibold))
                         .foregroundStyle(selected ? Theme.solar : Theme.textMuted)
-                        .frame(width: 24, height: 20)
+                        .frame(width: large ? 40 : 24, height: large ? 28 : 20)
                         .background {
                             if selected {
-                                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                RoundedRectangle(cornerRadius: large ? 7 : 5, style: .continuous)
                                     .fill(Theme.segmentSelected)
                                     .shadow(color: Color.black.opacity(0.12), radius: 1, y: 1)
                                     .matchedGeometryEffect(id: "pill", in: pill)
@@ -63,9 +66,9 @@ public struct ThemeSwitcher: View {
                 .help(tip(option))
             }
         }
-        .padding(2)
-        .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Theme.segmentTrack))
-        .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous).strokeBorder(Theme.hairline))
+        .padding(large ? 3 : 2)
+        .background(RoundedRectangle(cornerRadius: large ? 9 : 7, style: .continuous).fill(Theme.segmentTrack))
+        .overlay(RoundedRectangle(cornerRadius: large ? 9 : 7, style: .continuous).strokeBorder(Theme.hairline))
     }
 
     private func tip(_ option: AppAppearance) -> String {

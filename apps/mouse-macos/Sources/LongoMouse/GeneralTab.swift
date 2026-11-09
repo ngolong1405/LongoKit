@@ -202,7 +202,7 @@ private struct StartupCard: View {
             }
             Hairline()
             SettingRow(title: L("Appearance"), detail: L("Follow macOS, or always use dark or light.")) {
-                Segmented(options: AppAppearance.allCases, selection: $model.appearance, title: { $0.title })
+                ThemeSwitcher(selection: $model.appearance, large: true)
             }
             Hairline()
             SettingRow(title: L("Start at Login"),
