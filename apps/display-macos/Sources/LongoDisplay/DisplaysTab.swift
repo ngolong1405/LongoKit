@@ -328,7 +328,7 @@ private struct ControlCard: View {
         VStack(alignment: .leading, spacing: 10) {
             CardHeader(symbol: "slider.horizontal.3", title: L("Brightness Control"),
                        subtitle: L("Hardware changes the monitor's backlight; Software darkens the picture."),
-                       tint: Theme.violet) {
+                       tint: Theme.violet, divider: model.isDDCSilent(display)) {
                 Segmented(options: ControlChoice.allCases,
                           selection: Binding(get: { model.settings(for: display).control },
                                              set: { model.setControl(display, $0) }),
@@ -389,7 +389,12 @@ private struct ScreenCard: View {
                     .disabled(model.mode == .sync && !display.isBuiltin)
                     .opacity(model.mode == .sync && !display.isBuiltin ? 0.5 : 1)
                     .help(model.mode == .sync && !display.isBuiltin ? L("Follows the built-in display in Sync mode") : "")
-                .padding(.top, 6)
+                    .padding(.top, 6)
+                if display.method == .ddc {
+                    VolumeSlider(value: model.volume(for: display), help: L("Speaker volume")) { model.setVolume($0, for: display) }
+                } else if display.isBuiltin, let volume = model.systemVolume {
+                    VolumeSlider(value: volume, help: L("Mac volume")) { model.setSystemVolume($0) }
+                }
             }
             .padding(20)
             .frame(maxWidth: .infinity)

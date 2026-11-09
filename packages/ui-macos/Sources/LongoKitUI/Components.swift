@@ -700,10 +700,13 @@ public struct CardHeader<Trailing: View>: View {
     public let title: String
     public var subtitle: String?
     public var tint: Color = Theme.violet
+    /// The rule under the header, separating it from the card's content; off when nothing follows.
+    public var divider = true
     @ViewBuilder public let trailing: Trailing
 
-    public init(symbol: String, title: String, subtitle: String? = nil, tint: Color = Theme.violet,
+    public init(symbol: String, title: String, subtitle: String? = nil, tint: Color = Theme.violet, divider: Bool = true,
                 @ViewBuilder trailing: () -> Trailing) {
+        self.divider = divider
         self.symbol = symbol
         self.title = title
         self.subtitle = subtitle
@@ -726,7 +729,7 @@ public struct CardHeader<Trailing: View>: View {
                 Spacer(minLength: 8)
                 trailing
             }
-            Hairline()
+            if divider { Hairline() }
         }
     }
 }
