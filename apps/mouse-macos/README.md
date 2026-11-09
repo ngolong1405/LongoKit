@@ -23,6 +23,9 @@ Accessibility and Input Monitoring permissions across rebuilds.
 
 On first launch, grant **Accessibility** and **Input Monitoring** in System Settings › Privacy & Security.
 
+Downloaded builds aren't notarized by Apple yet, so macOS blocks the first launch. Open System Settings › Privacy &
+Security and click **Open Anyway** (once), or run `xattr -dr com.apple.quarantine "/Applications/Longo Mouse.app"`.
+
 ## Layout
 
 - `Sources/LongoMouse/`: the app (SwiftUI + AppKit). `MouseEngine` holds the event tap and gesture logic, and `AppModel` holds the settings.
