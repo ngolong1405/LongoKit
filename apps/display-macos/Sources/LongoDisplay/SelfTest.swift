@@ -58,7 +58,7 @@ enum SelfTest {
 
         // Saved settings from an older version still load.
         let old = try? JSONDecoder().decode(DisplaySettings.self, from: Data(#"{"brightness":0.4}"#.utf8))
-        check("Old settings load with defaults", old?.brightness == 0.4 && old?.maximum == 1 && old?.extraDim == 0 && old?.control == .hardware && old?.volume == nil)
+        check("Old settings load with defaults", old?.brightness == 0.4 && old?.maximum == 1 && old?.extraDim == 0 && old?.control == .hardware && old?.volume == nil && old?.syncs == true)
 
         // Display power: the guards that keep a screen on. Nothing is turned off.
         check("Display power API found in SkyLight", DisplayPower.isAvailable)

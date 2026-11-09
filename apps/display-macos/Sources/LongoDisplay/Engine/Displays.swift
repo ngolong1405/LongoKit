@@ -45,6 +45,8 @@ struct DisplaySettings: Codable, Equatable {
     var control = ControlChoice.hardware
     /// Speaker volume over DDC, 0…1; nil until read from the monitor or set, so it's never changed by itself.
     var volume: Double?
+    /// An external display follows the built-in one while Sync is on; off, it keeps its own brightness.
+    var syncs = true
 
     init() {}
 
@@ -57,6 +59,7 @@ struct DisplaySettings: Codable, Equatable {
         extraDim = try c.decodeIfPresent(Double.self, forKey: .extraDim) ?? d.extraDim
         control = (try? c.decodeIfPresent(ControlChoice.self, forKey: .control)) ?? d.control
         volume = try c.decodeIfPresent(Double.self, forKey: .volume)
+        syncs = try c.decodeIfPresent(Bool.self, forKey: .syncs) ?? d.syncs
         // Extra dimming now only goes below 0% brightness; older versions allowed it at any brightness.
         if brightness > 0 { extraDim = 0 }
     }

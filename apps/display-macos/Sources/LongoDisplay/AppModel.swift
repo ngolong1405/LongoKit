@@ -218,7 +218,7 @@ final class AppModel: ObservableObject {
     func setSyncRange(_ minimum: Double, _ maximum: Double, for display: Display) {
         settings[display.key, default: DisplaySettings()].minimum = min(minimum, maximum)
         settings[display.key, default: DisplaySettings()].maximum = max(minimum, maximum)
-        guard mode == .sync, isEnabled, isOn(display), let builtinValue = builtin.map({ settings(for: $0).brightness }) else { return }
+        guard followsBuiltin(display), isEnabled, isOn(display), let builtinValue = builtin.map({ settings(for: $0).brightness }) else { return }
         let value = settings(for: display)
         setBrightness(SyncMath.map(builtin: builtinValue, minimum: value.minimum, maximum: value.maximum), for: display)
     }
@@ -261,14 +261,30 @@ final class AppModel: ObservableObject {
         } else if isOn(display) {
             engine?.apply(fresh, to: display)
         }
-        if mode == .sync, isEnabled, !display.isBuiltin, isOn(display), let builtin {
+        if followsBuiltin(display), isEnabled, isOn(display), let builtin {
             setBrightness(SyncMath.map(builtin: settings(for: builtin).brightness, minimum: fresh.minimum, maximum: fresh.maximum), for: display)
         }
     }
 
     /// Whether an external display's brightness is following the built-in one (Sync), so it can't be set by hand.
     func followsBuiltin(_ display: Display) -> Bool {
-        mode == .sync && !display.isBuiltin
+        mode == .sync && !display.isBuiltin && settings(for: display).syncs
+    }
+
+    /// The Sync switch on an external display's page: on, it follows the built-in display (turning Sync on if
+    /// it was off); off, it keeps its own brightness while the others stay in Sync.
+    func setSyncs(_ on: Bool, for display: Display) {
+        settings[display.key, default: DisplaySettings()].syncs = on
+        if on && mode != .sync {
+            mode = .sync
+        } else if on {
+            lastBuiltin = nil
+            followBuiltin()
+            if let builtin {
+                let value = settings(for: display)
+                setBrightness(SyncMath.map(builtin: settings(for: builtin).brightness, minimum: value.minimum, maximum: value.maximum), for: display)
+            }
+        }
     }
 
     /// The speaker volume shown for a DDC display: what it reported or was last set to, else halfway.
@@ -447,7 +463,7 @@ final class AppModel: ObservableObject {
             settings[builtin.key]?.brightness = builtinValue
         }
         guard mode == .sync, isEnabled else { return }
-        for display in externals where isOn(display) {
+        for display in externals where isOn(display) && settings(for: display).syncs {
             let value = settings(for: display)
             setBrightness(SyncMath.map(builtin: builtinValue, minimum: value.minimum, maximum: value.maximum), for: display)
         }

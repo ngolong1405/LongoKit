@@ -151,7 +151,7 @@ struct DisplayLevels: View {
     let columns: Bool
 
     var body: some View {
-        let locked = model.mode == .sync && !display.isBuiltin
+        let locked = model.followsBuiltin(display)
         let layout = columns ? AnyLayout(HStackLayout(alignment: .top, spacing: 24)) : AnyLayout(VStackLayout(spacing: 8))
         layout {
             BrightnessLevel(display: display)
@@ -485,9 +485,9 @@ private struct ScreenCard: View {
             VStack(spacing: 14) {
                 BrightnessLevel(display: display)
                     // In Sync an external display follows the built-in one, as in the menu.
-                    .disabled(model.mode == .sync && !display.isBuiltin)
-                    .opacity(model.mode == .sync && !display.isBuiltin ? 0.5 : 1)
-                    .help(model.mode == .sync && !display.isBuiltin ? L("Follows the built-in display in Sync mode") : "")
+                    .disabled(model.followsBuiltin(display))
+                    .opacity(model.followsBuiltin(display) ? 0.5 : 1)
+                    .help(model.followsBuiltin(display) ? L("Follows the built-in display in Sync mode") : "")
                 if display.method == .ddc {
                     VolumeSlider(value: model.volume(for: display), help: L("Speaker volume")) { model.setVolume($0, for: display) }
                 } else if display.isBuiltin, let volume = model.systemVolume {
@@ -517,16 +517,13 @@ private struct SyncRangeCard: View {
         let value = model.settings(for: display)
         let builtinValue = model.builtin.map { model.settings(for: $0).brightness } ?? 0.5
         let mapped = SyncMath.map(builtin: builtinValue, minimum: value.minimum, maximum: value.maximum)
-        let syncing = model.mode == .sync
+        let syncing = model.followsBuiltin(display)
         VStack(alignment: .leading, spacing: 14) {
             CardHeader(symbol: "link", title: L("Sync with the MacBook"),
-                       subtitle: L("In Sync, this display follows the MacBook's brightness, within this range."),
+                       subtitle: L("This display follows the MacBook's brightness, moving within this range. The MacBook itself doesn't change."),
                        tint: Theme.violet) {
-                if syncing {
-                    Chip(L("On"), tone: .emerald, dot: true)
-                } else {
-                    Button(L("Use Sync")) { model.mode = .sync }.buttonStyle(.ghost)
-                }
+                DSSwitch(isOn: syncing) { model.setSyncs(!syncing, for: display) }
+                    .help(syncing ? L("Stop following the MacBook; set this display by hand") : L("Follow the MacBook's brightness"))
             }
             RangeSlider(low: value.minimum, high: value.maximum) { low, high in
                 model.setSyncRange(low, high, for: display)
@@ -542,9 +539,9 @@ private struct SyncRangeCard: View {
             }
             .font(.mono(11, .semibold))
             .foregroundStyle(Theme.textSecondary)
-            if !syncing {
-                Text(L("Used only in Sync mode")).font(.ui(11)).foregroundStyle(Theme.textFaint)
-            }
+            Text(L("MacBook at 0% puts this display at the lowest; at 100%, at the highest."))
+                .font(.ui(11)).foregroundStyle(Theme.textFaint)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .panel()
@@ -581,7 +578,9 @@ private struct RangeSlider: View {
                     let value = (f * 100).rounded() / 100
                     let lowSide = draggingLow ?? (abs(value - low) <= abs(value - high) && !(low == high && value > high))
                     draggingLow = lowSide
-                    if lowSide { set(min(value, high), high) } else { set(low, max(value, low)) }
+                    // Kept apart enough that the knobs don't sit on each other.
+                    let gap = 0.1
+                    if lowSide { set(max(min(value, high - gap), 0), high) } else { set(low, min(max(value, low + gap), 1)) }
                 }
                 .onEnded { _ in draggingLow = nil })
         }
