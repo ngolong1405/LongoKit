@@ -724,6 +724,7 @@ public struct CardHeader<Trailing: View>: View {
                     Text(title).font(.display(16, .semibold)).tracking(-0.2).foregroundStyle(Theme.text)
                     if let subtitle {
                         Text(subtitle).font(.ui(11)).foregroundStyle(Theme.textMuted)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 Spacer(minLength: 8)

@@ -287,16 +287,23 @@ private struct DisplayPage: View {
             }
             .buttonStyle(.plain)
 
-            PowerCard(display: display)
-            if display.hasDDC && model.isOn(display) {
-                ControlCard(display: display)
-            }
+            PageHeader(display: display)
 
             Group {
-            ScreenCard(display: display, value: value)
-            if !display.isBuiltin {
-                SyncRangeCard(display: display)
-            }
+                ScreenCard(display: display, value: value)
+                HStack(alignment: .top, spacing: 14) {
+                    if display.isBuiltin {
+                        SyncSourceCard()
+                    } else {
+                        if display.hasDDC {
+                            ControlCard(display: display)
+                        } else {
+                            SoftwareCard()
+                        }
+                        SyncRangeCard(display: display)
+                    }
+                }
+                .fixedSize(horizontal: false, vertical: true)
             }
             .disabled(!model.isOn(display))
             .opacity(model.isOn(display) ? 1 : 0.4)
@@ -310,6 +317,110 @@ private struct DisplayPage: View {
     }
 }
 
+/// The display's name and kind, with its power switch and how to get it back.
+private struct PageHeader: View {
+    @EnvironmentObject private var model: AppModel
+    let display: Display
+
+    var body: some View {
+        let on = model.isOn(display)
+        let locked = on && !model.canTurnOff(display)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 14) {
+                GlyphTile(tint: on ? Theme.violet : Theme.slate, size: 44) {
+                    Image(systemName: display.isBuiltin ? "laptopcomputer" : "display")
+                        .font(.system(size: 19, weight: .semibold))
+                        .foregroundStyle(on ? Theme.violet : Theme.textMuted)
+                }
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(model.displayName(display))
+                        .font(.display(20, .bold))
+                        .foregroundStyle(Theme.text)
+                        .lineLimit(1)
+                    HStack(spacing: 6) {
+                        if on {
+                            Chip(display.method.title, tone: display.method.tone, dot: true)
+                        } else {
+                            Chip(L("Off"))
+                        }
+                        if display.pixelSize != .zero { Chip(display.sizeLabel) }
+                    }
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 4) {
+                    DSSwitch(isOn: on) { model.setPower(display, on: !on) }
+                        .disabled(locked)
+                        .opacity(locked ? 0.4 : 1)
+                    Text(on ? L("On") : L("Off")).font(.mono(10, .semibold)).foregroundStyle(Theme.textFaint)
+                }
+                .help(L("Off works like unplugging it: windows move to your other displays."))
+            }
+            Text(locked ? L("The last display that's on can't be turned off")
+                 : L("Turning it off asks to keep it off; with no answer it comes back in %d seconds. ⌃⌥⌘B turns every display back on.", PowerConfirmation.seconds))
+                .font(.ui(11))
+                .foregroundStyle(Theme.textMuted)
+        }
+        .panel()
+    }
+}
+
+/// A monitor without DDC: what Software dimming means for it.
+private struct SoftwareCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            CardHeader(symbol: "circle.lefthalf.filled", title: L("Software dimming"),
+                       subtitle: L("This monitor doesn't take DDC, so its picture is darkened instead of its backlight."),
+                       tint: Theme.amber, divider: false) { EmptyView() }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .panel()
+    }
+}
+
+/// The built-in display drives Sync: every external display and the range it follows it in.
+private struct SyncSourceCard: View {
+    @EnvironmentObject private var model: AppModel
+
+    var body: some View {
+        let builtinValue = model.builtin.map { model.settings(for: $0).brightness } ?? 0
+        VStack(alignment: .leading, spacing: 12) {
+            CardHeader(symbol: "link", title: L("Drives Sync"),
+                       subtitle: L("In Sync, external displays follow this display's brightness, each within its own range."),
+                       tint: Theme.violet) {
+                if model.mode == .sync {
+                    Chip(L("On"), tone: .emerald, dot: true)
+                } else {
+                    Button(L("Use Sync")) { model.mode = .sync }.buttonStyle(.ghost)
+                }
+            }
+            if model.externals.isEmpty {
+                Text(L("Connect an external display to control its brightness."))
+                    .font(.ui(12)).foregroundStyle(Theme.textMuted)
+            }
+            ForEach(model.externals) { display in
+                let value = model.settings(for: display)
+                HStack(spacing: 10) {
+                    Image(systemName: "display").foregroundStyle(Theme.violetLight)
+                    Text(model.displayName(display)).font(.ui(12, .medium)).foregroundStyle(Theme.text)
+                    Spacer()
+                    Text("\(Int((value.minimum * 100).rounded()))–\(Int((value.maximum * 100).rounded()))%")
+                        .font(.mono(11)).foregroundStyle(Theme.textMuted)
+                    Image(systemName: "arrow.right").font(.system(size: 9, weight: .bold)).foregroundStyle(Theme.textFaint)
+                    Text("\(Int((SyncMath.map(builtin: builtinValue, minimum: value.minimum, maximum: value.maximum) * 100).rounded()))%")
+                        .font(.mono(11, .semibold)).foregroundStyle(Theme.solar)
+                        .frame(width: 40, alignment: .trailing)
+                    Button { model.openDisplayKey = display.key } label: {
+                        Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold))
+                    }
+                    .buttonStyle(.ghost)
+                    .help(L("Customize"))
+                }
+            }
+        }
+        .panel()
+    }
+}
+
 /// Hardware (DDC) or software dimming, for monitors that have DDC.
 private struct ControlCard: View {
     @EnvironmentObject private var model: AppModel
@@ -319,12 +430,11 @@ private struct ControlCard: View {
         VStack(alignment: .leading, spacing: 10) {
             CardHeader(symbol: "slider.horizontal.3", title: L("Brightness Control"),
                        subtitle: L("Hardware changes the monitor's backlight; Software darkens the picture."),
-                       tint: Theme.violet, divider: model.isDDCSilent(display)) {
-                Segmented(options: ControlChoice.allCases,
-                          selection: Binding(get: { model.settings(for: display).control },
-                                             set: { model.setControl(display, $0) }),
-                          title: \.title)
-            }
+                       tint: Theme.violet) { EmptyView() }
+            Segmented(options: ControlChoice.allCases,
+                      selection: Binding(get: { model.settings(for: display).control },
+                                         set: { model.setControl(display, $0) }),
+                      title: \.title, stretch: true)
             if model.isDDCSilent(display) {
                 Text(L("This monitor takes DDC commands but doesn't report its brightness back (common on a MacBook's HDMI port), so the app can't read where it starts. If moving the slider doesn't change it, choose Software."))
                     .font(.ui(11))
@@ -332,34 +442,11 @@ private struct ControlCard: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .panel()
     }
 }
 
-/// On / off for this display, with the way back spelled out.
-private struct PowerCard: View {
-    @EnvironmentObject private var model: AppModel
-    let display: Display
-
-    var body: some View {
-        let on = model.isOn(display)
-        let locked = on && !model.canTurnOff(display)
-        VStack(alignment: .leading, spacing: 10) {
-            CardHeader(symbol: "power", title: L("Display Power"),
-                       subtitle: L("Off works like unplugging it: windows move to your other displays."),
-                       tint: on ? Theme.emerald : Theme.slate) {
-                DSSwitch(isOn: on) { model.setPower(display, on: !on) }
-                    .disabled(locked)
-                    .opacity(locked ? 0.4 : 1)
-            }
-            Text(locked ? L("The last display that's on can't be turned off")
-                 : L("You'll be asked to keep it off; with no answer it turns back on in %d seconds. ⌃⌥⌘B turns every display back on at any time.", PowerConfirmation.seconds))
-                .font(.ui(11))
-                .foregroundStyle(Theme.textMuted)
-        }
-        .panel()
-    }
-}
 
 private struct ScreenCard: View {
     @EnvironmentObject private var model: AppModel
@@ -368,36 +455,27 @@ private struct ScreenCard: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 10) {
-                Text(model.displayName(display))
-                    .font(.display(24, .bold))
-                    .foregroundStyle(Theme.text)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                Chip(display.method.title, tone: display.method.tone, dot: true)
+            // The name and kind are in the page header; the screen holds the levels.
+            VStack(spacing: 14) {
                 BrightnessLevel(display: display)
                     // In Sync an external display follows the built-in one, as in the menu.
                     .disabled(model.mode == .sync && !display.isBuiltin)
                     .opacity(model.mode == .sync && !display.isBuiltin ? 0.5 : 1)
                     .help(model.mode == .sync && !display.isBuiltin ? L("Follows the built-in display in Sync mode") : "")
-                    .padding(.top, 6)
                 if display.method == .ddc {
                     VolumeSlider(value: model.volume(for: display), help: L("Speaker volume")) { model.setVolume($0, for: display) }
                 } else if display.isBuiltin, let volume = model.systemVolume {
                     VolumeSlider(value: volume, help: L("Mac volume")) { model.setSystemVolume($0) }
                 }
             }
-            .padding(20)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 26)
             .frame(maxWidth: .infinity)
             .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.well))
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.borderProminent, lineWidth: 6))
             // Stand
             Rectangle().fill(Theme.slate).frame(width: 60, height: 18)
             RoundedRectangle(cornerRadius: 3).fill(Theme.slate).frame(width: 130, height: 6)
-            Text(display.sizeLabel)
-                .font(.mono(11))
-                .foregroundStyle(Theme.textMuted)
-                .padding(.top, 10)
         }
         .frame(maxWidth: .infinity)
     }
@@ -433,14 +511,16 @@ private struct SyncRangeCard: View {
                 Image(systemName: "arrow.right").font(.system(size: 9, weight: .bold)).foregroundStyle(Theme.textFaint)
                 Image(systemName: "display").foregroundStyle(Theme.textMuted)
                 Text("\(model.displayName(display)) \(Int((mapped * 100).rounded()))%").foregroundStyle(Theme.solar)
-                Spacer()
-                if !syncing {
-                    Text(L("Used only in Sync mode")).foregroundStyle(Theme.textFaint)
-                }
+                    .lineLimit(1)
+                Spacer(minLength: 0)
             }
             .font(.mono(11, .semibold))
             .foregroundStyle(Theme.textSecondary)
+            if !syncing {
+                Text(L("Used only in Sync mode")).font(.ui(11)).foregroundStyle(Theme.textFaint)
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .panel()
     }
 }

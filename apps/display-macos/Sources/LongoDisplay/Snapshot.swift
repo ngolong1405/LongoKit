@@ -34,7 +34,7 @@ enum Snapshot {
         model.simulate(displays: [builtin, dell, tv], settings: ["builtin": builtinSettings, "dell": dellSettings, "tv": DisplaySettings()],
                        powerOff: ["tv": .disabled], silentDDC: ["dell"], systemVolume: 0.4)
 
-        let shots: [(String, MainTab, String?)] = [("1-general", .general, nil), ("2-displays", .displays, nil), ("3-display", .displays, "dell")]
+        let shots: [(String, MainTab, String?)] = [("1-general", .general, nil), ("2-displays", .displays, nil), ("3-display", .displays, "dell"), ("4-builtin", .displays, "builtin")]
         for (scheme, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", .aqua)] {
             NSApp.appearance = NSAppearance(named: appearance)
             for language in AppLanguage.allCases {

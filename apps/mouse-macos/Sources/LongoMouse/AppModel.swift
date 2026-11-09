@@ -53,6 +53,8 @@ final class AppModel: ObservableObject {
 
     @Published var tab: MainTab = .general {
         didSet {
+            // Coming back to Devices from another tab starts at the list, not the mouse open before.
+            if tab != oldValue { showingDeviceDetail = false }
             // With a single mouse there's nothing to pick, so the first visit goes straight to its settings.
             if tab == .devices, !didAutoOpenDevice, !showingDeviceDetail, connectedDevices.count == 1,
                let id = connectedDevices.first?.id {
@@ -63,8 +65,7 @@ final class AppModel: ObservableObject {
     }
     /// The mouse whose settings page is open; nil is the shared settings for all mice.
     @Published var editingDeviceID: String?
-    /// The Devices tab shows a mouse's settings page instead of the list. Kept while switching tabs,
-    /// so coming back lands on the mouse you were setting up.
+    /// The Devices tab shows a mouse's settings page instead of the list; switching tabs closes it.
     @Published var showingDeviceDetail = false
     @Published var deviceSection: DeviceSection = .buttons
     private var didAutoOpenDevice = false
@@ -568,8 +569,8 @@ final class AppModel: ObservableObject {
     }
 
     func configure(_ id: String?) {
-        open(id, section: .buttons)
         tab = .devices
+        open(id, section: .buttons)
     }
 
     /// Turning a separate profile on starts it from a copy of the global layout.

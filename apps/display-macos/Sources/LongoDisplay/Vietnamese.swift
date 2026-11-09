@@ -103,6 +103,14 @@ enum Vietnamese {
         "Up 5%": "Tăng 5%",
         "Mute": "Tắt tiếng",
         "Sync with the MacBook": "Đồng bộ với MacBook",
+        "Turning it off asks to keep it off; with no answer it comes back in %d seconds. ⌃⌥⌘B turns every display back on.":
+            "Khi tắt sẽ hỏi xác nhận; không trả lời thì màn tự bật lại sau %d giây. Nhấn ⌃⌥⌘B để bật lại mọi màn hình.",
+        "Software dimming": "Làm tối bằng phần mềm",
+        "This monitor doesn't take DDC, so its picture is darkened instead of its backlight.":
+            "Màn này không nhận DDC, nên app làm tối hình ảnh thay vì giảm đèn nền.",
+        "Drives Sync": "Gốc của chế độ Đồng bộ",
+        "In Sync, external displays follow this display's brightness, each within its own range.":
+            "Ở chế độ Đồng bộ, các màn ngoài đổi độ sáng theo màn này, mỗi màn trong khoảng riêng của nó.",
         "In Sync, this display follows the MacBook's brightness, within this range.":
             "Ở chế độ Đồng bộ, màn này đổi độ sáng theo MacBook, trong khoảng này.",
         "Use Sync": "Bật Đồng bộ",

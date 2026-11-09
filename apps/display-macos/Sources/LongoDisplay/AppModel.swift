@@ -85,7 +85,10 @@ final class AppModel: ObservableObject {
     /// The Mac's output volume, for the built-in display's speaker slider; nil when the output has no volume.
     @Published private(set) var systemVolume: Double? = nil
 
-    @Published var tab: MainTab = .general
+    @Published var tab: MainTab = .general {
+        // Coming back to Displays from another tab starts at the list, not the display open before.
+        didSet { if tab != oldValue { openDisplayKey = nil } }
+    }
     /// The display whose page is open on the Displays tab.
     @Published var openDisplayKey: String?
 
