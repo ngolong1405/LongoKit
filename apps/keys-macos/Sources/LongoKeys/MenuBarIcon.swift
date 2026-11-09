@@ -13,6 +13,9 @@ enum MenuBarIcon {
         return image
     }()
 
+    /// While paused: faded, with a slash.
+    @MainActor static let paused = MenuBarPaused.image(from: image)
+
     /// Drawn on an 18-point grid.
     private struct Glyph: View {
         var body: some View {

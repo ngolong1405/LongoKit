@@ -24,6 +24,9 @@ enum Brand {
         return image
     }
 
+    /// While paused: the running mark, faded, with a slash, like the other LongoKit apps.
+    @MainActor static let pausedMenuBarImage = MenuBarPaused.image(from: menuBarImage(.running))
+
     @MainActor private static var menuBarCache: [MouseGlyph.State: NSImage] = [:]
 }
 

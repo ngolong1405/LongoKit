@@ -52,8 +52,12 @@ enum Snapshot {
         }
         let icon = HStack(spacing: 24) {
             ForEach([Color.white, Color(hex: 0x1E1E22)], id: \.self) { background in
-                Image(nsImage: MenuBarIcon.image).resizable().interpolation(.high)
-                    .frame(width: 144, height: 144).padding(16).background(background)
+                HStack(spacing: 16) {
+                    ForEach([MenuBarIcon.image, MenuBarIcon.paused], id: \.self) { icon in
+                        Image(nsImage: icon).resizable().interpolation(.high).frame(width: 144, height: 144)
+                    }
+                }
+                .padding(16).background(background)
             }
         }
         if let image = ImageRenderer(content: icon).nsImage, let tiff = image.tiffRepresentation,

@@ -29,7 +29,7 @@ struct LongoMouseApp: App {
         )) {
             MenuPopover().environmentObject(model)
         } label: {
-            Image(nsImage: Brand.menuBarImage(model.menuBarState))
+            Image(nsImage: model.isEnabled ? Brand.menuBarImage(model.menuBarState) : Brand.pausedMenuBarImage)
         }
         .menuBarExtraStyle(.window)
     }

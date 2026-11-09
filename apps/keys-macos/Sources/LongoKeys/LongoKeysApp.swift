@@ -31,7 +31,7 @@ struct LongoKeysApp: App {
         )) {
             MenuPopover().environmentObject(model)
         } label: {
-            Image(nsImage: MenuBarIcon.image)
+            Image(nsImage: model.isEnabled ? MenuBarIcon.image : MenuBarIcon.paused)
         }
         .menuBarExtraStyle(.window)
     }
