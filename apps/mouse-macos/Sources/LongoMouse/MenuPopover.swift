@@ -37,7 +37,7 @@ struct MenuPopover: View {
                 }
             }
             Spacer(minLength: 4)
-            ThemeSwitcher()
+            ThemeSwitcher(selection: $model.appearance)
             Button(action: model.toggleEnabled) {
                 Image(systemName: "power").font(.system(size: 12, weight: .bold))
                     .foregroundStyle(model.isRunning ? Color.white : Theme.textMuted)

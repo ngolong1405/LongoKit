@@ -41,15 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         if Snapshot.isRequested { MainActor.assumeIsolated { Snapshot.renderAndExit() } }
         if SelfTest.isRequested { MainActor.assumeIsolated { SelfTest.runAndExit() } }
-
-        // ⌘W would really close the SwiftUI window, and with it the app; hide it instead, like the red button.
-        closeShortcutMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-            guard mods == .command, event.charactersIgnoringModifiers == "w",
-                  let window = MainWindowRef.window, event.window === window else { return event }
-            MainWindowRef.hide()
-            return nil
-        }
+        closeShortcutMonitor = MainWindowRef.interceptCloseShortcut()
     }
 
     /// Only Quit ends the app; closing the window leaves it running in the menu bar.
