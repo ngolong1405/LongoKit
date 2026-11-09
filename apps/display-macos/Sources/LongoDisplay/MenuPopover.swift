@@ -34,7 +34,7 @@ struct MenuPopover: View {
                 Text(L("All")).font(.mono(10, .semibold)).foregroundStyle(Theme.textFaint)
                 ForEach(presets, id: \.self) { value in
                     Button { model.applyPreset(value) } label: {
-                        Text("\(Int(value * 100))")
+                        Text("\(Int(value * 100))%")
                             .font(.mono(11, .semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 5)
@@ -82,22 +82,17 @@ private struct DisplaySliderRow: View {
                     Chip(L("Off"))
                 }
                 Spacer()
-                if on {
-                    Text("\(Int((value * 100).rounded()))%").font(.mono(11, .semibold)).foregroundStyle(Theme.solar)
-                }
                 PowerButton(display: display)
             }
-            if on && model.isDDCSilent(display) {
-                Text(L("Not answering DDC: if its brightness doesn't change, use Software dimming on its page."))
-                    .font(.ui(10))
-                    .foregroundStyle(Theme.amber)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
             if on {
-                DSSlider(value: Binding(get: { value }, set: { model.setBrightness($0, for: display) }), range: 0...1, step: 0.01)
+                LevelSlider(symbol: "sun.max.fill", value: value) { model.setBrightness($0, for: display) }
                     .disabled(model.mode == .sync && !display.isBuiltin)
                     .opacity(model.mode == .sync && !display.isBuiltin ? 0.5 : 1)
-                    .help(model.mode == .sync && !display.isBuiltin ? L("Follows the built-in display in Sync mode") : "")
+                    .help(model.mode == .sync && !display.isBuiltin ? L("Follows the built-in display in Sync mode") : L("Brightness"))
+                if display.method == .ddc {
+                    LevelSlider(symbol: "speaker.wave.2.fill", value: model.volume(for: display)) { model.setVolume($0, for: display) }
+                        .help(L("Speaker volume"))
+                }
             }
         }
     }

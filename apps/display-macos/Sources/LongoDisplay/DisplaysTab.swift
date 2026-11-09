@@ -26,7 +26,6 @@ extension Display {
 extension ControlChoice {
     var title: String {
         switch self {
-        case .auto: return L("Auto")
         case .hardware: return L("Hardware (DDC)")
         case .software: return L("Software")
         }
@@ -107,16 +106,11 @@ private struct DisplayRow: View {
                     }
                 }
                 Text(!model.isOn(display) ? L("Turned off: windows moved to your other displays")
-                     : display.sizeLabel + " · " + (model.isDDCSilent(display) ? L("Not answering DDC") : display.method.detail))
+                     : display.sizeLabel + " · " + display.method.detail)
                     .font(.ui(11))
                     .foregroundStyle(Theme.textMuted)
             }
             Spacer()
-            if model.isOn(display) {
-                Text("\(Int((model.settings(for: display).brightness * 100).rounded()))%")
-                    .font(.mono(12, .semibold))
-                    .foregroundStyle(Theme.solar)
-            }
             PowerButton(display: display)
             Button { model.openDisplayKey = display.key } label: {
                 HStack(spacing: 4) {
@@ -141,17 +135,38 @@ private struct QuickBrightness: View {
 
     var body: some View {
         let locked = model.mode == .sync && !display.isBuiltin
-        HStack(spacing: 10) {
-            Image(systemName: "sun.min").font(.system(size: 11)).foregroundStyle(Theme.textMuted)
-            DSSlider(value: Binding(get: { model.settings(for: display).brightness },
-                                    set: { model.setBrightness($0, for: display) }),
-                     range: 0...1, step: 0.01)
-            Image(systemName: "sun.max.fill").font(.system(size: 11)).foregroundStyle(Theme.solar)
+        HStack(spacing: 24) {
+            LevelSlider(symbol: "sun.max.fill", value: model.settings(for: display).brightness) { model.setBrightness($0, for: display) }
+                .disabled(locked)
+                .opacity(locked ? 0.5 : 1)
+                .help(locked ? L("Follows the built-in display in Sync mode") : L("Brightness"))
+            if display.method == .ddc {
+                LevelSlider(symbol: "speaker.wave.2.fill", value: model.volume(for: display)) { model.setVolume($0, for: display) }
+                    .help(L("Speaker volume"))
+            }
         }
-        .disabled(locked)
-        .opacity(locked ? 0.5 : 1)
         .padding(.leading, 50)
-        .help(locked ? L("Follows the built-in display in Sync mode") : "")
+    }
+}
+
+/// A 0…1 level with its icon in front and the percentage after: brightness, volume.
+struct LevelSlider: View {
+    let symbol: String
+    let value: Double
+    let set: (Double) -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: symbol)
+                .font(.system(size: 11))
+                .foregroundStyle(Theme.solar)
+                .frame(width: 16)
+            DSSlider(value: Binding(get: { value }, set: set), range: 0...1, step: 0.01)
+            Text("\(Int((value * 100).rounded()))%")
+                .font(.mono(11, .semibold))
+                .foregroundStyle(Theme.solar)
+                .frame(width: 36, alignment: .trailing)
+        }
     }
 }
 
@@ -234,13 +249,8 @@ private struct ControlCard: View {
                                              set: { model.setControl(display, $0) }),
                           title: \.title)
             }
-            if model.fellBackToSoftware(display) {
-                Text(L("This monitor isn't answering DDC (MacBook HDMI ports often don't pass it on), so it's dimmed in software. Plug it into a USB-C port, or turn on DDC/CI in its menu, to change the backlight itself."))
-                    .font(.ui(11))
-                    .foregroundStyle(Theme.amber)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else if model.isDDCSilent(display) {
-                Text(L("This monitor isn't answering DDC. MacBook HDMI ports often don't pass it on: plug it into a USB-C port, turn on DDC/CI in the monitor's menu, or use Software."))
+            if model.isDDCSilent(display) {
+                Text(L("This monitor takes DDC commands but doesn't report its brightness back (common on a MacBook's HDMI port), so the app can't read where it starts. If moving the slider doesn't change it, choose Software."))
                     .font(.ui(11))
                     .foregroundStyle(Theme.amber)
                     .fixedSize(horizontal: false, vertical: true)

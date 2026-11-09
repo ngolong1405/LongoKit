@@ -27,8 +27,8 @@ struct Display: Identifiable, Equatable {
 
 /// How a monitor with DDC gets its brightness changed.
 enum ControlChoice: String, Codable, CaseIterable {
-    /// DDC when the monitor answers it, software dimming when it doesn't.
-    case auto
+    /// DDC. Some monitors take DDC commands without answering questions (a MacBook's HDMI port), so a monitor
+    /// that doesn't answer still gets them, as Lunar does.
     case hardware
     case software
 }
@@ -42,7 +42,9 @@ struct DisplaySettings: Codable, Equatable {
     /// Extra software dimming on top of the hardware brightness, 0…0.8.
     var extraDim = 0.0
     /// DDC or software dimming, for monitors with DDC (some ports, like a MacBook's HDMI, don't pass DDC on).
-    var control = ControlChoice.auto
+    var control = ControlChoice.hardware
+    /// Speaker volume over DDC, 0…1; nil until read from the monitor or set, so it's never changed by itself.
+    var volume: Double?
 
     init() {}
 
@@ -54,6 +56,7 @@ struct DisplaySettings: Codable, Equatable {
         maximum = try c.decodeIfPresent(Double.self, forKey: .maximum) ?? d.maximum
         extraDim = try c.decodeIfPresent(Double.self, forKey: .extraDim) ?? d.extraDim
         control = (try? c.decodeIfPresent(ControlChoice.self, forKey: .control)) ?? d.control
+        volume = try c.decodeIfPresent(Double.self, forKey: .volume)
     }
 }
 
@@ -117,6 +120,8 @@ final class DisplayEngine {
     private(set) var displays: [Display] = []
     private var channels: [CGDirectDisplayID: DDCChannel] = [:]
     private var writers: [CGDirectDisplayID: Coalescer<UInt16>] = [:]
+    private var volumeWriters: [CGDirectDisplayID: Coalescer<UInt16>] = [:]
+    private var volumeMaximum: [CGDirectDisplayID: UInt16] = [:]
     /// Each DDC display's maximum brightness value, read once (most monitors use 100).
     private var ddcMaximum: [CGDirectDisplayID: UInt16] = [:]
     private var dimmed: [CGDirectDisplayID: Double] = [:]
@@ -129,6 +134,8 @@ final class DisplayEngine {
     var onChange: (() -> Void)?
     /// A DDC display's current brightness (0…1), once read from the monitor.
     var onDDCBrightness: ((CGDirectDisplayID, Double) -> Void)?
+    /// A DDC display's speaker volume (0…1), once read from the monitor.
+    var onDDCVolume: ((CGDirectDisplayID, Double) -> Void)?
 
     init() {
         CGDisplayRegisterReconfigurationCallback({ _, flags, context in
@@ -164,12 +171,18 @@ final class DisplayEngine {
         writers = channels.mapValues { channel in
             Coalescer<UInt16>(label: "ddc") { value in channel.write(.brightness, value) }
         }
+        volumeWriters = channels.mapValues { channel in
+            Coalescer<UInt16>(label: "ddc-volume") { value in channel.write(.volume, value) }
+        }
         for (id, channel) in channels where ddcMaximum[id] == nil {
             DispatchQueue.global(qos: .utility).async { [weak self] in
                 let reading = channel.read(.brightness)
+                let volume = reading == nil ? nil : channel.read(.volume)
                 DispatchQueue.main.async {
                     guard let self else { return }
                     self.ddcMaximum[id] = reading?.max ?? 100
+                    self.volumeMaximum[id] = volume?.max ?? 100
+                    if let volume { self.onDDCVolume?(id, Double(volume.current) / Double(volume.max)) }
                     if let reading {
                         self.onDDCBrightness?(id, Double(reading.current) / Double(reading.max))
                     } else {
@@ -245,6 +258,12 @@ final class DisplayEngine {
         case .software:
             setGamma(display.id, (Gamma.floor + (1 - Gamma.floor) * settings.brightness) * (1 - settings.extraDim))
         }
+    }
+
+    /// Sets a DDC display's speaker volume (0…1).
+    func setVolume(_ value: Double, for display: Display) {
+        let top = Double(volumeMaximum[display.id] ?? 100)
+        volumeWriters[display.id]?.submit(UInt16((min(max(value, 0), 1) * top).rounded()))
     }
 
     func builtinBrightness() -> Double? {

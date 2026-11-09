@@ -141,7 +141,11 @@ final class AppModel: ObservableObject {
         engine.onDDCSilent = { [weak self] id in
             guard let self, let display = self.displays.first(where: { $0.id == id }) else { return }
             self.silentDDC.insert(display.key)
-            if self.settings(for: display).control == .auto { self.switchedControl() }
+        }
+        engine.onDDCVolume = { [weak self] id, value in
+            guard let self, let display = self.displays.first(where: { $0.id == id }),
+                  self.settings(for: display).volume == nil else { return }
+            self.settings[display.key, default: DisplaySettings()].volume = value
         }
         reloadDisplays()
 
@@ -196,7 +200,17 @@ final class AppModel: ObservableObject {
         if isOn(display) { engine?.apply(DisplaySettings(), to: display) }
     }
 
-    /// Auto, hardware (DDC) or software dimming for a monitor that has DDC.
+    /// The speaker volume shown for a DDC display: what it reported or was last set to, else halfway.
+    func volume(for display: Display) -> Double {
+        settings(for: display).volume ?? 0.5
+    }
+
+    func setVolume(_ value: Double, for display: Display) {
+        settings[display.key, default: DisplaySettings()].volume = value
+        engine?.setVolume(value, for: display)
+    }
+
+    /// Hardware (DDC) or software dimming for a monitor that has DDC.
     func setControl(_ display: Display, _ choice: ControlChoice) {
         guard settings(for: display).control != choice else { return }
         settings[display.key, default: DisplaySettings()].control = choice
@@ -210,14 +224,9 @@ final class AppModel: ObservableObject {
         for shown in displays where isOn(shown) && shown.isActive { engine?.apply(settings(for: shown), to: shown) }
     }
 
-    /// Forced to DDC although the monitor doesn't answer it.
+    /// Controlled over DDC, but the monitor doesn't report its values back.
     func isDDCSilent(_ display: Display) -> Bool {
         display.method == .ddc && silentDDC.contains(display.key)
-    }
-
-    /// Auto picked software dimming because the monitor doesn't answer DDC.
-    func fellBackToSoftware(_ display: Display) -> Bool {
-        display.hasDDC && settings(for: display).control == .auto && silentDDC.contains(display.key)
     }
 
     // MARK: - Power
@@ -282,9 +291,7 @@ final class AppModel: ObservableObject {
 
     private func reloadDisplays() {
         guard let engine else { return }
-        engine.softwareOnly = Set(settings.filter { key, value in
-            value.control == .software || (value.control == .auto && silentDDC.contains(key))
-        }.keys)
+        engine.softwareOnly = Set(settings.filter { $0.value.control == .software }.keys)
         engine.refresh()
         displays = engine.displays
         // Blacked-out displays stay black (reconnecting resets their gamma). Turned-off ones are never forgotten
