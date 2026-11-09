@@ -89,16 +89,23 @@ private struct DisplayRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     Text(model.displayName(display)).font(.display(14, .semibold)).foregroundStyle(Theme.text)
-                    Chip(display.method.title, tone: display.method.tone)
+                    if model.isOn(display) {
+                        Chip(display.method.title, tone: display.method.tone)
+                    } else {
+                        Chip(L("Off"))
+                    }
                 }
-                Text(display.sizeLabel + " · " + display.method.detail)
+                Text(model.isOn(display) ? display.sizeLabel + " · " + display.method.detail : L("Turned off: windows moved to your other displays"))
                     .font(.ui(11))
                     .foregroundStyle(Theme.textMuted)
             }
             Spacer()
-            Text("\(Int((model.settings(for: display).brightness * 100).rounded()))%")
-                .font(.mono(12, .semibold))
-                .foregroundStyle(Theme.solar)
+            if model.isOn(display) {
+                Text("\(Int((model.settings(for: display).brightness * 100).rounded()))%")
+                    .font(.mono(12, .semibold))
+                    .foregroundStyle(Theme.solar)
+            }
+            PowerButton(display: display)
             Button { model.openDisplayKey = display.key } label: {
                 HStack(spacing: 4) {
                     Text(L("Customize"))
@@ -131,6 +138,9 @@ private struct DisplayPage: View {
             }
             .buttonStyle(.plain)
 
+            PowerCard(display: display)
+
+            Group {
             HStack(alignment: .center, spacing: 20) {
                 LimitTile(title: L("Min brightness"), value: value.minimum) { new in
                     model.update(display) { $0.minimum = min(new, $0.maximum) }
@@ -156,6 +166,9 @@ private struct DisplayPage: View {
                          range: 0...0.8, step: 0.05)
             }
             .panel()
+            }
+            .disabled(!model.isOn(display))
+            .opacity(model.isOn(display) ? 1 : 0.4)
 
             HStack {
                 Spacer()
@@ -163,6 +176,31 @@ private struct DisplayPage: View {
                     .buttonStyle(.ghost)
             }
         }
+    }
+}
+
+/// On / off for this display, with the way back spelled out.
+private struct PowerCard: View {
+    @EnvironmentObject private var model: AppModel
+    let display: Display
+
+    var body: some View {
+        let on = model.isOn(display)
+        let locked = on && !model.canTurnOff(display)
+        VStack(alignment: .leading, spacing: 10) {
+            CardHeader(symbol: "power", title: L("Display Power"),
+                       subtitle: L("Off works like unplugging it: windows move to your other displays."),
+                       tint: on ? Theme.emerald : Theme.slate) {
+                DSSwitch(isOn: on) { model.setPower(display, on: !on) }
+                    .disabled(locked)
+                    .opacity(locked ? 0.4 : 1)
+            }
+            Text(locked ? L("The last display that's on can't be turned off")
+                 : L("You'll be asked to keep it off; with no answer it turns back on in %d seconds. ⌃⌥⌘B turns every display back on at any time.", PowerConfirmation.seconds))
+                .font(.ui(11))
+                .foregroundStyle(Theme.textMuted)
+        }
+        .panel()
     }
 }
 

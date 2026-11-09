@@ -27,6 +27,14 @@ enum BrightnessMode: String, CaseIterable, Codable {
     }
 }
 
+/// How a display that's turned off is off.
+enum PowerOff: String, Codable {
+    /// Disabled in macOS, as if unplugged.
+    case disabled
+    /// macOS refused: the picture is made black instead.
+    case blackout
+}
+
 @MainActor
 final class AppModel: ObservableObject {
     @Published private(set) var displays: [Display] = []
@@ -38,6 +46,10 @@ final class AppModel: ObservableObject {
             defaults.set(mode.rawValue, forKey: Keys.mode)
             if mode == .sync { lastBuiltin = nil; followBuiltin() }
         }
+    }
+    /// Displays turned off by key. Saved before each change, so a crash can't leave a display off.
+    @Published private(set) var powerOff: [String: PowerOff] {
+        didSet { save(powerOff, forKey: Keys.powerOff) }
     }
     @Published var keysEnabled: Bool {
         didSet {
@@ -74,6 +86,7 @@ final class AppModel: ObservableObject {
     private let defaults: UserDefaults
     private let engine: DisplayEngine?
     private let keys = BrightnessKeys()
+    private var emergencyKey: EmergencyHotKey?
     private var syncTimer: Timer?
     private var permissionTimer: Timer?
     private var lastBuiltin: Double?
@@ -87,6 +100,7 @@ final class AppModel: ObservableObject {
         static let language = "language"
         static let appearance = "appearance"
         static let menuBarIcon = "showMenuBarIcon"
+        static let powerOff = "displaysTurnedOff"
     }
 
     /// `live: false` for snapshots and the self-test: no display access, no event tap.
@@ -94,6 +108,7 @@ final class AppModel: ObservableObject {
         self.defaults = defaults
         engine = live ? DisplayEngine() : nil
         settings = (defaults.data(forKey: Keys.settings)).flatMap { try? JSONDecoder().decode([String: DisplaySettings].self, from: $0) } ?? [:]
+        powerOff = (defaults.data(forKey: Keys.powerOff)).flatMap { try? JSONDecoder().decode([String: PowerOff].self, from: $0) } ?? [:]
         mode = defaults.string(forKey: Keys.mode).flatMap(BrightnessMode.init(rawValue:)) ?? .manual
         keysEnabled = defaults.object(forKey: Keys.keys) as? Bool ?? true
         language = defaults.string(forKey: Keys.language).flatMap(AppLanguage.init(rawValue:)) ?? .systemDefault
@@ -104,6 +119,14 @@ final class AppModel: ObservableObject {
         Localizer.language = language
         applyAppearance()
         guard let engine else { return }
+
+        // Displays left off by a previous run come back on first (macOS normally does this itself when the
+        // app ends, see DisplayPower).
+        if !powerOff.isEmpty, engine.turnOn(keys: Set(powerOff.keys)) { powerOff = [:] }
+        engine.turnedOff = Set(powerOff.keys)
+        emergencyKey = EmergencyHotKey { [weak self] in
+            MainActor.assumeIsolated { self?.turnAllOn() }
+        }
 
         engine.onChange = { [weak self] in self?.reloadDisplays() }
         engine.onDDCBrightness = { [weak self] id, value in
@@ -131,6 +154,8 @@ final class AppModel: ObservableObject {
     var builtin: Display? { displays.first(where: \.isBuiltin) }
     var externals: [Display] { displays.filter { !$0.isBuiltin } }
 
+    func isOn(_ display: Display) -> Bool { powerOff[display.key] == nil }
+
     func settings(for display: Display) -> DisplaySettings {
         settings[display.key] ?? DisplaySettings()
     }
@@ -149,23 +174,88 @@ final class AppModel: ObservableObject {
         var value = settings(for: display)
         change(&value)
         settings[display.key] = value
-        engine?.apply(value, to: display)
+        if isOn(display) { engine?.apply(value, to: display) }
     }
 
     /// Presets set every display at once.
     func applyPreset(_ value: Double) {
-        for display in displays { setBrightness(value, for: display) }
+        for display in displays where isOn(display) { setBrightness(value, for: display) }
     }
 
     func resetDisplay(_ display: Display) {
         settings[display.key] = DisplaySettings()
-        engine?.apply(DisplaySettings(), to: display)
+        if isOn(display) { engine?.apply(DisplaySettings(), to: display) }
+    }
+
+    // MARK: - Power
+
+    /// Displays showing a picture.
+    var onCount: Int { displays.filter(isOn).count }
+
+    /// The last display that's on can't be turned off.
+    func canTurnOff(_ display: Display) -> Bool {
+        isOn(display) && onCount > 1
+    }
+
+    /// Turns a display off (asking to keep it off, and turning it back on by itself if nobody answers), or on.
+    func setPower(_ display: Display, on: Bool) {
+        on ? turnOn(display) : turnOff(display)
+    }
+
+    private func turnOff(_ display: Display) {
+        guard let engine, canTurnOff(display) else { return }
+        // Saved before macOS is asked, so a crash right after still turns it back on at the next launch.
+        powerOff[display.key] = .disabled
+        engine.turnedOff.insert(display.key)
+        if !engine.setActive(display, false) {
+            powerOff[display.key] = .blackout
+            engine.turnedOff.remove(display.key)
+            engine.setBlackout(display, true)
+        }
+        let blackout = powerOff[display.key] == .blackout
+        reloadDisplays()
+        // Ask on the next turn, once macOS has moved the windows off the display.
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            if !PowerConfirmation.keepOff(name: self.displayName(display), blackout: blackout) { self.turnOn(display) }
+        }
+    }
+
+    private func turnOn(_ display: Display) {
+        guard let engine, let state = powerOff[display.key] else { return }
+        switch state {
+        case .disabled:
+            // If macOS refuses, the display stays listed as off so it can be tried again (and quitting turns it on).
+            guard engine.turnOn(keys: [display.key]) else { return }
+        case .blackout:
+            engine.setBlackout(display, false)
+        }
+        engine.turnedOff.remove(display.key)
+        powerOff[display.key] = nil
+        reloadDisplays()
+        if let restored = displays.first(where: { $0.key == display.key && $0.isActive }) {
+            engine.apply(settings(for: restored), to: restored)
+        }
+    }
+
+    /// Every display this app turned off comes back on (⌃⌥⌘B, Quit, Restore Defaults).
+    func turnAllOn() {
+        for display in displays where !isOn(display) { turnOn(display) }
+        // Off displays that dropped out of the list (unplugged, or still settling) too.
+        guard let engine, !powerOff.isEmpty, engine.turnOn(keys: Set(powerOff.keys)) else { return }
+        engine.turnedOff.removeAll()
+        powerOff = [:]
     }
 
     private func reloadDisplays() {
         guard let engine else { return }
         engine.refresh()
         displays = engine.displays
+        // Blacked-out displays stay black (reconnecting resets their gamma). Turned-off ones are never forgotten
+        // here: only turning them on clears them, so one can't end up off with no way back from the app.
+        for (key, state) in powerOff where state == .blackout {
+            if let display = displays.first(where: { $0.key == key }) { engine.setBlackout(display, true) }
+        }
         for display in displays {
             if settings[display.key] == nil {
                 // A new display starts from what it shows now: macOS's value, the monitor's DDC reading
@@ -174,7 +264,7 @@ final class AppModel: ObservableObject {
                 initial.brightness = engine.currentBrightness(of: display) ?? 1
                 settings[display.key] = initial
                 freshDisplays.insert(display.key)
-            } else if display.method != .native, !freshDisplays.contains(display.key) {
+            } else if display.method != .native, display.isActive, isOn(display), !freshDisplays.contains(display.key) {
                 // Saved displays get their brightness back; natively controlled ones keep macOS's.
                 engine.apply(settings(for: display), to: display)
             }
@@ -191,7 +281,7 @@ final class AppModel: ObservableObject {
         lastBuiltin = builtinValue
         settings[builtin.key]?.brightness = builtinValue
         guard mode == .sync else { return }
-        for display in externals {
+        for display in externals where isOn(display) {
             let value = settings(for: display)
             setBrightness(SyncMath.map(builtin: builtinValue, minimum: value.minimum, maximum: value.maximum), for: display)
         }
@@ -245,6 +335,7 @@ final class AppModel: ObservableObject {
 
     /// Back to untouched displays: gamma restored, saved settings cleared.
     func restoreDefaults() {
+        turnAllOn()
         engine?.resetGamma()
         settings = [:]
         mode = .manual
@@ -253,14 +344,16 @@ final class AppModel: ObservableObject {
 
     /// Leaves the displays as macOS would have them.
     func prepareToQuit() {
+        turnAllOn()
         engine?.resetGamma()
     }
 
     // MARK: - Snapshot / self-test support
 
-    func simulate(displays: [Display], settings: [String: DisplaySettings]) {
+    func simulate(displays: [Display], settings: [String: DisplaySettings], powerOff: [String: PowerOff] = [:]) {
         self.displays = displays
         self.settings = settings
+        self.powerOff = powerOff
     }
 
     // MARK: - Helpers

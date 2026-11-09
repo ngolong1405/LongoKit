@@ -1,4 +1,5 @@
 import AppKit
+import CoreGraphics
 
 /// `LongoDisplay --selftest` checks the parts that don't need a monitor attached: DDC packets, Sync mapping,
 /// key steps, and write coalescing. Nothing is sent to any display.
@@ -46,6 +47,24 @@ enum SelfTest {
         // Saved settings from an older version still load.
         let old = try? JSONDecoder().decode(DisplaySettings.self, from: Data(#"{"brightness":0.4}"#.utf8))
         check("Old settings load with defaults", old?.brightness == 0.4 && old?.maximum == 1 && old?.extraDim == 0)
+
+        // Display power: the guards that keep a screen on. Nothing is turned off.
+        check("Display power API found in SkyLight", DisplayPower.isAvailable)
+        check("The only active display can't be turned off", DisplayPower.activeCount() != 1 || !DisplayPower.canTurnOff(CGMainDisplayID()))
+        let suite = "LongoDisplay.selftest"
+        UserDefaults().removePersistentDomain(forName: suite)
+        let model = AppModel(live: false, defaults: UserDefaults(suiteName: suite)!)
+        let screens = ["a", "b", "c"].enumerated().map { index, key in
+            Display(id: CGDirectDisplayID(index + 1), key: key, name: key, isBuiltin: index == 0, method: .software, pixelSize: .zero)
+        }
+        model.simulate(displays: screens, settings: [:], powerOff: ["c": .disabled])
+        check("With two displays on, either can be turned off", model.canTurnOff(screens[0]) && model.canTurnOff(screens[1]))
+        check("A display that's off can't be turned off again", !model.canTurnOff(screens[2]))
+        model.simulate(displays: screens, settings: [:], powerOff: ["b": .disabled, "c": .blackout])
+        check("The last display on can't be turned off", !model.canTurnOff(screens[0]))
+        let reloaded = AppModel(live: false, defaults: UserDefaults(suiteName: suite)!)
+        check("Turned-off displays are saved, to turn them back on after a crash", reloaded.powerOff == ["b": .disabled, "c": .blackout])
+        UserDefaults().removePersistentDomain(forName: suite)
 
         print(failures == 0 ? "\nALL PASSED" : "\n\(failures) FAILED")
         exit(failures == 0 ? 0 : 1)

@@ -63,20 +63,53 @@ private struct DisplaySliderRow: View {
 
     var body: some View {
         let value = model.settings(for: display).brightness
+        let on = model.isOn(display)
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 Image(systemName: display.isBuiltin ? "laptopcomputer" : "display")
                     .font(.system(size: 11))
-                    .foregroundStyle(Theme.violet)
-                Text(model.displayName(display)).font(.ui(12, .medium)).foregroundStyle(Theme.text).lineLimit(1)
-                Chip(display.method.title, tone: display.method.tone)
+                    .foregroundStyle(on ? Theme.violet : Theme.textFaint)
+                Text(model.displayName(display)).font(.ui(12, .medium)).foregroundStyle(on ? Theme.text : Theme.textMuted).lineLimit(1)
+                if on {
+                    Chip(display.method.title, tone: display.method.tone)
+                } else {
+                    Chip(L("Off"))
+                }
                 Spacer()
-                Text("\(Int((value * 100).rounded()))%").font(.mono(11, .semibold)).foregroundStyle(Theme.solar)
+                if on {
+                    Text("\(Int((value * 100).rounded()))%").font(.mono(11, .semibold)).foregroundStyle(Theme.solar)
+                }
+                PowerButton(display: display)
             }
-            DSSlider(value: Binding(get: { value }, set: { model.setBrightness($0, for: display) }), range: 0...1, step: 0.01)
-                .disabled(model.mode == .sync && !display.isBuiltin)
-                .opacity(model.mode == .sync && !display.isBuiltin ? 0.5 : 1)
+            if on {
+                DSSlider(value: Binding(get: { value }, set: { model.setBrightness($0, for: display) }), range: 0...1, step: 0.01)
+                    .disabled(model.mode == .sync && !display.isBuiltin)
+                    .opacity(model.mode == .sync && !display.isBuiltin ? 0.5 : 1)
+                    .help(model.mode == .sync && !display.isBuiltin ? L("Follows the built-in display in Sync mode") : "")
+            }
         }
-        .help(model.mode == .sync && !display.isBuiltin ? L("Follows the built-in display in Sync mode") : "")
+    }
+}
+
+/// Turns one display off or back on. The last display that's on can't be turned off.
+struct PowerButton: View {
+    @EnvironmentObject private var model: AppModel
+    let display: Display
+
+    var body: some View {
+        let on = model.isOn(display)
+        let locked = on && !model.canTurnOff(display)
+        Button { model.setPower(display, on: !on) } label: {
+            Image(systemName: "power")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(on ? Theme.emerald : Theme.textMuted)
+                .frame(width: 22, height: 22)
+                .background(Circle().fill(on ? Theme.emerald.opacity(0.14) : Theme.tint(0.06)))
+        }
+        .buttonStyle(.plain)
+        .disabled(locked)
+        .opacity(locked ? 0.4 : 1)
+        .help(locked ? L("The last display that's on can't be turned off")
+              : on ? L("Turn this display off") : L("Turn this display back on"))
     }
 }

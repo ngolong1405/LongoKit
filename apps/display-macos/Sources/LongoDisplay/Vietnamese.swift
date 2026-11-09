@@ -80,6 +80,25 @@ enum Vietnamese {
         "Preferences…": "Mở cài đặt…",
         "Follows the built-in display in Sync mode": "Theo màn hình MacBook ở chế độ Đồng bộ",
 
+        // Display power
+        "Off": "Tắt",
+        "Turn this display off": "Tắt màn hình này",
+        "Turn this display back on": "Bật lại màn hình này",
+        "The last display that's on can't be turned off": "Không thể tắt màn hình cuối cùng đang bật",
+        "Turned off: windows moved to your other displays": "Đã tắt: cửa sổ đã chuyển sang các màn hình khác",
+        "Display Power": "Bật / tắt màn hình",
+        "Off works like unplugging it: windows move to your other displays.":
+            "Tắt giống như rút dây: cửa sổ chuyển sang các màn hình còn lại.",
+        "You'll be asked to keep it off; with no answer it turns back on in %d seconds. ⌃⌥⌘B turns every display back on at any time.":
+            "Sau khi tắt sẽ có hỏi xác nhận; không trả lời thì màn tự bật lại sau %d giây. Nhấn ⌃⌥⌘B bất cứ lúc nào để bật lại mọi màn hình.",
+        "Keep %@ off?": "Giữ %@ ở trạng thái tắt?",
+        "macOS wouldn't turn it off, so its picture is black instead.":
+            "macOS không cho tắt màn này, nên hình ảnh được làm đen thay thế.",
+        "It turns back on in %d seconds unless you keep it off.": "Màn hình sẽ tự bật lại sau %d giây nếu bạn không chọn giữ tắt.",
+        "⌃⌥⌘B turns every display back on at any time.": "Nhấn ⌃⌥⌘B bất cứ lúc nào để bật lại mọi màn hình.",
+        "Keep Off": "Giữ tắt",
+        "Turn On Now": "Bật lại ngay",
+
         // About
         "Brightness for every display: external monitors over DDC/CI, software dimming for the rest, and Sync with your MacBook.":
             "Độ sáng cho mọi màn hình: màn ngoài qua DDC/CI, làm tối bằng phần mềm cho các màn còn lại, và đồng bộ với MacBook.",

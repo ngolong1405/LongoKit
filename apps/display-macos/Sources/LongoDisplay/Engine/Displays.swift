@@ -19,6 +19,8 @@ struct Display: Identifiable, Equatable {
     let isBuiltin: Bool
     var method: ControlMethod
     var pixelSize: CGSize
+    /// False while turned off (see `DisplayPower`): connected, but macOS shows nothing on it.
+    var isActive = true
 }
 
 /// What the user set for one display. Brightness, minimum and maximum are 0…1.
@@ -105,6 +107,8 @@ final class DisplayEngine {
     /// Each DDC display's maximum brightness value, read once (most monitors use 100).
     private var ddcMaximum: [CGDirectDisplayID: UInt16] = [:]
     private var dimmed: [CGDirectDisplayID: Double] = [:]
+    /// Displays the app turned off, by key: they stay listed so they can be turned back on.
+    var turnedOff: Set<String> = []
     var onChange: (() -> Void)?
     /// A DDC display's current brightness (0…1), once read from the monitor.
     var onDDCBrightness: ((CGDirectDisplayID, Double) -> Void)?
@@ -154,14 +158,47 @@ final class DisplayEngine {
             }
         }
 
-        displays = ids.map { id in
+        let previous = displays
+        var all = ids.map { id in
             let method: ControlMethod = DisplayServices.canChangeBrightness(id) ? .native
                 : channels[id] != nil ? .ddc : .software
             return Display(id: id, key: Self.key(for: id), name: Self.name(for: id),
                            isBuiltin: CGDisplayIsBuiltin(id) != 0, method: method,
                            pixelSize: CGSize(width: CGDisplayPixelsWide(id), height: CGDisplayPixelsHigh(id)))
         }
-        .sorted { ($0.isBuiltin ? 0 : 1, $0.name) < ($1.isBuiltin ? 0 : 1, $1.name) }
+        // A turned-off display has no screen any more, so it keeps the name and method it had.
+        for id in DisplayPower.inactiveOnline() {
+            let key = Self.key(for: id)
+            guard turnedOff.contains(key) else { continue }
+            let known = previous.first { $0.key == key }
+            all.append(Display(id: id, key: key, name: known?.name ?? Self.name(for: id), isBuiltin: CGDisplayIsBuiltin(id) != 0,
+                               method: known?.method ?? .software, pixelSize: known?.pixelSize ?? .zero, isActive: false))
+        }
+        displays = all.sorted { ($0.isBuiltin ? 0 : 1, $0.name) < ($1.isBuiltin ? 0 : 1, $1.name) }
+    }
+
+    /// Turns a display off as if unplugged, or back on. Returns whether macOS accepted it.
+    func setActive(_ display: Display, _ on: Bool) -> Bool {
+        DisplayPower.set(display.id, on: on)
+    }
+
+    /// Turns back on the displays with these keys that are connected but off. Nothing else is touched.
+    /// Returns whether none of them is still off.
+    @discardableResult
+    func turnOn(keys: Set<String>) -> Bool {
+        for id in DisplayPower.inactiveOnline() where keys.contains(Self.key(for: id)) {
+            // A display that's waking up can refuse once; ask again before giving up.
+            if !DisplayPower.set(id, on: true) {
+                usleep(300_000)
+                DisplayPower.set(id, on: true)
+            }
+        }
+        return !DisplayPower.inactiveOnline().contains { keys.contains(Self.key(for: $0)) }
+    }
+
+    /// The fallback when macOS won't turn a display off: a fully black picture. Gamma resets when the app quits.
+    func setBlackout(_ display: Display, _ on: Bool) {
+        setGamma(display.id, on ? 0 : 1)
     }
 
     /// Sets a display's brightness and extra dimming.
@@ -180,7 +217,7 @@ final class DisplayEngine {
     }
 
     func builtinBrightness() -> Double? {
-        guard let builtin = displays.first(where: \.isBuiltin) else { return nil }
+        guard let builtin = displays.first(where: { $0.isBuiltin && $0.isActive }) else { return nil }
         return DisplayServices.brightness(builtin.id)
     }
 

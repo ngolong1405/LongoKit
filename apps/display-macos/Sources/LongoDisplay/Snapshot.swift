@@ -27,7 +27,8 @@ enum Snapshot {
         dellSettings.brightness = 0.62
         dellSettings.minimum = 0.2
         dellSettings.maximum = 0.9
-        model.simulate(displays: [builtin, dell, tv], settings: ["builtin": DisplaySettings(), "dell": dellSettings, "tv": DisplaySettings()])
+        model.simulate(displays: [builtin, dell, tv], settings: ["builtin": DisplaySettings(), "dell": dellSettings, "tv": DisplaySettings()],
+                       powerOff: ["tv": .disabled])
 
         let shots: [(String, MainTab, String?)] = [("1-general", .general, nil), ("2-displays", .displays, nil), ("3-display", .displays, "dell")]
         for (scheme, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", .aqua)] {

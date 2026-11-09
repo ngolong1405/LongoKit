@@ -6,9 +6,9 @@ enum Gamma {
     /// Never go fully black, so the screen stays readable even at 0.
     static let floor = 0.08
 
-    /// 1 is untouched; lower is darker.
+    /// 1 is untouched; lower is darker, down to `floor`. Exactly 0 is a black screen (a display turned off).
     static func apply(_ display: CGDirectDisplayID, factor: Double) {
-        let value = Float(min(max(factor, floor), 1))
+        let value = factor == 0 ? 0 : Float(min(max(factor, floor), 1))
         CGSetDisplayTransferByFormula(display, 0, value, 1, 0, value, 1, 0, value, 1)
     }
 
