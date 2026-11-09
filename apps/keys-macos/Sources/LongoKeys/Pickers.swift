@@ -18,7 +18,7 @@ private struct PickerList<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        if Pickers.flattened { Color.clear.overlay(alignment: .top) { content() }.clipped() } else { PickerList { content() } }
+        if Pickers.flattened { Color.clear.overlay(alignment: .top) { content() }.clipped() } else { SlimScrollView(gutter: 18) { content() } }
     }
 }
 
