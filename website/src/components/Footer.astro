@@ -67,7 +67,12 @@ const t = pick(lang, {
     </div>
     <div class="flex flex-col items-center justify-between gap-space-md pt-space-lg font-code text-label-code text-on-surface-variant md:flex-row">
       <span>© {year} LongoKit · Crafted by <span class="text-primary">Long Ngô</span></span>
-      <a class="hover:text-primary" href={licenseURL}>{t.license}</a>
+      <span class="flex items-center gap-space-md">
+        <a class="flex items-center gap-1 hover:text-primary" href={repo}>
+          <span class="material-symbols-outlined text-[16px]">code</span>GitHub
+        </a>
+        <a class="hover:text-primary" href={licenseURL}>{t.license}</a>
+      </span>
     </div>
   </div>
 </footer>
