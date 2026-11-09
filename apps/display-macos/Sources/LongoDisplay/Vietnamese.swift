@@ -90,6 +90,9 @@ enum Vietnamese {
         "Hardware changes the monitor's backlight; Software darkens the picture.":
             "Phần cứng đổi đèn nền của màn; Phần mềm làm tối hình ảnh.",
         "Hardware (DDC)": "Phần cứng (DDC)",
+        "Auto": "Tự động",
+        "This monitor isn't answering DDC (MacBook HDMI ports often don't pass it on), so it's dimmed in software. Plug it into a USB-C port, or turn on DDC/CI in its menu, to change the backlight itself.":
+            "Màn này không trả lời DDC (cổng HDMI của MacBook thường không truyền DDC), nên đang được làm tối bằng phần mềm. Cắm qua cổng USB-C, hoặc bật DDC/CI trong menu của màn, để chỉnh đèn nền thật.",
         "This monitor isn't answering DDC. MacBook HDMI ports often don't pass it on: plug it into a USB-C port, turn on DDC/CI in the monitor's menu, or use Software.":
             "Màn này không trả lời DDC. Cổng HDMI của MacBook thường không truyền DDC: hãy cắm qua cổng USB-C, bật DDC/CI trong menu của màn, hoặc chọn Phần mềm.",
 

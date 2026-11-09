@@ -25,6 +25,14 @@ struct Display: Identifiable, Equatable {
     var isActive = true
 }
 
+/// How a monitor with DDC gets its brightness changed.
+enum ControlChoice: String, Codable, CaseIterable {
+    /// DDC when the monitor answers it, software dimming when it doesn't.
+    case auto
+    case hardware
+    case software
+}
+
 /// What the user set for one display. Brightness, minimum and maximum are 0…1.
 struct DisplaySettings: Codable, Equatable {
     var brightness = 0.7
@@ -33,8 +41,8 @@ struct DisplaySettings: Codable, Equatable {
     var maximum = 1.0
     /// Extra software dimming on top of the hardware brightness, 0…0.8.
     var extraDim = 0.0
-    /// Dim in software even though the monitor has DDC (some ports, like a MacBook's HDMI, don't pass it on).
-    var softwareOnly = false
+    /// DDC or software dimming, for monitors with DDC (some ports, like a MacBook's HDMI, don't pass DDC on).
+    var control = ControlChoice.auto
 
     init() {}
 
@@ -45,7 +53,7 @@ struct DisplaySettings: Codable, Equatable {
         minimum = try c.decodeIfPresent(Double.self, forKey: .minimum) ?? d.minimum
         maximum = try c.decodeIfPresent(Double.self, forKey: .maximum) ?? d.maximum
         extraDim = try c.decodeIfPresent(Double.self, forKey: .extraDim) ?? d.extraDim
-        softwareOnly = try c.decodeIfPresent(Bool.self, forKey: .softwareOnly) ?? d.softwareOnly
+        control = (try? c.decodeIfPresent(ControlChoice.self, forKey: .control)) ?? d.control
     }
 }
 

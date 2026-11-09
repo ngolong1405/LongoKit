@@ -141,6 +141,7 @@ final class AppModel: ObservableObject {
         engine.onDDCSilent = { [weak self] id in
             guard let self, let display = self.displays.first(where: { $0.id == id }) else { return }
             self.silentDDC.insert(display.key)
+            if self.settings(for: display).control == .auto { self.switchedControl() }
         }
         reloadDisplays()
 
@@ -195,17 +196,28 @@ final class AppModel: ObservableObject {
         if isOn(display) { engine?.apply(DisplaySettings(), to: display) }
     }
 
-    /// Hardware (DDC) or software dimming for a monitor that has DDC.
-    func setSoftwareOnly(_ display: Display, _ on: Bool) {
-        guard settings(for: display).softwareOnly != on else { return }
-        settings[display.key, default: DisplaySettings()].softwareOnly = on
+    /// Auto, hardware (DDC) or software dimming for a monitor that has DDC.
+    func setControl(_ display: Display, _ choice: ControlChoice) {
+        guard settings(for: display).control != choice else { return }
+        settings[display.key, default: DisplaySettings()].control = choice
+        switchedControl()
+    }
+
+    /// Re-picks each display's method and puts its brightness back with the new one.
+    private func switchedControl() {
         engine?.resetGamma()
         reloadDisplays()
         for shown in displays where isOn(shown) && shown.isActive { engine?.apply(settings(for: shown), to: shown) }
     }
 
+    /// Forced to DDC although the monitor doesn't answer it.
     func isDDCSilent(_ display: Display) -> Bool {
         display.method == .ddc && silentDDC.contains(display.key)
+    }
+
+    /// Auto picked software dimming because the monitor doesn't answer DDC.
+    func fellBackToSoftware(_ display: Display) -> Bool {
+        display.hasDDC && settings(for: display).control == .auto && silentDDC.contains(display.key)
     }
 
     // MARK: - Power
@@ -270,7 +282,9 @@ final class AppModel: ObservableObject {
 
     private func reloadDisplays() {
         guard let engine else { return }
-        engine.softwareOnly = Set(settings.filter(\.value.softwareOnly).keys)
+        engine.softwareOnly = Set(settings.filter { key, value in
+            value.control == .software || (value.control == .auto && silentDDC.contains(key))
+        }.keys)
         engine.refresh()
         displays = engine.displays
         // Blacked-out displays stay black (reconnecting resets their gamma). Turned-off ones are never forgotten

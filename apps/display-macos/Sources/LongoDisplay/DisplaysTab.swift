@@ -23,6 +23,16 @@ extension Display {
     var sizeLabel: String { "\(Int(pixelSize.width)) × \(Int(pixelSize.height))" }
 }
 
+extension ControlChoice {
+    var title: String {
+        switch self {
+        case .auto: return L("Auto")
+        case .hardware: return L("Hardware (DDC)")
+        case .software: return L("Software")
+        }
+    }
+}
+
 extension ControlMethod {
     var title: String {
         switch self {
@@ -193,12 +203,17 @@ private struct ControlCard: View {
             CardHeader(symbol: "slider.horizontal.3", title: L("Brightness Control"),
                        subtitle: L("Hardware changes the monitor's backlight; Software darkens the picture."),
                        tint: Theme.violet) {
-                Segmented(options: [false, true],
-                          selection: Binding(get: { model.settings(for: display).softwareOnly },
-                                             set: { model.setSoftwareOnly(display, $0) }),
-                          title: { $0 ? L("Software") : L("Hardware (DDC)") })
+                Segmented(options: ControlChoice.allCases,
+                          selection: Binding(get: { model.settings(for: display).control },
+                                             set: { model.setControl(display, $0) }),
+                          title: \.title)
             }
-            if model.isDDCSilent(display) {
+            if model.fellBackToSoftware(display) {
+                Text(L("This monitor isn't answering DDC (MacBook HDMI ports often don't pass it on), so it's dimmed in software. Plug it into a USB-C port, or turn on DDC/CI in its menu, to change the backlight itself."))
+                    .font(.ui(11))
+                    .foregroundStyle(Theme.amber)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if model.isDDCSilent(display) {
                 Text(L("This monitor isn't answering DDC. MacBook HDMI ports often don't pass it on: plug it into a USB-C port, turn on DDC/CI in the monitor's menu, or use Software."))
                     .font(.ui(11))
                     .foregroundStyle(Theme.amber)
@@ -253,6 +268,10 @@ private struct ScreenCard: View {
                     DSSlider(value: Binding(get: { value.brightness },
                                             set: { model.setBrightness($0, for: display) }),
                              range: 0...1, step: 0.01)
+                        // In Sync an external display follows the built-in one, as in the menu.
+                        .disabled(model.mode == .sync && !display.isBuiltin)
+                        .opacity(model.mode == .sync && !display.isBuiltin ? 0.5 : 1)
+                        .help(model.mode == .sync && !display.isBuiltin ? L("Follows the built-in display in Sync mode") : "")
                     Image(systemName: "sun.max.fill").foregroundStyle(Theme.solar)
                     Text("\(Int((value.brightness * 100).rounded()))")
                         .font(.mono(13, .semibold))
