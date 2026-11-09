@@ -1,0 +1,100 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Feature 02 · Hyper layer", title: "A Layer of Shortcuts Under Your Fingers",
+    lead: "Hold Caps Lock and the home row turns into a navigation layer, so your hands never leave the keys. Click any key in the app to choose what Hyper + that key does.",
+    points: [
+      "Ready out of the box: H J K L are arrows, U and O are Home and End, Space switches input source (English ↔ Vietnamese).",
+      "Any key can send a navigation key, open an app, send a shortcut you record, or switch input source.",
+      "Keys without an action send ⌃⌥⇧⌘ + the key: free for Raycast, Alfred or any app's own shortcuts.",
+    ],
+    sheet: "Default layer", picker: "Hyper + F", kinds: "What a key can do",
+    actions: [
+      ["arrow_forward", "A navigation key", "Arrows, Home, End, Page Up/Down, Delete, Esc, Return"],
+      ["apps", "Open an app", "Launches it, or brings it to the front"],
+      ["keyboard_command_key", "Record a shortcut", "Any combination, like ⌘⇧4"],
+      ["language", "Next input source", "Switch keyboard layout, e.g. to Vietnamese"],
+    ],
+    none: "No action", noneBody: "sends ⌃⌥⇧⌘ + F",
+    secure: "In password fields macOS turns on Secure Input and hides keys from apps like this one: Hyper waits until you leave the field. Remapped keys keep working there.",
+  },
+  vi: {
+    badge: "Chức năng 02 · Lớp Hyper", title: "Một Lớp Phím Tắt Ngay Dưới Ngón Tay",
+    lead: "Giữ Caps Lock là hàng phím cơ sở thành một lớp điều hướng, tay không phải rời bàn phím. Bấm vào phím bất kỳ trong app để chọn Hyper + phím đó làm gì.",
+    points: [
+      "Có sẵn ngay: H J K L là phím mũi tên, U và O là Home và End, Space đổi bộ gõ (English ↔ Tiếng Việt).",
+      "Phím nào cũng có thể gửi một phím điều hướng, mở app, gửi phím tắt bạn ghi lại, hoặc đổi bộ gõ.",
+      "Phím chưa gán sẽ gửi ⌃⌥⇧⌘ + phím đó: để dành cho Raycast, Alfred hay phím tắt riêng của mọi app.",
+    ],
+    sheet: "Lớp mặc định", picker: "Hyper + F", kinds: "Một phím có thể làm",
+    actions: [
+      ["arrow_forward", "Một phím điều hướng", "Mũi tên, Home, End, Page Up/Down, Delete, Esc, Return"],
+      ["apps", "Mở một app", "Mở app, hoặc đưa nó lên trước"],
+      ["keyboard_command_key", "Ghi một phím tắt", "Tổ hợp bất kỳ, như ⌘⇧4"],
+      ["language", "Đổi bộ gõ", "Đổi bố cục bàn phím, vd sang tiếng Việt"],
+    ],
+    none: "Không gán", noneBody: "gửi ⌃⌥⇧⌘ + F",
+    secure: "Trong ô mật khẩu, macOS bật Bảo mật nhập liệu và giấu phím khỏi các app như thế này: Hyper tạm ngưng tới khi bạn rời ô. Các phím đã đổi vẫn hoạt động ở đó.",
+  },
+});
+
+const sheet = [["H", "←"], ["J", "↓"], ["K", "↑"], ["L", "→"], ["U", "Home"], ["O", "End"], ["Space", "⇄"]];
+---
+
+<section id="layer" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <div class="flex flex-col gap-space-md">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-secondary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-secondary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.secure}</p>
+    </div>
+
+    <div class="flex flex-col gap-gutter">
+      <div class="rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+        <span class="mb-space-sm block font-code text-[10px] uppercase tracking-wider text-on-surface-variant">{t.sheet}</span>
+        <div class="flex flex-wrap gap-space-xs">
+          {sheet.map(([key, action]) => (
+            <div class="flex items-center gap-1.5 rounded-lg bg-surface-container px-2.5 py-1.5">
+              <span class="rounded bg-primary-container/15 px-1.5 font-code text-xs font-bold text-primary">{key}</span>
+              <span class="font-code text-xs text-on-surface">{action}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- The picker from the app, as it looks after clicking F in the Hyper tab. -->
+      <div class="rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+        <div class="mb-space-sm flex items-center gap-1.5">
+          <span class="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_#ff6b35]"></span>
+          <span class="font-code text-[10px] uppercase tracking-wider text-on-surface-variant">{t.kinds} · {t.picker}</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          {t.actions.map(([icon, name, body]) => (
+            <div class="flex items-center gap-space-sm rounded-lg px-2 py-2 transition-colors hover:bg-surface-container">
+              <span class="material-symbols-outlined text-[18px] text-secondary">{icon}</span>
+              <div class="flex flex-col">
+                <span class="text-body-md font-medium text-on-surface">{name}</span>
+                <span class="text-[11px] text-on-surface-variant">{body}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div class="mt-space-sm flex items-center justify-between rounded-xl bg-surface-container px-3 py-2">
+          <span class="flex items-center gap-space-xs text-body-md"><span class="material-symbols-outlined text-[16px] text-secondary">undo</span>{t.none}</span>
+          <span class="rounded bg-secondary/15 px-2 py-0.5 font-code text-[11px] text-secondary">{t.noneBody}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

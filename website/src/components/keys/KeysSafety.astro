@@ -1,0 +1,85 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Feature 05 · Safe by design", title: "You Can't Lock Yourself Out",
+    lead: "Changing keys is risky: one wrong remap and you can't type the fix. Longo Keys is built so that never sticks.",
+    cards: [
+      ["timer", "15 s", "Keep or undo", "After every change: \"Keep these keys?\". No answer, and your keys go back by themselves."],
+      ["shield", "Esc ⏎ ⌘ ⌃ ⌥ K", "Always reachable", "A change that leaves a keyboard without one of these is refused."],
+      ["pause_circle", "⌃⌥⌘K", "Pause anywhere", "Every keyboard back to normal in one shortcut, from any app."],
+      ["restart_alt", "Quit", "Nothing left behind", "Quitting puts every keyboard back. After a crash, the next launch cleans up first."],
+    ],
+    tester: "Try your keys", testerBody: "A key tester lights up a virtual keyboard with what apps really receive, after remaps and Hyper, top-row keys included.",
+    permTitle: "Permissions, honestly",
+    perms: [
+      ["Remapping keys, Caps Lock → Esc / Control", "None"],
+      ["Hyper and the Hyper layer", "Accessibility"],
+      ["Typing chip (which keyboard you're on)", "Input Monitoring, optional"],
+    ],
+    local: "Everything stays on your Mac: no account, no network, no telemetry. Source available on GitHub.",
+  },
+  vi: {
+    badge: "Chức năng 05 · An toàn từ thiết kế", title: "Không Bao Giờ Tự Khoá Mình",
+    lead: "Đổi phím rất dễ hỏng: đổi sai một phím là không gõ được để sửa. Longo Keys được làm để điều đó không bao giờ dính lại.",
+    cards: [
+      ["timer", "15 giây", "Giữ hoặc hoàn tác", "Sau mỗi thay đổi: \"Giữ các phím này?\". Không trả lời thì phím tự về như cũ."],
+      ["shield", "Esc ⏎ ⌘ ⌃ ⌥ K", "Luôn gõ được", "Thay đổi nào làm một bàn phím mất một trong các phím này sẽ bị từ chối."],
+      ["pause_circle", "⌃⌥⌘K", "Tạm dừng mọi lúc", "Mọi bàn phím về bình thường bằng một phím tắt, từ bất kỳ app nào."],
+      ["restart_alt", "Thoát", "Không để lại gì", "Thoát app là mọi bàn phím về như cũ. Nếu app bị crash, lần mở sau dọn dẹp trước."],
+    ],
+    tester: "Thử phím", testerBody: "Trình thử phím sáng lên trên bàn phím ảo đúng phím mà app nhận được, sau khi đổi phím và Hyper, kể cả hàng phím F.",
+    permTitle: "Quyền cần cấp, nói thật",
+    perms: [
+      ["Đổi phím, Caps Lock → Esc / Control", "Không cần"],
+      ["Hyper và lớp Hyper", "Trợ năng"],
+      ["Chip Đang gõ (bàn phím đang dùng)", "Theo dõi đầu vào, tuỳ chọn"],
+    ],
+    local: "Mọi thứ ở trên máy bạn: không tài khoản, không mạng, không telemetry. Mã nguồn có trên GitHub.",
+  },
+});
+---
+
+<section id="safety" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto mb-space-xl max-w-2xl text-center">
+    <span class="inline-flex rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-primary">{t.badge}</span>
+    <h2 class="mt-space-sm text-headline-xl tracking-tight">{t.title}</h2>
+    <p class="mt-space-xs text-body-lg text-on-surface-variant">{t.lead}</p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-gutter sm:grid-cols-2 lg:grid-cols-4">
+    {t.cards.map(([icon, value, title, body]) => (
+      <div class="flex flex-col gap-space-xs rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+        <span class="material-symbols-outlined flex h-11 w-11 items-center justify-center rounded-xl bg-primary-container/15 text-[24px] text-primary">{icon}</span>
+        <span class="mt-space-xs font-display text-headline-sm text-on-surface">{value}</span>
+        <span class="font-code text-xs text-primary">{title}</span>
+        <p class="text-body-md text-on-surface-variant">{body}</p>
+      </div>
+    ))}
+  </div>
+
+  <div class="mt-gutter grid grid-cols-1 items-start gap-gutter lg:grid-cols-2">
+    <div class="flex flex-col gap-space-xs rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+      <span class="flex items-center gap-space-xs font-display text-headline-sm"><span class="material-symbols-outlined text-[22px] text-secondary">hearing</span>{t.tester}</span>
+      <p class="text-body-md text-on-surface-variant">{t.testerBody}</p>
+    </div>
+    <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+      <span class="flex items-center gap-space-xs font-display text-headline-sm"><span class="material-symbols-outlined text-[22px] text-tertiary">lock</span>{t.permTitle}</span>
+      <div class="flex flex-col divide-y divide-outline-variant/20">
+        {t.perms.map(([what, need]) => (
+          <div class="flex items-center justify-between gap-space-sm py-1.5 text-body-md">
+            <span class="text-on-surface-variant">{what}</span>
+            <span class="shrink-0 font-code text-xs text-tertiary">{need}</span>
+          </div>
+        ))}
+      </div>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.local}</p>
+    </div>
+  </div>
+</section>

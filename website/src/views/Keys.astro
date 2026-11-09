@@ -1,0 +1,43 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import KeysHero from "../components/keys/KeysHero.astro";
+import KeysCaps from "../components/keys/KeysCaps.astro";
+import KeysLayer from "../components/keys/KeysLayer.astro";
+import KeysRemap from "../components/keys/KeysRemap.astro";
+import KeysKeyboards from "../components/keys/KeysKeyboards.astro";
+import KeysSafety from "../components/keys/KeysSafety.astro";
+import KeysDownloads from "../components/keys/KeysDownloads.astro";
+import Footer from "../components/Footer.astro";
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const meta = pick(lang, {
+  en: {
+    title: "LongoKeys · LongoKit",
+    description: "LongoKeys: remap keys per keyboard, Caps Lock as Esc or Hyper, and a Hyper layer of arrows, apps and shortcuts on macOS, without drivers.",
+  },
+  vi: {
+    title: "LongoKeys · LongoKit",
+    description: "LongoKeys: đổi phím cho từng bàn phím, Caps Lock thành Esc hoặc Hyper, và lớp Hyper cho phím mũi tên, mở app và phím tắt trên macOS, không cần driver.",
+  },
+});
+---
+
+<Base lang={lang} title={meta.title} description={meta.description}>
+  <Header lang={lang} active="keys" />
+  <main class="relative w-full overflow-x-hidden pt-20">
+    <KeysHero lang={lang} />
+    <KeysCaps lang={lang} />
+    <KeysLayer lang={lang} />
+    <KeysRemap lang={lang} />
+    <KeysKeyboards lang={lang} />
+    <KeysSafety lang={lang} />
+    <KeysDownloads lang={lang} />
+  </main>
+  <Footer lang={lang} />
+</Base>

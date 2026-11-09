@@ -11,7 +11,7 @@ const t = pick(lang, {
   en: {
     title: "Three Tools, One Kit",
     lead: "Small, native apps instead of heavy vendor software.",
-    available: "Available", soon: "Coming soon", planned: "Planned",
+    available: "Available", soon: "Coming soon",
     mouse: {
       body: "Smooth scrolling and gestures for every button, set up per mouse.",
       points: ["Trackpad-like smooth scrolling", "Gestures for every extra button", "Separate settings for each mouse"],
@@ -22,13 +22,13 @@ const t = pick(lang, {
     },
     keys: {
       body: "Remap keys and build shortcut layers — no firmware needed.",
-      points: ["CapsLock as Esc / Hyper", "Vim-style arrow keys"],
+      points: ["CapsLock as Esc / Hyper", "Vim-style arrow keys", "Separate keys for each keyboard"],
     },
   },
   vi: {
     title: "Ba Công Cụ, Một Bộ",
     lead: "Các app nhỏ, native, thay cho phần mềm nặng của từng hãng.",
-    available: "Có thể tải", soon: "Sắp có", planned: "Đang lên kế hoạch",
+    available: "Có thể tải", soon: "Sắp có",
     mouse: {
       body: "Cuộn mượt và cử chỉ cho từng nút, cài đặt riêng cho từng con chuột.",
       points: ["Cuộn mượt như trackpad", "Cử chỉ cho mọi nút phụ", "Cài đặt riêng cho từng chuột"],
@@ -39,7 +39,7 @@ const t = pick(lang, {
     },
     keys: {
       body: "Đổi phím và tạo lớp phím tắt — không cần nạp firmware.",
-      points: ["CapsLock thành Esc / Hyper", "Phím mũi tên kiểu Vim"],
+      points: ["CapsLock thành Esc / Hyper", "Phím mũi tên kiểu Vim", "Phím riêng cho từng bàn phím"],
     },
   },
 });
@@ -56,9 +56,9 @@ const pillars = [
     tagline: "DDC/CI Hardware Brightness", ...t.display, tech: "DDC/CI + DisplayServices",
   },
   {
-    name: "LongoKeys", product: "keys" as const, href: "#downloads", status: t.soon,
+    name: "LongoKeys", product: "keys" as const, href: localize(lang, "/keys"), status: t.soon,
     tint: "text-secondary", glow: "bg-secondary-container/20 group-hover:bg-secondary-container/30", dot: "bg-secondary",
-    tagline: "Driverless Layer Remapping", ...t.keys, tech: t.planned,
+    tagline: "Driverless Layer Remapping", ...t.keys, tech: "UserKeyMapping + CGEventTap",
   },
 ];
 ---

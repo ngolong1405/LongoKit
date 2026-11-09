@@ -1,0 +1,100 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Feature 01 · Caps Lock", title: "Caps Lock, Finally Useful",
+    lead: "The biggest key in easy reach, used for almost nothing. Give it a job, for every keyboard or just one.",
+    points: [
+      "Hyper: tap for Esc, hold for ⌃⌥⇧⌘, four modifiers that never clash with a system shortcut.",
+      "Esc or Control, for a second Esc or a Control key under your little finger.",
+      "Change it from the menu bar in one click, for all keyboards.",
+    ],
+    modes: [
+      { id: "unchanged", name: "Unchanged", tap: "Caps Lock", hold: "Caps Lock", body: "Caps Lock works as usual." },
+      { id: "escape", name: "Esc", tap: "Esc", hold: "Esc", body: "A second Esc, right next to A." },
+      { id: "control", name: "⌃ Control", tap: "⌃", hold: "⌃ Control", body: "A Control key that's easier to reach." },
+      { id: "hyper", name: "Hyper", tap: "Esc", hold: "⌃⌥⇧⌘", body: "Tapped alone: Esc. Held: Hyper and the Hyper layer." },
+    ],
+    tapLabel: "Tap", holdLabel: "Hold", needs: "Hyper needs Accessibility permission. Esc and Control need none.",
+  },
+  vi: {
+    badge: "Chức năng 01 · Caps Lock", title: "Caps Lock, Cuối Cùng Cũng Có Ích",
+    lead: "Phím to nhất, dễ với nhất, mà hầu như chẳng dùng tới. Giao cho nó một việc, cho mọi bàn phím hoặc chỉ một bàn phím.",
+    points: [
+      "Hyper: nhấn nhanh là Esc, giữ là ⌃⌥⇧⌘, bốn phím bổ trợ không bao giờ trùng phím tắt hệ thống.",
+      "Esc hoặc Control: thêm một phím Esc, hay một phím Control ngay dưới ngón út.",
+      "Đổi ngay trên thanh menu bằng một cú bấm, cho mọi bàn phím.",
+    ],
+    modes: [
+      { id: "unchanged", name: "Gốc", tap: "Caps Lock", hold: "Caps Lock", body: "Caps Lock hoạt động như bình thường." },
+      { id: "escape", name: "Esc", tap: "Esc", hold: "Esc", body: "Thêm một phím Esc, ngay cạnh phím A." },
+      { id: "control", name: "⌃ Control", tap: "⌃", hold: "⌃ Control", body: "Một phím Control dễ với hơn." },
+      { id: "hyper", name: "Hyper", tap: "Esc", hold: "⌃⌥⇧⌘", body: "Nhấn nhanh: Esc. Giữ: Hyper và lớp Hyper." },
+    ],
+    tapLabel: "Nhấn nhanh", holdLabel: "Giữ", needs: "Hyper cần quyền Trợ năng. Esc và Control không cần quyền gì.",
+  },
+});
+---
+
+<section id="caps" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <div class="rounded-2xl bg-surface-container-low p-space-lg shadow-xl" id="caps-demo">
+      <div class="mb-space-lg grid grid-cols-2 gap-1 rounded-xl bg-surface-container-lowest p-1 sm:grid-cols-4">
+        {t.modes.map((m) => (
+          <button type="button" data-mode={m.id} class="rounded-lg px-2 py-2 text-xs font-semibold text-on-surface-variant transition-all">{m.name}</button>
+        ))}
+      </div>
+      <div class="flex flex-col items-center gap-space-lg py-space-md">
+        <div class="flex h-20 w-44 flex-col items-center justify-center rounded-2xl bg-gradient-to-b from-surface-container-high to-surface-container shadow-[0_0_30px_rgba(255,107,53,0.25)]">
+          <span class="material-symbols-outlined text-[26px] text-primary">keyboard_capslock</span>
+          <span class="font-code text-xs text-on-surface">caps lock</span>
+        </div>
+        <div class="grid w-full max-w-sm grid-cols-2 gap-space-sm">
+          <div class="flex flex-col items-center gap-1 rounded-xl bg-surface-container p-space-md">
+            <span class="font-code text-[10px] uppercase tracking-wider text-on-surface-variant">{t.tapLabel}</span>
+            <span class="font-display text-headline-sm text-secondary" data-tap></span>
+          </div>
+          <div class="flex flex-col items-center gap-1 rounded-xl bg-surface-container p-space-md">
+            <span class="font-code text-[10px] uppercase tracking-wider text-on-surface-variant">{t.holdLabel}</span>
+            <span class="font-display text-headline-sm text-primary" data-hold></span>
+          </div>
+        </div>
+        <p class="text-center text-body-md text-on-surface-variant" data-body></p>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-space-md">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-primary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-primary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.needs}</p>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ t }}>
+  const demo = document.getElementById("caps-demo");
+  const show = (id) => {
+    const m = t.modes.find((x) => x.id === id);
+    demo.querySelector("[data-tap]").textContent = m.tap;
+    demo.querySelector("[data-hold]").textContent = m.hold;
+    demo.querySelector("[data-body]").textContent = m.body;
+    demo.querySelectorAll("[data-mode]").forEach((b) => {
+      const on = b.dataset.mode === id;
+      b.classList.toggle("bg-surface-container-high", on);
+      b.classList.toggle("text-on-surface", on);
+      b.classList.toggle("shadow-sm", on);
+    });
+  };
+  demo.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => show(b.dataset.mode)));
+  show("hyper");
+</script>

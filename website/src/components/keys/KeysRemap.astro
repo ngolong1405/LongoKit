@@ -1,0 +1,108 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Feature 03 · Remap", title: "Remap Any Key, Right on the Keyboard",
+    lead: "Each keyboard shows up as a virtual keyboard. Click a key and pick what it sends: Esc, Tab, Return, Delete, any modifier, arrows, Home, End, Page Up/Down, or F13–F19.",
+    points: [
+      "Works everywhere, password fields included: macOS itself swaps the keys, the same mechanism as hidutil.",
+      "Needs no permission, and nothing to install besides the app.",
+      "Keyboard made for Windows? Swap ⌘ ⌥ in one click, so ⌘ sits next to the space bar again.",
+    ],
+    swap: "Swap ⌘ ⌥", unswap: "Unswap ⌘ ⌥", hint: "A Windows keyboard: the Alt key (⌥) sits where ⌘ should be.",
+    swapped: "Swapped: ⌘ is next to the space bar again, like on a Mac keyboard.",
+    remaps: "remaps",
+  },
+  vi: {
+    badge: "Chức năng 03 · Đổi phím", title: "Đổi Phím Bất Kỳ, Ngay Trên Bàn Phím",
+    lead: "Mỗi bàn phím hiện ra thành một bàn phím ảo. Bấm vào phím và chọn nó gửi gì: Esc, Tab, Return, Delete, phím bổ trợ, mũi tên, Home, End, Page Up/Down, hoặc F13–F19.",
+    points: [
+      "Chạy ở mọi nơi, kể cả ô mật khẩu: chính macOS đổi phím, cùng cơ chế với hidutil.",
+      "Không cần cấp quyền, không phải cài gì ngoài app.",
+      "Bàn phím làm cho Windows? Đảo ⌘ ⌥ bằng một cú bấm, để ⌘ lại nằm cạnh phím cách.",
+    ],
+    swap: "Đảo ⌘ ⌥", unswap: "Bỏ đảo ⌘ ⌥", hint: "Bàn phím Windows: phím Alt (⌥) nằm ở chỗ đáng ra là ⌘.",
+    swapped: "Đã đảo: ⌘ lại nằm cạnh phím cách, như trên bàn phím Mac.",
+    remaps: "phím đổi",
+  },
+});
+
+const bottom = [
+  { id: "lctrl", label: "ctrl", w: "w-14" },
+  { id: "lopt", label: "⌥", sub: "alt", w: "w-14", swap: "⌘" },
+  { id: "lcmd", label: "⌘", sub: "win", w: "w-14", swap: "⌥" },
+  { id: "space", label: "", w: "flex-1" },
+  { id: "rcmd", label: "⌘", sub: "win", w: "w-14", swap: "⌥" },
+  { id: "ropt", label: "⌥", sub: "alt", w: "w-14", swap: "⌘" },
+];
+---
+
+<section id="remap" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <div class="order-2 rounded-2xl bg-surface-container-low p-space-lg shadow-xl lg:order-1" id="remap-demo">
+      <div class="mb-space-md flex items-center justify-between gap-space-sm">
+        <span class="flex items-center gap-space-xs font-display text-headline-sm"><span class="material-symbols-outlined text-[22px] text-tertiary">keyboard</span>Keychron K8</span>
+        <button type="button" data-swap class="rounded-lg bg-surface-container-high px-3 py-1.5 text-xs font-semibold transition-colors hover:text-primary">{t.swap}</button>
+      </div>
+      <div class="overflow-x-auto rounded-xl bg-surface-container-lowest p-space-md">
+        <div class="flex min-w-[420px] flex-col gap-1.5 font-code text-[11px]">
+          <div class="flex gap-1.5">
+            {["shift", "z", "x", "c", "v", "b", "n", "m"].map((k) => (
+              <span class:list={["flex h-11 items-center justify-center rounded-lg bg-surface-container-high", k === "shift" ? "w-20" : "w-11"]}>{k}</span>
+            ))}
+          </div>
+          <div class="flex gap-1.5">
+            {bottom.map((k) => (
+              <span data-cap={k.id} data-label={k.label} data-to={k.swap ?? ""} class:list={["flex h-11 flex-col items-center justify-center rounded-lg bg-surface-container-high transition-all", k.w]}>
+                <span class="text-sm font-semibold" data-main>{k.label}</span>
+                {k.sub && <span class="text-[9px] text-on-surface-variant" data-sub>{k.sub}</span>}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div class="mt-space-md flex items-center justify-between gap-space-sm rounded-lg bg-surface-container px-3 py-2">
+        <span class="font-code text-[11px] text-on-surface-variant" data-note>{t.hint}</span>
+        <span class="hidden shrink-0 rounded bg-primary/10 px-2 py-0.5 font-code text-[11px] text-primary" data-count>4 {t.remaps}</span>
+      </div>
+    </div>
+
+    <div class="order-1 flex flex-col gap-space-md lg:order-2">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-tertiary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-tertiary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  #remap-demo .remapped { background: linear-gradient(90deg, #ff6b35, #8b5cf6); color: white; }
+  #remap-demo .remapped [data-sub] { color: rgba(255, 255, 255, 0.85); }
+</style>
+
+<script define:vars={{ t }}>
+  const demo = document.getElementById("remap-demo");
+  const button = demo.querySelector("[data-swap]");
+  let swapped = false;
+  button.addEventListener("click", () => {
+    swapped = !swapped;
+    button.textContent = swapped ? t.unswap : t.swap;
+    demo.querySelectorAll("[data-to]").forEach((cap) => {
+      if (!cap.dataset.to) return;
+      cap.classList.toggle("remapped", swapped);
+      // Like the app's keyboard picture: the key, and what it sends now.
+      cap.querySelector("[data-sub]").textContent = swapped ? "→ " + cap.dataset.to : (cap.dataset.label === "⌘" ? "win" : "alt");
+    });
+    demo.querySelector("[data-note]").textContent = swapped ? t.swapped : t.hint;
+    demo.querySelector("[data-count]").classList.toggle("hidden", !swapped);
+  });
+</script>

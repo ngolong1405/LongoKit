@@ -1,0 +1,184 @@
+---
+import ProductIcon from "../ProductIcon.astro";
+import { keysDownload, keysVersion } from "../../data/site";
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Caps Lock → Hyper",
+    title: ["Every Key,", "Your Way"],
+    lead: "Remap keys on each keyboard, turn Caps Lock into Esc or Hyper, and give Hyper a layer of arrows, apps and shortcuts. Native, on macOS, without drivers.",
+    download: "Download for macOS (.dmg)", soon: "macOS: first release coming soon", source: "Build it from source today",
+    facts: [["0", "Drivers / kext"], ["0", "Permissions to remap keys"], ["15 s", "To keep or undo a change"]],
+    window: "Longo Keys · Hyper layer", ready: "Click Caps Lock for Esc, or hold it until it says Hyper.",
+    tapped: "Caps Lock tapped: apps receive", held: "Hyper held: press H J K L, U, O, Space, or any other key.",
+    released: "Hyper released.", receive: "Apps receive", combo: "⌃⌥⇧⌘ +", free: "free for any app's shortcut",
+    input: "Next input source (e.g. English ↔ Vietnamese)", plain: "No Hyper: the key types as usual",
+    note: "Demo: click the keys, or type on your keyboard while Hyper is held.",
+  },
+  vi: {
+    badge: "Caps Lock → Hyper",
+    title: ["Mọi Phím Bấm,", "Theo Ý Bạn"],
+    lead: "Đổi phím cho từng bàn phím, biến Caps Lock thành Esc hoặc Hyper, và cho Hyper một lớp phím mũi tên, mở app và phím tắt. Native trên macOS, không cần driver.",
+    download: "Tải cho macOS (.dmg)", soon: "macOS: sắp phát hành bản đầu tiên", source: "Build từ mã nguồn ngay hôm nay",
+    facts: [["0", "Driver / kext"], ["0", "Quyền cần để đổi phím"], ["15 giây", "Để giữ hoặc hoàn tác"]],
+    window: "Longo Keys · Lớp Hyper", ready: "Bấm Caps Lock để ra Esc, hoặc giữ đến khi hiện Hyper.",
+    tapped: "Nhấn nhanh Caps Lock: app nhận", held: "Đang giữ Hyper: bấm H J K L, U, O, Space hoặc phím bất kỳ.",
+    released: "Đã thả Hyper.", receive: "App nhận", combo: "⌃⌥⇧⌘ +", free: "dành cho phím tắt của mọi app",
+    input: "Đổi bộ gõ (vd English ↔ Tiếng Việt)", plain: "Không giữ Hyper: phím gõ như bình thường",
+    note: "Minh hoạ: bấm vào phím, hoặc gõ phím thật khi đang giữ Hyper.",
+  },
+});
+
+// The app's default Hyper layer.
+const actions: Record<string, string> = { h: "←", j: "↓", k: "↑", l: "→", u: "Home", o: "End", " ": "⇄" };
+const rows = [
+  ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+  ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+  ["z", "x", "c", "v", "b", "n", "m"],
+];
+---
+
+<section id="top" class="relative w-full overflow-hidden px-margin-mobile pt-space-xl pb-space-3xl md:px-margin-desktop">
+  <div class="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-gradient-to-b from-primary-container/20 via-secondary/10 to-transparent blur-[130px]"></div>
+
+  <div class="relative mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-gutter-lg lg:grid-cols-12">
+    <div class="relative z-10 flex flex-col gap-space-lg lg:col-span-5">
+      <div class="inline-flex w-fit items-center gap-space-xs rounded-full bg-surface-container-low px-3 py-1.5 shadow-sm">
+        <ProductIcon product="keys" class="h-5 w-5" />
+        <span class="font-code text-label-badge uppercase tracking-wider text-secondary">{t.badge}</span>
+      </div>
+      <h1 class="text-display-hero tracking-tight">
+        {t.title[0]}{" "}
+        <span class="bg-gradient-to-r from-primary-container via-secondary to-tertiary bg-clip-text text-transparent">{t.title[1]}</span>
+      </h1>
+      <p class="max-w-xl text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-wrap items-center gap-space-sm">
+        {keysDownload ? (
+          <a href={keysDownload} class="flex items-center gap-space-xs rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-6 py-3.5 font-display text-sm font-semibold text-white shadow-[0_8px_28px_rgba(255,107,53,0.35)] transition-all hover:opacity-95">
+            <span class="material-symbols-outlined text-[20px]">laptop_mac</span>{t.download}
+            <span class="rounded bg-white/20 px-1.5 font-code text-[11px]">v{keysVersion}</span>
+          </a>
+        ) : (
+          <span class="flex cursor-not-allowed items-center gap-space-xs rounded-xl bg-surface-container-high px-5 py-3.5 text-sm text-on-surface-variant">
+            <span class="material-symbols-outlined text-[20px] text-secondary">laptop_mac</span>{t.soon}
+          </span>
+        )}
+        <a href="#downloads" class="flex items-center gap-space-xs rounded-xl bg-surface-container-low px-5 py-3.5 text-sm text-on-surface transition-colors hover:text-primary">
+          <span class="material-symbols-outlined text-[20px] text-tertiary">terminal</span>{t.source}
+        </a>
+      </div>
+      <div class="flex flex-wrap gap-gutter pt-space-sm">
+        {t.facts.map(([value, label]) => (
+          <div class="flex flex-col">
+            <span class="font-display text-headline-sm text-on-surface">{value}</span>
+            <span class="font-code text-[11px] text-on-surface-variant">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Interactive keyboard: Caps Lock tapped is Esc; held, it's Hyper and the layer lights up, as in the app. -->
+    <div class="relative lg:col-span-7" id="hero-keys">
+      <div class="absolute -inset-4 -z-10 rounded-3xl bg-gradient-to-r from-primary-container/20 to-secondary/20 blur-2xl transition-opacity duration-300" data-glow></div>
+      <div class="rounded-2xl bg-surface-container-low p-space-md shadow-[0_12px_40px_var(--c-shadow)] sm:p-space-lg">
+        <div class="mb-space-md flex items-center justify-between border-b border-outline-variant/20 pb-space-sm">
+          <div class="flex items-center gap-1.5">
+            <span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span><span class="h-3 w-3 rounded-full bg-[#febc2e]"></span><span class="h-3 w-3 rounded-full bg-[#28c840]"></span>
+            <span class="ml-2 font-code text-[11px] text-on-surface-variant">{t.window}</span>
+          </div>
+          <span class="rounded bg-secondary/15 px-2 py-0.5 font-code text-[10px] font-semibold text-secondary" data-state>⇪ Caps Lock</span>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl bg-surface-container-lowest p-space-sm sm:p-space-md">
+          <div class="flex min-w-[520px] flex-col gap-1.5 font-code text-[11px]">
+            {rows.map((row, i) => (
+              <div class="flex gap-1.5" style={`padding-left: ${i === 1 ? 0 : i === 0 ? 36 : 58}px`}>
+                {i === 1 && (
+                  <button type="button" data-caps class="relative flex h-11 w-[86px] shrink-0 select-none flex-col items-center justify-center rounded-lg bg-gradient-to-r from-primary-container to-secondary-container font-bold text-white shadow-[0_0_14px_rgba(255,107,53,0.45)] transition-transform active:scale-95">
+                    <span>caps lock</span><span class="text-[9px] opacity-90">→ Hyper</span>
+                  </button>
+                )}
+                {row.map((k) => (
+                  <button type="button" data-key={k} class="key flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg bg-surface-container-high text-on-surface transition-all">
+                    <span class="font-semibold uppercase">{k}</span>
+                    <span class="hidden text-[9px] font-bold" data-action>{actions[k] ?? "⌃⌥⇧⌘"}</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+            <div class="flex justify-center gap-1.5">
+              <button type="button" data-key=" " class="key flex h-11 w-[300px] flex-col items-center justify-center rounded-lg bg-surface-container-high text-on-surface transition-all">
+                <span class="font-semibold">space</span>
+                <span class="hidden text-[9px] font-bold" data-action>⇄ input source</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-space-md min-h-[52px] rounded-lg bg-surface-container px-3 py-2 font-code text-[11px] text-on-surface-variant" data-log>
+          <span class="text-secondary">●</span> {t.ready}
+        </div>
+      </div>
+      <p class="mt-space-sm text-center font-code text-[11px] text-on-surface-variant">{t.note}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  #hero-keys.hyper .key { background: color-mix(in srgb, var(--c-secondary, #d0bcff) 14%, transparent); }
+  #hero-keys.hyper .key [data-action] { display: block; color: var(--c-secondary, #d0bcff); }
+  #hero-keys .key.lit { background: linear-gradient(90deg, #ff6b35, #8b5cf6) !important; color: white; transform: scale(0.94); }
+  #hero-keys .key.lit [data-action] { color: white; }
+</style>
+
+<script define:vars={{ t, actions }}>
+  const root = document.getElementById("hero-keys");
+  const log = root.querySelector("[data-log]"), state = root.querySelector("[data-state]"), caps = root.querySelector("[data-caps]");
+  const say = (html) => { log.innerHTML = html; };
+  let hyper = false, downAt = 0, holdTimer = null;
+
+  const setHyper = (on) => {
+    hyper = on;
+    root.classList.toggle("hyper", on);
+    caps.classList.toggle("ring-2", on); caps.classList.toggle("ring-white", on);
+    state.textContent = on ? "Hyper ⌃⌥⇧⌘" : "⇪ Caps Lock";
+    say(on ? `<span class="text-primary">●</span> ${t.held}` : `<span class="text-secondary">●</span> ${t.released}`);
+  };
+
+  // Like the app: released quickly it's Esc, held it's Hyper. Here a long press keeps Hyper on until the next click.
+  caps.addEventListener("pointerdown", () => {
+    if (hyper) { setHyper(false); return; }
+    downAt = Date.now();
+    holdTimer = setTimeout(() => { holdTimer = null; setHyper(true); }, 350);
+  });
+  caps.addEventListener("pointerup", () => {
+    if (!holdTimer) return;
+    clearTimeout(holdTimer); holdTimer = null;
+    if (Date.now() - downAt < 350) say(`<span class="text-secondary">●</span> ${t.tapped} <b class="text-on-surface">Esc</b>`);
+  });
+
+  const press = (k) => {
+    const el = root.querySelector(`[data-key="${CSS.escape(k)}"]`);
+    if (!el) return false;
+    el.classList.add("lit");
+    setTimeout(() => el.classList.remove("lit"), 160);
+    const name = k === " " ? "Space" : k.toUpperCase();
+    if (!hyper) say(`<span class="text-secondary">●</span> ${t.plain}: <b class="text-on-surface">${name}</b>`);
+    else if (k === " ") say(`<span class="text-primary">●</span> ${t.receive}: <b class="text-on-surface">${t.input}</b>`);
+    else if (actions[k]) say(`<span class="text-primary">●</span> Hyper + ${name} → ${t.receive}: <b class="text-on-surface">${actions[k]}</b>`);
+    else say(`<span class="text-primary">●</span> ${t.receive}: <b class="text-on-surface">${t.combo} ${name}</b> · ${t.free}`);
+    return true;
+  };
+  root.querySelectorAll("[data-key]").forEach((el) => el.addEventListener("click", () => press(el.dataset.key)));
+  window.addEventListener("keydown", (e) => {
+    if (!hyper || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target.closest && e.target.closest("input, textarea, select")) return;
+    if (press(e.key.toLowerCase())) e.preventDefault();
+  });
+</script>

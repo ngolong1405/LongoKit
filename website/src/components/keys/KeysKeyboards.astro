@@ -1,0 +1,98 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Feature 04 · Every keyboard", title: "Each Keyboard, Its Own Way",
+    lead: "The MacBook's keyboard and the one on your desk don't need the same keys. Longo Keys tells them apart and keeps their settings, also after they reconnect.",
+    points: [
+      "\"All keyboards\" holds the shared settings; a keyboard gets its own the moment you change something just for it.",
+      "An on/off switch per keyboard: off, it types as usual and keeps its settings for later.",
+      "A Typing chip shows which keyboard you're on, and warns you when that one is switched off.",
+    ],
+    all: "All keyboards", allBody: "Shared settings", builtin: "Built-in Keyboard", builtinBody: "Built-in",
+    ext: "Keychron K8", extBody: "Bluetooth", shared: "Shared settings", typing: "Typing", off: "Types as usual",
+    tap: "Flip the switches.", remaps: "4 remaps", typingNote: "Optional Input Monitoring permission.",
+  },
+  vi: {
+    badge: "Chức năng 04 · Từng bàn phím", title: "Mỗi Bàn Phím Một Kiểu",
+    lead: "Bàn phím MacBook và bàn phím trên bàn làm việc không cần giống phím nhau. Longo Keys phân biệt từng cái và nhớ cài đặt của chúng, cả khi kết nối lại.",
+    points: [
+      "\"All keyboards\" giữ cài đặt chung; bàn phím nào được đổi riêng thì tự có cài đặt riêng.",
+      "Mỗi bàn phím có công tắc bật/tắt: tắt thì gõ như bình thường và vẫn giữ cài đặt để dùng lại.",
+      "Chip Đang gõ cho biết bạn đang gõ trên bàn phím nào, và nhắc khi bàn phím đó đang tắt.",
+    ],
+    all: "All keyboards", allBody: "Cài đặt chung", builtin: "Built-in Keyboard", builtinBody: "Bàn phím trong máy",
+    ext: "Keychron K8", extBody: "Bluetooth", shared: "Cài đặt chung", typing: "Đang gõ", off: "Gõ như bình thường",
+    tap: "Thử gạt công tắc.", remaps: "4 phím đổi", typingNote: "Cần quyền Theo dõi đầu vào (tuỳ chọn).",
+  },
+});
+---
+
+<section id="keyboards" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <div class="flex flex-col gap-space-md">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-secondary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-secondary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.typingNote}</p>
+    </div>
+
+    <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container-low p-space-lg shadow-xl" id="keyboards-demo">
+      <div class="flex items-center gap-space-sm rounded-xl bg-surface-container p-space-md">
+        <span class="material-symbols-outlined flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container-lowest text-[20px] text-secondary">layers</span>
+        <div class="flex flex-1 flex-col"><span class="text-body-md font-semibold">{t.all}</span><span class="text-[11px] text-on-surface-variant">{t.allBody}</span></div>
+        <span class="rounded-full bg-primary/10 px-2 py-0.5 font-code text-[10px] text-primary">Caps → Hyper</span>
+      </div>
+      {[
+        { id: "builtin", icon: "laptop_mac", name: t.builtin, body: t.builtinBody, chips: ["Caps → Hyper"], own: false },
+        { id: "ext", icon: "keyboard", name: t.ext, body: t.extBody, chips: ["Caps → Hyper", t.remaps], own: true },
+      ].map((k) => (
+        <div class="flex items-center gap-space-sm rounded-xl bg-surface-container p-space-md transition-opacity" data-row={k.id}>
+          <span class="material-symbols-outlined flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container-lowest text-[20px] text-secondary" data-icon>{k.icon}</span>
+          <div class="flex flex-1 flex-col">
+            <span class="flex items-center gap-space-xs text-body-md font-semibold">
+              {k.name}
+              {k.id === "ext" && <span class="flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 font-code text-[10px] text-emerald-500"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{t.typing}</span>}
+            </span>
+            <span class="text-[11px] text-on-surface-variant">{k.body}</span>
+          </div>
+          <span class="hidden gap-1 sm:flex" data-chips>
+            {k.own ? k.chips.map((c) => <span class="rounded-full bg-primary/10 px-2 py-0.5 font-code text-[10px] text-primary">{c}</span>)
+                   : <span class="font-code text-[10px] text-on-surface-variant">{t.shared}</span>}
+          </span>
+          <span class="hidden font-code text-[10px] text-on-surface-variant" data-off>{t.off}</span>
+          <button type="button" data-switch aria-pressed="true" class="relative h-6 w-11 shrink-0 rounded-full bg-gradient-to-r from-primary-container to-[#ff8a50] transition-colors">
+            <span class="absolute top-0.5 left-[22px] h-5 w-5 rounded-full bg-white shadow transition-all" data-knob></span>
+          </button>
+        </div>
+      ))}
+      <p class="text-center font-code text-[11px] text-on-surface-variant">{t.tap}</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const demo = document.getElementById("keyboards-demo")!;
+  demo.querySelectorAll<HTMLElement>("[data-row]").forEach((row) => {
+    const button = row.querySelector<HTMLButtonElement>("[data-switch]")!;
+    button.addEventListener("click", () => {
+      const on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      button.classList.toggle("bg-gradient-to-r", on);
+      button.classList.toggle("bg-surface-container-highest", !on);
+      row.querySelector<HTMLElement>("[data-knob]")!.style.left = on ? "22px" : "2px";
+      row.querySelector("[data-chips]")!.classList.toggle("sm:flex", on);
+      row.querySelector("[data-off]")!.classList.toggle("hidden", on);
+      row.querySelector("[data-icon]")!.classList.toggle("opacity-40", !on);
+    });
+  });
+</script>
