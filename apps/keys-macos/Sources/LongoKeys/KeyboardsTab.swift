@@ -1,3 +1,4 @@
+import Carbon.HIToolbox
 import LongoKitUI
 import SwiftUI
 
@@ -101,12 +102,22 @@ private struct KeyboardRow: View {
     }
 }
 
-/// Press keys to see what reaches apps: the remapped key, with Hyper when it's held.
+/// Press keys to see what reaches apps, lit up on a keyboard: the remapped key, with Hyper when it's held.
 private struct KeyTester: View {
     @EnvironmentObject private var model: AppModel
     @State private var listening = false
-    @State private var heard: [String] = []
+    @State private var pressed: Set<Key> = []
+    @State private var hyper = false
+    @State private var last = ""
     @State private var monitor: Any?
+
+    /// Modifier keys by key code, to light the right side.
+    private static let modifierKeys: [UInt16: (Key, NSEvent.ModifierFlags)] = [
+        UInt16(kVK_Control): (.leftControl, .control), UInt16(kVK_RightControl): (.rightControl, .control),
+        UInt16(kVK_Option): (.leftOption, .option), UInt16(kVK_RightOption): (.rightOption, .option),
+        UInt16(kVK_Shift): (.leftShift, .shift), UInt16(kVK_RightShift): (.rightShift, .shift),
+        UInt16(kVK_Command): (.leftCommand, .command), UInt16(kVK_RightCommand): (.rightCommand, .command),
+    ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -115,13 +126,15 @@ private struct KeyTester: View {
                 Button(listening ? L("Stop") : L("Listen")) { listening ? stop() : start() }
                     .buttonStyle(listening ? AnyButtonStyle(.primary) : AnyButtonStyle(.ghost))
             }
-            if heard.isEmpty {
-                Text(listening ? L("Press any key…") : L("Click Listen, then press keys."))
-                    .font(.mono(11)).foregroundStyle(Theme.textMuted)
+            HStack(spacing: 8) {
+                Circle().fill(listening ? Theme.emerald : Theme.textFaint).frame(width: 7, height: 7)
+                Text(last.isEmpty ? (listening ? L("Press any key…") : L("Click Listen, then press keys.")) : last)
+                    .font(.mono(12, .semibold)).foregroundStyle(last.isEmpty ? Theme.textMuted : Theme.text)
+                Spacer()
+                if hyper { Chip("Hyper", tone: .solar, dot: true) }
             }
-            ForEach(Array(heard.enumerated()), id: \.offset) { _, line in
-                Text(line).font(.mono(12, .semibold)).foregroundStyle(Theme.text)
-            }
+            TesterKeyboard(pressed: pressed, hyper: hyper)
+                .opacity(listening ? 1 : 0.55)
         }
         .panel()
         .onDisappear(perform: stop)
@@ -129,21 +142,34 @@ private struct KeyTester: View {
 
     private func start() {
         listening = true
-        monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { event in
-            if event.type == .keyDown, !event.isARepeat {
-                let key = Key.usage(forKeyCode: Int(event.keyCode))?.name ?? "#\(event.keyCode)"
-                let mods = Self.symbols(event.modifierFlags)
-                let hyper = event.modifierFlags.isSuperset(of: [.control, .option, .shift, .command])
-                heard.insert((hyper ? "Hyper + " : mods) + key + "   ·   code \(event.keyCode)", at: 0)
-                if heard.count > 5 { heard.removeLast() }
+        monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp, .flagsChanged]) { event in
+            let flags = event.modifierFlags.intersection([.control, .option, .shift, .command])
+            hyper = flags == [.control, .option, .shift, .command]
+            switch event.type {
+            case .flagsChanged:
+                if let (key, flag) = Self.modifierKeys[event.keyCode] {
+                    // Hyper's modifiers come with keys, not from held modifier keys: only light real presses.
+                    if event.modifierFlags.contains(flag) { pressed.insert(key) } else { pressed.remove(key) }
+                }
+                return event
+            case .keyDown:
+                let key = Key.usage(forKeyCode: Int(event.keyCode))
+                if let key { pressed.insert(key) }
+                last = (hyper ? "Hyper + " : Self.symbols(flags)) + (key?.name ?? "#\(event.keyCode)") + "   ·   code \(event.keyCode)"
                 return nil
+            case .keyUp:
+                if let key = Key.usage(forKeyCode: Int(event.keyCode)) { pressed.remove(key) }
+                return nil
+            default:
+                return event
             }
-            return event
         }
     }
 
     private func stop() {
         listening = false
+        pressed = []
+        hyper = false
         if let monitor { NSEvent.removeMonitor(monitor) }
         monitor = nil
     }
@@ -155,6 +181,42 @@ private struct KeyTester: View {
         if flags.contains(.shift) { s += "⇧" }
         if flags.contains(.command) { s += "⌘" }
         return s.isEmpty ? "" : s + " "
+    }
+}
+
+/// The keyboard picture for the tester: keys light up while they're down; Caps Lock lights as the Hyper key.
+private struct TesterKeyboard: View {
+    let pressed: Set<Key>
+    let hyper: Bool
+
+    var body: some View {
+        VStack(spacing: 5) {
+            ForEach(Array(KeyboardLayout.rows.enumerated()), id: \.offset) { _, row in
+                GeometryReader { geometry in
+                    let unit = (geometry.size.width - CGFloat(row.count - 1) * 5) / CGFloat(row.reduce(0) { $0 + $1.width })
+                    HStack(spacing: 5) {
+                        ForEach(row) { cap in
+                            let lit = cap.key.map(pressed.contains) ?? false
+                            let hyperKey = hyper && cap.key == .capsLock
+                            Text(hyperKey ? "Hyper" : cap.label)
+                                .font(.ui(10, lit || hyperKey ? .bold : .medium)).lineLimit(1).minimumScaleFactor(0.6)
+                                .foregroundStyle(lit || hyperKey ? Color.white : (cap.key == nil ? Theme.textFaint : Theme.text))
+                                .frame(width: unit * cap.width, height: 30)
+                                .background(RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(lit ? AnyShapeStyle(Theme.accentGradient)
+                                          : hyperKey ? AnyShapeStyle(Theme.solar) : AnyShapeStyle(Theme.tint(0.06))))
+                                .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(Theme.hairline))
+                                .shadow(color: Theme.solar.opacity(lit ? 0.6 : 0), radius: 6)
+                                .scaleEffect(lit ? 0.94 : 1)
+                                .animation(.easeOut(duration: lit ? 0.05 : 0.25), value: lit)
+                        }
+                    }
+                }
+                .frame(height: 30)
+            }
+        }
+        .padding(12)
+        .recessed(radius: 12)
     }
 }
 
