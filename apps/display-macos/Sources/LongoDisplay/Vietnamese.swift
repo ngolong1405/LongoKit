@@ -101,6 +101,8 @@ enum Vietnamese {
             "Tạm dừng %@: màn hình giữ nguyên độ sáng, ngừng Đồng bộ, phím độ sáng và làm tối bằng phần mềm",
         "Turn %@ back on": "Bật lại %@",
         "Up 5%": "Tăng 5%",
+        "Mute": "Tắt tiếng",
+        "Unmute": "Bật tiếng",
         "Down 5%": "Giảm 5%",
         "This monitor isn't answering DDC. MacBook HDMI ports often don't pass it on: plug it into a USB-C port, turn on DDC/CI in the monitor's menu, or use Software.":
             "Màn này không trả lời DDC. Cổng HDMI của MacBook thường không truyền DDC: hãy cắm qua cổng USB-C, bật DDC/CI trong menu của màn, hoặc chọn Phần mềm.",

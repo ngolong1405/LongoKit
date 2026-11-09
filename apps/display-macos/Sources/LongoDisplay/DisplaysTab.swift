@@ -156,11 +156,9 @@ struct DisplayLevels: View {
                 .opacity(locked ? 0.5 : 1)
                 .help(locked ? L("Follows the built-in display in Sync mode") : L("Brightness"))
             if display.method == .ddc {
-                LevelSlider(symbol: "speaker.wave.2.fill", value: model.volume(for: display)) { model.setVolume($0, for: display) }
-                    .help(L("Speaker volume"))
+                VolumeSlider(value: model.volume(for: display), help: L("Speaker volume")) { model.setVolume($0, for: display) }
             } else if display.isBuiltin, let volume = model.systemVolume {
-                LevelSlider(symbol: "speaker.wave.2.fill", value: volume) { model.setSystemVolume($0) }
-                    .help(L("Mac volume"))
+                VolumeSlider(value: volume, help: L("Mac volume")) { model.setSystemVolume($0) }
             }
         }
     }
@@ -189,9 +187,49 @@ struct BrightnessLevel: View {
     }
 }
 
+/// Speaker volume, set apart from brightness: a thin cyan slider with the percentage after it. The speaker icon
+/// mutes, and unmutes back to where it was.
+struct VolumeSlider: View {
+    let value: Double
+    let help: String
+    let set: (Double) -> Void
+    /// The level before muting, to come back to.
+    @State private var beforeMute: Double?
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Button {
+                if value > 0 {
+                    beforeMute = value
+                    set(0)
+                } else {
+                    set(beforeMute ?? 0.5)
+                    beforeMute = nil
+                }
+            } label: {
+                Image(systemName: value > 0 ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                    .font(.system(size: 11))
+                    .foregroundStyle(value > 0 ? Theme.info : Theme.textMuted)
+                    .frame(width: 16)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help(value > 0 ? L("Mute") : L("Unmute"))
+            DSSlider(value: Binding(get: { value }, set: set), range: 0...1, step: 0.01, accent: Theme.info)
+                .padding(.leading, StepButton.size + 8)
+            Text("\(Int((value * 100).rounded()))%")
+                .font(.mono(10, .semibold))
+                .foregroundStyle(Theme.info)
+                .frame(width: StepButton.size + 8, alignment: .trailing)
+        }
+        .help(help)
+    }
+}
+
 /// − / + at the ends of a slider, for 5% at a time without dragging.
 struct StepButton: View {
     static let step = 0.05
+    static let size: CGFloat = 20
     let symbol: String
     let action: () -> Void
 
@@ -200,7 +238,7 @@ struct StepButton: View {
             Image(systemName: symbol)
                 .font(.system(size: 9, weight: .bold))
                 .foregroundStyle(Theme.textSecondary)
-                .frame(width: 20, height: 20)
+                .frame(width: Self.size, height: Self.size)
                 .background(Circle().fill(Theme.tint(0.07)))
                 .contentShape(Circle())
         }

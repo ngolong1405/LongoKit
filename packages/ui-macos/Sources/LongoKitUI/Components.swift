@@ -341,27 +341,36 @@ public struct DSSlider: View {
     public var origin: Double?
     /// Text shown on the knob (its value, say), which then becomes a pill wide enough to hold it.
     public var label: String?
+    /// A secondary slider in one color (volume next to brightness): thinner track, smaller knob.
+    public var accent: Color?
 
     public init(value: Binding<Double>, range: ClosedRange<Double>, step: Double = 0.01, origin: Double? = nil,
-                label: String? = nil) {
+                label: String? = nil, accent: Color? = nil) {
         self._value = value
         self.range = range
         self.step = step
         self.origin = origin
         self.label = label
+        self.accent = accent
     }
 
     public var body: some View {
-        let knob: CGFloat = label == nil ? 18 : 44
+        let knob: CGFloat = label != nil ? 44 : accent != nil ? 14 : 18
         let half = knob / 2
+        let track: CGFloat = accent == nil ? 6 : 4
         GeometryReader { geometry in
             let travel = geometry.size.width - knob
             let span = range.upperBound - range.lowerBound
             let fraction = (value - range.lowerBound) / span
             let below = origin.map { value < $0 } ?? false
             ZStack(alignment: .leading) {
-                Color.clear.frame(height: 6).recessed(radius: 3)
-                if let origin, origin > range.lowerBound {
+                Color.clear.frame(height: track).recessed(radius: track / 2)
+                if let accent {
+                    Capsule()
+                        .fill(LinearGradient(colors: [accent.opacity(0.65), accent], startPoint: .leading, endPoint: .trailing))
+                        .frame(width: max(travel * fraction + half, track), height: track)
+                        .shadow(color: accent.opacity(0.45), radius: 4)
+                } else if let origin, origin > range.lowerBound {
                     let start = (origin - range.lowerBound) / span
                     // The stretch below the origin, faintly violet so it reads as a different zone.
                     Capsule()
@@ -386,6 +395,12 @@ public struct DSSlider: View {
                 Group {
                     if let label {
                         ValueKnob(label: label, below: below)
+                    } else if let accent {
+                        ZStack {
+                            Circle().fill(Color.dynamic(dark: 0xF4F4F6, light: 0xFFFFFF))
+                            Circle().strokeBorder(accent, lineWidth: 1.5)
+                        }
+                        .shadow(color: accent.opacity(0.4), radius: 3)
                     } else {
                         ZStack {
                             Circle().fill(LinearGradient(colors: [Color(hex: 0xF4F4F6), Color(hex: 0xA9ABB3)],
@@ -396,7 +411,7 @@ public struct DSSlider: View {
                         .shadow(color: .black.opacity(0.5), radius: 3, y: 2)
                     }
                 }
-                .frame(width: knob, height: label == nil ? 18 : 20)
+                .frame(width: knob, height: label != nil ? 20 : knob)
                 .offset(x: travel * fraction)
             }
             .frame(height: 18)
