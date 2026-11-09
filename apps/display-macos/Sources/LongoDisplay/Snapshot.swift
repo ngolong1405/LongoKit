@@ -47,6 +47,18 @@ enum Snapshot {
                 render(MenuPopover(), model, scheme, to: directory.appendingPathComponent("\(scheme)-\(language.rawValue)-popover.png"))
             }
         }
+        // The menu bar icon, enlarged, on both menu bar colors.
+        let icon = HStack(spacing: 24) {
+            ForEach([Color.white, Color(hex: 0x1E1E22)], id: \.self) { background in
+                Image(nsImage: MenuBarIcon.image).renderingMode(.template).resizable().interpolation(.high)
+                    .foregroundStyle(background == .white ? Color.black : Color.white)
+                    .frame(width: 144, height: 144).padding(16).background(background)
+            }
+        }
+        if let image = ImageRenderer(content: icon).nsImage, let tiff = image.tiffRepresentation,
+           let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
+            try? png.write(to: directory.appendingPathComponent("menubar-icon.png"))
+        }
         UserDefaults().removePersistentDomain(forName: suite)
         exit(0)
     }

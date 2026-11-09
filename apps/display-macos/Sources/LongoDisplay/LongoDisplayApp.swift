@@ -31,7 +31,7 @@ struct LongoDisplayApp: App {
         )) {
             MenuPopover().environmentObject(model)
         } label: {
-            Image(systemName: "sun.max")
+            Image(nsImage: MenuBarIcon.image)
         }
         .menuBarExtraStyle(.window)
     }
