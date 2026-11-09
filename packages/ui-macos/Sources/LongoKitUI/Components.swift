@@ -383,24 +383,20 @@ public struct DSSlider: View {
                         .frame(width: max(travel * fraction + half, 6), height: 6)
                         .shadow(color: Theme.solar.opacity(0.5), radius: 5)
                 }
-                ZStack {
-                    // A lighter knob when it carries text, so the number stays readable.
-                    Capsule().fill(LinearGradient(colors: label == nil ? [Color(hex: 0xF4F4F6), Color(hex: 0xA9ABB3)]
-                                                                       : [Color(hex: 0xFFFFFF), Color(hex: 0xDCDDE3)],
-                                                  startPoint: .top, endPoint: .bottom))
-                    Capsule().strokeBorder(Theme.tint(0.6), lineWidth: 0.5)
+                Group {
                     if let label {
-                        Text(label)
-                            .font(.mono(10, .bold))
-                            .foregroundStyle(below ? Color(hex: 0x5B21B6) : Color(hex: 0xC2410C))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
+                        ValueKnob(label: label, below: below)
                     } else {
-                        Circle().fill(Theme.solar).frame(width: 6, height: 6).shadow(color: Theme.solar, radius: 3)
+                        ZStack {
+                            Circle().fill(LinearGradient(colors: [Color(hex: 0xF4F4F6), Color(hex: 0xA9ABB3)],
+                                                         startPoint: .top, endPoint: .bottom))
+                            Circle().strokeBorder(Theme.tint(0.6), lineWidth: 0.5)
+                            Circle().fill(Theme.solar).frame(width: 6, height: 6).shadow(color: Theme.solar, radius: 3)
+                        }
+                        .shadow(color: .black.opacity(0.5), radius: 3, y: 2)
                     }
                 }
-                .frame(width: knob, height: 18)
-                .shadow(color: .black.opacity(0.5), radius: 3, y: 2)
+                .frame(width: knob, height: label == nil ? 18 : 20)
                 .offset(x: travel * fraction)
             }
             .frame(height: 18)
@@ -423,6 +419,32 @@ public struct DSSlider: View {
                 }
             }
         }
+    }
+}
+
+/// The knob of a slider that shows its value: a pill with a gradient rim, Solar (violet below the origin).
+/// Dark: a deep surface with a glow, light number. Light: white with a soft shadow, deeper number.
+private struct ValueKnob: View {
+    let label: String
+    let below: Bool
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        let dark = scheme == .dark
+        let rim = below ? LinearGradient(colors: [Theme.violet, Color(hex: 0xA78BFA)], startPoint: .leading, endPoint: .trailing)
+                        : LinearGradient(colors: [Theme.solar, Color(hex: 0xFF8A50), Theme.violet], startPoint: .leading, endPoint: .trailing)
+        let glow = below ? Theme.violet : Theme.solar
+        ZStack {
+            Capsule().fill(dark ? Color(hex: 0x1D2030) : .white)
+            Capsule().strokeBorder(rim, lineWidth: 1.5)
+            Text(label)
+                .font(.mono(10, .bold))
+                .foregroundStyle(below ? (dark ? Color(hex: 0xC4B5FD) : Color(hex: 0x6D28D9))
+                                       : (dark ? Color(hex: 0xFDBA74) : Color(hex: 0xC2410C)))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .shadow(color: dark ? glow.opacity(0.45) : .black.opacity(0.18), radius: dark ? 6 : 3, y: dark ? 0 : 1.5)
     }
 }
 
