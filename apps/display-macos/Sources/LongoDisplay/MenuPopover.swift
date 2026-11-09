@@ -68,7 +68,6 @@ private struct DisplaySliderRow: View {
     let display: Display
 
     var body: some View {
-        let value = model.settings(for: display).brightness
         let on = model.isOn(display)
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
@@ -85,14 +84,7 @@ private struct DisplaySliderRow: View {
                 PowerButton(display: display)
             }
             if on {
-                LevelSlider(symbol: "sun.max.fill", value: value) { model.setBrightness($0, for: display) }
-                    .disabled(model.mode == .sync && !display.isBuiltin)
-                    .opacity(model.mode == .sync && !display.isBuiltin ? 0.5 : 1)
-                    .help(model.mode == .sync && !display.isBuiltin ? L("Follows the built-in display in Sync mode") : L("Brightness"))
-                if display.method == .ddc {
-                    LevelSlider(symbol: "speaker.wave.2.fill", value: model.volume(for: display)) { model.setVolume($0, for: display) }
-                        .help(L("Speaker volume"))
-                }
+                DisplayLevels(display: display, columns: false)
             }
         }
     }

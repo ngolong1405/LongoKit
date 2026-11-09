@@ -332,6 +332,9 @@ public struct DSSlider: View {
     @Binding public var value: Double
     public let range: ClosedRange<Double>
     public var step: Double = 0.01
+    @Environment(\.isEnabled) private var isEnabled
+    /// Off for snapshots: ImageRenderer can't draw the AppKit view that catches the wheel.
+    public static var scrollWheelAdjusts = true
 
     public init(value: Binding<Double>, range: ClosedRange<Double>, step: Double = 0.01) {
         self._value = value
@@ -368,6 +371,61 @@ public struct DSSlider: View {
             })
         }
         .frame(height: 18)
+        // The scroll wheel over the slider moves it: each notch is 2% of the range.
+        .background {
+            if Self.scrollWheelAdjusts {
+                ScrollWheelCatcher(enabled: isEnabled) { notches in
+                    let span = range.upperBound - range.lowerBound
+                    let raw = min(max(value + notches * span * 0.02, range.lowerBound), range.upperBound)
+                    value = (raw / step).rounded() * step
+                }
+            }
+        }
+    }
+}
+
+/// Hands scroll-wheel movement over a view to `onScroll`, in wheel notches (positive = wheel up / fingers up,
+/// whatever the scroll direction setting), and keeps it from scrolling the page underneath. Clicks pass through.
+struct ScrollWheelCatcher: NSViewRepresentable {
+    var enabled: Bool
+    var onScroll: (Double) -> Void
+
+    func makeNSView(context: Context) -> CatcherView { CatcherView() }
+
+    func updateNSView(_ view: CatcherView, context: Context) {
+        view.onScroll = enabled ? onScroll : nil
+    }
+
+    final class CatcherView: NSView {
+        var onScroll: ((Double) -> Void)?
+        private var monitor: Any?
+
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            if let monitor {
+                NSEvent.removeMonitor(monitor)
+                self.monitor = nil
+            }
+            guard window != nil else { return }
+            monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+                self?.handle(event) ?? event
+            }
+        }
+
+        private func handle(_ event: NSEvent) -> NSEvent? {
+            guard let onScroll, let window, event.window === window, !isHiddenOrHasHiddenAncestor,
+                  bounds.contains(convert(event.locationInWindow, from: nil)) else { return event }
+            // A trackpad's coasting after the fingers lift would overshoot; the gesture itself is enough.
+            guard event.momentumPhase.isEmpty else { return nil }
+            var delta = event.scrollingDeltaY
+            if event.isDirectionInvertedFromDevice { delta = -delta }
+            // Trackpads and smooth wheels report pixels; about 10 of them make a notch.
+            let notches = event.hasPreciseScrollingDeltas ? delta / 10 : delta
+            if notches != 0 { onScroll(notches) }
+            return nil
+        }
     }
 }
 

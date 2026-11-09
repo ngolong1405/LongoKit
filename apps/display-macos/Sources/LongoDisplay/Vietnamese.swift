@@ -94,6 +94,7 @@ enum Vietnamese {
             "Màn này nhận lệnh DDC nhưng không báo lại độ sáng (thường gặp với cổng HDMI của MacBook), nên app không đọc được mức ban đầu. Nếu kéo thanh trượt mà độ sáng không đổi, hãy chọn Phần mềm.",
         "Brightness": "Độ sáng",
         "Speaker volume": "Âm lượng loa",
+        "Mac volume": "Âm lượng của Mac",
         "This monitor isn't answering DDC. MacBook HDMI ports often don't pass it on: plug it into a USB-C port, turn on DDC/CI in the monitor's menu, or use Software.":
             "Màn này không trả lời DDC. Cổng HDMI của MacBook thường không truyền DDC: hãy cắm qua cổng USB-C, bật DDC/CI trong menu của màn, hoặc chọn Phần mềm.",
 

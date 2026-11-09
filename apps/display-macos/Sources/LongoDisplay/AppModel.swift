@@ -62,6 +62,9 @@ final class AppModel: ObservableObject {
     /// DDC displays that gave no valid answer: their port may not pass DDC on (e.g. a MacBook's HDMI port).
     @Published private(set) var silentDDC: Set<String> = []
 
+    /// The Mac's output volume, for the built-in display's speaker slider; nil when the output has no volume.
+    @Published private(set) var systemVolume: Double? = nil
+
     @Published var tab: MainTab = .general
     /// The display whose page is open on the Displays tab.
     @Published var openDisplayKey: String?
@@ -155,7 +158,10 @@ final class AppModel: ObservableObject {
         startKeysIfPossible()
 
         syncTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.followBuiltin() }
+            MainActor.assumeIsolated {
+                self?.followBuiltin()
+                self?.refreshSystemVolume()
+            }
         }
         permissionTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.refreshPermissions() }
@@ -208,6 +214,17 @@ final class AppModel: ObservableObject {
     func setVolume(_ value: Double, for display: Display) {
         settings[display.key, default: DisplaySettings()].volume = value
         engine?.setVolume(value, for: display)
+    }
+
+    func setSystemVolume(_ value: Double) {
+        SystemVolume.set(value)
+        systemVolume = SystemVolume.get()
+    }
+
+    /// The volume keys and other apps change it too.
+    private func refreshSystemVolume() {
+        let volume = SystemVolume.get()
+        if volume != systemVolume { systemVolume = volume }
     }
 
     /// Hardware (DDC) or software dimming for a monitor that has DDC.
@@ -396,7 +413,8 @@ final class AppModel: ObservableObject {
     // MARK: - Snapshot / self-test support
 
     func simulate(displays: [Display], settings: [String: DisplaySettings], powerOff: [String: PowerOff] = [:],
-                  silentDDC: Set<String> = []) {
+                  silentDDC: Set<String> = [], systemVolume: Double? = nil) {
+        self.systemVolume = systemVolume
         self.displays = displays
         self.silentDDC = silentDDC
         self.settings = settings

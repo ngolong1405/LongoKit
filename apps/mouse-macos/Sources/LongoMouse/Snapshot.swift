@@ -14,6 +14,7 @@ enum Snapshot {
 
     @MainActor
     static func renderAndExit() {
+        DSSlider.scrollWheelAdjusts = false
         let directory = URL(fileURLWithPath: outputDirectory!)
         let suite = "MouseMapper.snapshot"
         UserDefaults().removePersistentDomain(forName: suite)

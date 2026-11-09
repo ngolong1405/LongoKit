@@ -134,18 +134,46 @@ private struct QuickBrightness: View {
     let display: Display
 
     var body: some View {
+        DisplayLevels(display: display, columns: true)
+            .padding(.leading, 50)
+    }
+}
+
+/// A display's everyday levels: brightness; extra dimming once brightness reaches 0% (like Lunar's sub-zero
+/// dimming); and its speakers (DDC for a monitor, the Mac's output volume for the built-in display).
+struct DisplayLevels: View {
+    @EnvironmentObject private var model: AppModel
+    let display: Display
+    /// Side by side (the window's list) or stacked (the menu).
+    let columns: Bool
+
+    var body: some View {
+        let value = model.settings(for: display)
         let locked = model.mode == .sync && !display.isBuiltin
-        HStack(spacing: 24) {
-            LevelSlider(symbol: "sun.max.fill", value: model.settings(for: display).brightness) { model.setBrightness($0, for: display) }
-                .disabled(locked)
-                .opacity(locked ? 0.5 : 1)
-                .help(locked ? L("Follows the built-in display in Sync mode") : L("Brightness"))
+        let layout = columns ? AnyLayout(HStackLayout(alignment: .top, spacing: 24)) : AnyLayout(VStackLayout(spacing: 8))
+        layout {
+            VStack(spacing: 8) {
+                LevelSlider(symbol: "sun.max.fill", value: value.brightness) { model.setBrightness($0, for: display) }
+                    .disabled(locked)
+                    .opacity(locked ? 0.5 : 1)
+                    .help(locked ? L("Follows the built-in display in Sync mode") : L("Brightness"))
+                if value.brightness < 0.005 || value.extraDim > 0 {
+                    LevelSlider(symbol: "moon.fill", value: value.extraDim, range: 0...0.8, tint: Theme.violetLight) { new in
+                        model.update(display) { $0.extraDim = new }
+                    }
+                    .help(L("Extra Dimming"))
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
             if display.method == .ddc {
                 LevelSlider(symbol: "speaker.wave.2.fill", value: model.volume(for: display)) { model.setVolume($0, for: display) }
                     .help(L("Speaker volume"))
+            } else if display.isBuiltin, let volume = model.systemVolume {
+                LevelSlider(symbol: "speaker.wave.2.fill", value: volume) { model.setSystemVolume($0) }
+                    .help(L("Mac volume"))
             }
         }
-        .padding(.leading, 50)
+        .animation(.easeOut(duration: 0.2), value: value.brightness < 0.005 || value.extraDim > 0)
     }
 }
 
@@ -153,18 +181,20 @@ private struct QuickBrightness: View {
 struct LevelSlider: View {
     let symbol: String
     let value: Double
+    var range: ClosedRange<Double> = 0...1
+    var tint = Theme.solar
     let set: (Double) -> Void
 
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: symbol)
                 .font(.system(size: 11))
-                .foregroundStyle(Theme.solar)
+                .foregroundStyle(tint)
                 .frame(width: 16)
-            DSSlider(value: Binding(get: { value }, set: set), range: 0...1, step: 0.01)
+            DSSlider(value: Binding(get: { value }, set: set), range: range, step: 0.01)
             Text("\(Int((value * 100).rounded()))%")
                 .font(.mono(11, .semibold))
-                .foregroundStyle(Theme.solar)
+                .foregroundStyle(tint)
                 .frame(width: 36, alignment: .trailing)
         }
     }
