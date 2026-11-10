@@ -26,6 +26,8 @@ const t = pick(lang, {
     displayBody: "Adjust external display brightness and volume over DDC/CI with a slider or your Mac's brightness keys, or let them follow your MacBook.",
     displayBadge: "v0.1 beta",
     external: "External display (DisplayPort)", builtin: "MacBook display",
+    follow: "Follow the MacBook", followNote: "Move the MacBook slider: the external display follows",
+    hyperHint: "Hold HYPER (mouse or finger), then press H J K L", tapEsc: "Tapped: Esc", typed: "Typed",
     keysTitle: "CapsLock → Hyper & Vim layer",
     keysNote: "✨ Tap CapsLock for Esc, hold it for Hyper; H J K L become arrow keys while Hyper is held.",
   },
@@ -47,6 +49,8 @@ const t = pick(lang, {
     displayBody: "Chỉnh độ sáng và âm lượng màn hình ngoài qua DDC/CI bằng thanh trượt hoặc phím độ sáng của Mac, hoặc để chúng đi theo MacBook.",
     displayBadge: "v0.1 beta",
     external: "Màn hình ngoài (DisplayPort)", builtin: "Màn hình MacBook",
+    follow: "Theo MacBook", followNote: "Kéo thanh của MacBook: màn hình ngoài đi theo",
+    hyperHint: "Giữ phím HYPER (bằng chuột hoặc ngón tay), rồi bấm H J K L", tapEsc: "Nhấn nhanh: Esc", typed: "Đã gõ",
     keysTitle: "CapsLock → Hyper & lớp phím Vim",
     keysNote: "✨ Nhấn CapsLock là Esc, giữ là Hyper; H J K L thành phím mũi tên khi giữ Hyper.",
   },
@@ -254,8 +258,8 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
           <p class="text-body-sm text-on-surface-variant">{t.displayBody}</p>
           {
             [
-              { icon: "tv", tint: "text-tertiary", name: t.external, value: 78, accent: "accent-primary-container" },
-              { icon: "laptop_mac", tint: "text-secondary", name: t.builtin, value: 62, accent: "accent-tertiary" },
+              { id: "external", icon: "tv", tint: "text-tertiary", name: t.external, value: 78, accent: "accent-primary-container" },
+              { id: "builtin", icon: "laptop_mac", tint: "text-secondary", name: t.builtin, value: 62, accent: "accent-tertiary" },
             ].map((d) => (
               <div class="flex flex-col gap-3 rounded-xl bg-surface-container-high/70 p-4">
                 <div class="flex items-center justify-between">
@@ -265,19 +269,41 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
                   </span>
                   <span class="lum-value font-code text-xs font-semibold text-primary">{d.value}%</span>
                 </div>
-                <input type="range" min="0" max="100" value={d.value} class:list={["lum h-2 w-full cursor-pointer rounded-lg", d.accent]} aria-label={d.name} />
+                <input type="range" min="0" max="100" value={d.value} data-display={d.id} class:list={["lum h-2 w-full cursor-pointer rounded-lg", d.accent]} aria-label={d.name} />
               </div>
             ))
           }
+          <div class="flex items-center justify-between rounded-xl bg-surface-container/70 p-4">
+            <div class="flex flex-col text-left">
+              <span class="text-body-md font-medium">{t.follow}</span>
+              <span class="text-xs text-on-surface-variant">{t.followNote}</span>
+            </div>
+            <label class="relative inline-flex cursor-pointer items-center">
+              <input id="demo-follow" type="checkbox" class="peer sr-only" aria-label={t.follow} />
+              <span class="h-6 w-11 rounded-full bg-surface-container-highest transition-colors peer-checked:bg-tertiary after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full"></span>
+            </label>
+          </div>
         </div>
         <div class="flex flex-col items-center justify-center p-6 lg:col-span-6">
           <div class="flex w-full max-w-md flex-col items-center gap-4 rounded-2xl bg-surface-container-high/90 p-6 shadow-2xl">
-            <div class="relative flex h-44 w-full flex-col justify-between overflow-hidden rounded-xl bg-surface-container-lowest p-3 shadow-inner">
-              <div class="flex items-center justify-between font-code text-[10px] text-tertiary"><span>EXTERNAL DISPLAY</span><span>SYNCED LUMA</span></div>
-              <div class="h-1 w-full rounded-full bg-gradient-to-r from-primary-container to-tertiary shadow-[0_0_12px_var(--c-tertiary)]"></div>
+            <!-- The external display: its picture dims with the slider -->
+            <div class="relative flex h-44 w-full flex-col justify-between overflow-hidden rounded-xl bg-gradient-to-br from-[#ff8a50] via-[#8b5cf6] to-[#06b6d4] p-3 shadow-inner">
+              <div class="relative z-10 flex items-center justify-between font-code text-[10px] text-white/90"><span>EXTERNAL DISPLAY</span><span id="lum-external-label">78%</span></div>
+              <div class="relative z-10 mx-auto flex h-16 w-28 flex-col gap-1.5 rounded-lg bg-white/25 p-2 backdrop-blur-sm">
+                <span class="h-1.5 w-16 rounded-full bg-white/80"></span><span class="h-1.5 w-20 rounded-full bg-white/60"></span><span class="h-1.5 w-12 rounded-full bg-white/60"></span>
+              </div>
+              <div class="h-1 w-full"></div>
+              <div id="lum-external" class="absolute inset-0 bg-black transition-opacity duration-150" style="opacity: 0.18"></div>
             </div>
             <div class="h-8 w-16 rounded-b-md bg-surface-container-highest"></div>
             <div class="h-2 w-32 rounded-full bg-surface-container"></div>
+            <!-- The MacBook -->
+            <div class="mt-2 flex flex-col items-center">
+              <div class="relative h-20 w-36 overflow-hidden rounded-t-lg border-4 border-b-0 border-surface-container-highest bg-gradient-to-br from-[#ff8a50] via-[#8b5cf6] to-[#06b6d4]">
+                <div id="lum-builtin" class="absolute inset-0 bg-black transition-opacity duration-150" style="opacity: 0.3"></div>
+              </div>
+              <div class="h-2 w-44 rounded-b-md bg-surface-container-highest"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -306,11 +332,21 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
               ))
             }
             <div class="flex gap-1.5">
-              <span class="flex h-10 items-center justify-center rounded bg-gradient-to-r from-primary-container to-secondary px-3 font-bold text-white shadow-[0_0_12px_#ff6b35]">HYPER</span>
+              <button type="button" id="demo-hyper" class="flex h-10 touch-none items-center justify-center rounded bg-gradient-to-r from-primary-container to-secondary px-3 font-bold text-white shadow-[0_0_12px_#ff6b35] transition-transform select-none">HYPER</button>
               {homeRow.map((k) => <span class="flex h-10 w-10 items-center justify-center rounded bg-surface-container-high">{k}</span>)}
-              {vim.map((k) => <span class="flex h-10 w-12 items-center justify-center rounded bg-surface-container-high font-semibold text-secondary">{k}</span>)}
+              {vim.map((k) => <button type="button" class="demo-vim flex h-10 w-12 items-center justify-center rounded bg-surface-container-high font-semibold text-secondary transition-colors" data-key={k[0].toLowerCase()}>{k}</button>)}
               <span class="flex h-10 w-20 items-center justify-center rounded bg-surface-container-high">ENTER</span>
             </div>
+          </div>
+        </div>
+        <!-- What the keys just did: a cursor that H J K L move while Hyper is held -->
+        <div class="flex flex-col gap-3 rounded-xl bg-surface-container-high/60 p-4 md:flex-row md:items-center">
+          <div id="demo-grid" class="grid shrink-0 grid-cols-7 gap-1 self-center" aria-hidden="true">
+            {Array.from({ length: 21 }, () => <span class="h-4 w-4 rounded-sm bg-surface-container-lowest"></span>)}
+          </div>
+          <div class="flex flex-col gap-1 text-left">
+            <span class="font-code text-xs text-secondary">{t.hyperHint}</span>
+            <span id="demo-keys-out" class="font-code text-sm text-on-surface" data-typed={t.typed} data-esc={t.tapEsc}>—</span>
           </div>
         </div>
         <span class="font-code text-xs text-on-surface-variant">{t.keysNote}</span>
@@ -342,6 +378,10 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
   .demo-dir { color: var(--c-on-surface-variant); }
   .demo-dir[aria-checked="true"] { background: var(--c-surface-container-high); color: var(--c-on-surface); font-weight: 600; }
   .demo-side.pressed, .demo-press.pressed { filter: brightness(1.4); }
+  #demo-hyper.held { transform: scale(0.94); box-shadow: 0 0 24px #ff6b35; }
+  [data-panel="keyboard"].hyper .demo-vim { background: var(--c-secondary-container); color: white; }
+  .demo-vim.hit { filter: brightness(1.5); }
+  #demo-grid .cursor { background: var(--c-secondary); box-shadow: 0 0 8px var(--c-secondary); }
 </style>
 
 <script>
@@ -431,9 +471,83 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
     });
   });
 
-  document.querySelectorAll<HTMLInputElement>("input.lum").forEach((input) => {
+  // Display demo: the pictures dim with their sliders, and the external one can follow the MacBook.
+  const follow = document.getElementById("demo-follow") as HTMLInputElement | null;
+  const sliders = Object.fromEntries(
+    [...document.querySelectorAll<HTMLInputElement>("input.lum")].map((input) => [input.dataset.display ?? "", input]),
+  );
+  function showLevel(id: string) {
+    const input = sliders[id];
+    if (!input) return;
     const label = input.parentElement?.querySelector(".lum-value");
-    input.addEventListener("input", () => { if (label) label.textContent = `${input.value}%`; });
+    if (label) label.textContent = `${input.value}%`;
+    const overlay = document.getElementById(`lum-${id}`);
+    if (overlay) overlay.style.opacity = String(0.8 * (1 - Number(input.value) / 100));
+    const screenLabel = document.getElementById(`lum-${id}-label`);
+    if (screenLabel) screenLabel.textContent = `${input.value}%`;
+  }
+  Object.entries(sliders).forEach(([id, input]) => {
+    input.addEventListener("input", () => {
+      showLevel(id);
+      if (id === "builtin" && follow?.checked && sliders.external) {
+        sliders.external.value = input.value;
+        showLevel("external");
+      }
+    });
+    showLevel(id);
+  });
+  follow?.addEventListener("change", () => {
+    if (follow.checked && sliders.external && sliders.builtin) {
+      sliders.external.value = sliders.builtin.value;
+      showLevel("external");
+    }
+  });
+
+  // Keys demo: hold HYPER, then H J K L move the cursor; a quick tap is Esc; without Hyper they just type.
+  const keysPanel = document.querySelector<HTMLElement>('[data-panel="keyboard"]');
+  const hyperKey = document.getElementById("demo-hyper");
+  const out = document.getElementById("demo-keys-out");
+  const cells = [...document.querySelectorAll<HTMLElement>("#demo-grid span")];
+  let cursor = 10, hyper = false, hyperSince = 0, usedHyper = false, typed = "";
+  const drawCursor = () => cells.forEach((cell, i) => cell.classList.toggle("cursor", i === cursor));
+  drawCursor();
+  const moves: Record<string, [number, string]> = { h: [-1, "←"], j: [7, "↓"], k: [-7, "↑"], l: [1, "→"] };
+  function press(key: string) {
+    if (!out) return;
+    if (hyper && moves[key]) {
+      usedHyper = true;
+      const [step, arrow] = moves[key];
+      const next = cursor + step;
+      const sameRow = Math.floor(next / 7) === Math.floor(cursor / 7);
+      if (next >= 0 && next < cells.length && (Math.abs(step) === 7 || sameRow)) cursor = next;
+      drawCursor();
+      out.textContent = `Hyper + ${key.toUpperCase()} → ${arrow}`;
+    } else {
+      typed = (typed + key).slice(-24);
+      out.textContent = `${out.dataset.typed}: ${typed}`;
+    }
+    document.querySelectorAll<HTMLElement>(`.demo-vim[data-key="${key}"]`).forEach((b) => {
+      b.classList.add("hit");
+      setTimeout(() => b.classList.remove("hit"), 150);
+    });
+  }
+  function setHyper(on: boolean) {
+    if (on === hyper) return;
+    hyper = on;
+    hyperKey?.classList.toggle("held", on);
+    keysPanel?.classList.toggle("hyper", on);
+    if (on) { hyperSince = Date.now(); usedHyper = false; }
+    else if (!usedHyper && Date.now() - hyperSince < 250 && out) out.textContent = out.dataset.esc ?? "Esc";
+  }
+  hyperKey?.addEventListener("pointerdown", (e) => { e.preventDefault(); setHyper(true); });
+  window.addEventListener("pointerup", () => setHyper(false));
+  hyperKey?.addEventListener("pointercancel", () => setHyper(false));
+  document.querySelectorAll<HTMLButtonElement>(".demo-vim").forEach((b) => b.addEventListener("click", () => press(b.dataset.key ?? "")));
+  // Real keys too, while the Keys panel is open.
+  window.addEventListener("keydown", (e) => {
+    if (keysPanel?.classList.contains("hidden") || e.metaKey || e.ctrlKey || e.altKey) return;
+    const key = e.key.toLowerCase();
+    if (moves[key]) { e.preventDefault(); press(key); }
   });
   document.querySelectorAll<HTMLButtonElement>("button.copy").forEach((button) => {
     button.addEventListener("click", () => {
