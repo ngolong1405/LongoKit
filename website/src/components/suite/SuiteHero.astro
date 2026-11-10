@@ -17,7 +17,11 @@ const t = pick(lang, {
     running: "Running", curve: "Each wheel notch: ease-out", smooth: "Smooth scrolling",
     smoothNote: "The mouse wheel glides like a trackpad", demo: "(demo)",
     b4: "Button 4 · Hold", b5: "Button 5 · Drag", spaces: "Switch Spaces",
-    on: "ON", direction: "Direction", natural: "Natural",
+    on: "ON", off: "OFF", direction: "Direction", natural: "Natural", classic: "Classic",
+    tryIt: "Try it: scroll in this box", tryTouch: "Use a mouse wheel or trackpad", tryClick: "Click the mouse's buttons →",
+    stepped: "stepped, like a plain mouse", glide: "glides and eases out",
+    left: "Left click", right: "Right click", middle: "Middle click: open in new tab", missionControl: "Mission Control", nextSpace: "Next Space →",
+    lines: ["Scroll with the wheel here.", "With smooth scrolling on, every notch glides", "and slows down at the end, like a trackpad.", "Turn it off: the page jumps a whole notch at a time.", "Flip the direction between Natural and Classic.", "Then press the side buttons on the mouse."],
     preview: "Coming soon · preview",
     displayBody: "Adjust external display brightness and volume over DDC/CI with a slider or your Mac's brightness keys, or let them follow your MacBook.",
     displayBadge: "v0.1 beta",
@@ -34,7 +38,11 @@ const t = pick(lang, {
     running: "Đang chạy", curve: "Mỗi nấc bánh xe: chậm dần (ease-out)", smooth: "Cuộn mượt",
     smoothNote: "Bánh xe chuột trượt mượt như trackpad", demo: "(minh hoạ)",
     b4: "Nút 4 · Giữ", b5: "Nút 5 · Kéo", spaces: "Chuyển Spaces",
-    on: "BẬT", direction: "Hướng", natural: "Tự nhiên",
+    on: "BẬT", off: "TẮT", direction: "Hướng", natural: "Tự nhiên", classic: "Cổ điển",
+    tryIt: "Thử ngay: lăn chuột trong khung này", tryTouch: "Dùng bánh xe chuột hoặc trackpad", tryClick: "Bấm thử các nút trên chuột →",
+    stepped: "giật từng nấc, như chuột thường", glide: "trượt mượt rồi chậm dần",
+    left: "Click trái", right: "Click phải", middle: "Click giữa: mở tab mới", missionControl: "Mission Control", nextSpace: "Sang Space kế →",
+    lines: ["Lăn bánh xe chuột ở đây.", "Khi bật cuộn mượt, mỗi nấc trượt êm", "rồi chậm dần ở cuối, giống trackpad.", "Tắt đi: trang nhảy cả nấc một lần.", "Đổi hướng giữa Tự nhiên và Cổ điển.", "Rồi bấm thử nút hông trên con chuột."],
     preview: "Sắp có · bản xem trước",
     displayBody: "Chỉnh độ sáng và âm lượng màn hình ngoài qua DDC/CI bằng thanh trượt hoặc phím độ sáng của Mac, hoặc để chúng đi theo MacBook.",
     displayBadge: "v0.1 beta",
@@ -139,7 +147,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
       </div>
 
       <!-- LongoMouse -->
-      <div class="hub-panel grid grid-cols-1 items-center gap-8 bg-gradient-to-b from-surface-container-low/70 to-surface-container-lowest p-6 md:p-10 lg:grid-cols-12" data-panel="mouse">
+      <div class="hub-panel grid grid-cols-1 items-center gap-8 bg-gradient-to-b from-surface-container-low/70 to-surface-container-lowest p-6 md:p-10 lg:grid-cols-12" data-panel="mouse" data-left={t.left} data-right={t.right} data-middle={t.middle} data-b4={t.missionControl} data-b5={t.nextSpace}>
         <div class="flex flex-col gap-5 lg:col-span-5">
           <div class="flex items-center justify-between">
             <div>
@@ -148,17 +156,27 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
             </div>
             <span class="rounded-full bg-primary-container/20 px-2.5 py-1 font-code text-xs font-semibold text-primary-container">{t.running}</span>
           </div>
-          <div class="rounded-xl bg-surface-container-high/60 p-4 backdrop-blur-md">
-            <div class="mb-2 flex items-center justify-between font-code text-[11px]">
-              <span class="text-on-surface-variant">{t.curve}</span>
-              <span class="text-primary">800 ms</span>
+          <!-- Try it: a scroll box that behaves like Longo Mouse would -->
+          <div class="flex flex-col gap-2 rounded-xl bg-surface-container-high/60 p-4 backdrop-blur-md">
+            <div class="flex items-center justify-between font-code text-[11px]">
+              <span class="text-primary">{t.tryIt}</span>
+              <span id="demo-mode" class="text-on-surface-variant" data-glide={t.glide} data-stepped={t.stepped}>{t.glide}</span>
             </div>
-            <svg class="h-20 w-full text-primary-container" fill="none" viewBox="0 0 300 70" aria-hidden="true">
-              <path d="M0 8 Q 60 10 120 34 T 300 65" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
-              <path d="M0 8 Q 60 10 120 34 T 300 65 L 300 70 L 0 70 Z" fill="currentColor" fill-opacity="0.08"></path>
-              <circle cx="120" cy="34" r="4" class="fill-primary"></circle>
-              <circle cx="300" cy="65" r="4" class="fill-primary-container"></circle>
-            </svg>
+            <div id="demo-scroll" class="relative h-36 overflow-hidden rounded-lg bg-surface-container-lowest/80 text-left" tabindex="0" aria-label={t.tryIt}>
+              <div id="demo-content" class="flex flex-col gap-3 p-3 will-change-transform">
+                {
+                  Array.from({ length: 6 }, (_, round) =>
+                    t.lines.map((line, i) => (
+                      <p class="flex gap-3 font-code text-[12px] text-on-surface-variant">
+                        <span class="w-5 shrink-0 text-right text-outline">{round * t.lines.length + i + 1}</span>
+                        <span class:list={[i === 0 && "text-on-surface"]}>{line}</span>
+                      </p>
+                    ))
+                  )
+                }
+              </div>
+            </div>
+            <span class="font-code text-[10px] text-outline">{t.tryTouch}</span>
           </div>
           <div class="flex items-center justify-between rounded-xl bg-surface-container/70 p-4">
             <div class="flex flex-col">
@@ -166,34 +184,49 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
               <span class="text-xs text-on-surface-variant">{t.smoothNote}</span>
             </div>
             <label class="relative inline-flex cursor-pointer items-center">
-              <input type="checkbox" checked class="peer sr-only" aria-label={`${t.smooth} ${t.demo}`} />
+              <input id="demo-smooth" type="checkbox" checked class="peer sr-only" aria-label={t.smooth} />
               <span class="h-6 w-11 rounded-full bg-surface-container-highest transition-colors peer-checked:bg-primary-container after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full"></span>
             </label>
           </div>
+          <div class="flex items-center justify-between rounded-xl bg-surface-container/70 p-4">
+            <span class="text-body-md font-medium">{t.direction}</span>
+            <div class="flex rounded-lg bg-surface-container-lowest p-1 font-code text-xs" role="radiogroup">
+              <button type="button" class="demo-dir rounded-md px-3 py-1" data-dir="natural" aria-checked="true">{t.natural}</button>
+              <button type="button" class="demo-dir rounded-md px-3 py-1" data-dir="classic" aria-checked="false">{t.classic}</button>
+            </div>
+          </div>
           <div class="grid grid-cols-2 gap-3">
-            <div class="flex flex-col gap-1 rounded-lg bg-surface-container-low p-3">
+            <button type="button" class="demo-press flex flex-col gap-1 rounded-lg bg-surface-container-low p-3 text-left transition-colors hover:bg-surface-container" data-action="b4">
               <span class="font-code text-[11px] text-on-surface-variant">{t.b4}</span>
               <span class="text-body-sm font-semibold text-primary">Mission Control</span>
-            </div>
-            <div class="flex flex-col gap-1 rounded-lg bg-surface-container-low p-3">
+            </button>
+            <button type="button" class="demo-press flex flex-col gap-1 rounded-lg bg-surface-container-low p-3 text-left transition-colors hover:bg-surface-container" data-action="b5">
               <span class="font-code text-[11px] text-on-surface-variant">{t.b5}</span>
               <span class="text-body-sm font-semibold text-secondary">{t.spaces}</span>
-            </div>
+            </button>
           </div>
         </div>
 
         <div class="relative flex min-h-[380px] flex-col items-center justify-center p-8 lg:col-span-7">
           <div class="pointer-events-none absolute h-72 w-72 rounded-full bg-gradient-to-tr from-primary-container/30 to-secondary-container/20 blur-[70px]"></div>
           <div class="relative flex h-96 w-64 flex-col items-center rounded-[70px] bg-surface-container-high/90 p-4 pt-5 shadow-[0_20px_50px_rgba(255,107,53,0.2)] backdrop-blur-2xl">
-            <div class="relative flex h-20 w-8 flex-col items-center justify-center rounded-full bg-surface-container-lowest p-1 shadow-inner">
-              <div class="h-12 w-3.5 animate-pulse rounded-full bg-gradient-to-b from-primary-container to-secondary-container shadow-[0_0_12px_#ff6b35]"></div>
-            </div>
-            <div class="-mt-10 flex w-full justify-between px-6 font-code text-[10px] text-on-surface-variant">
+            <!-- Left and right halves, the wheel and the side buttons can all be clicked -->
+            <button type="button" class="demo-press absolute top-0 left-0 h-40 w-1/2 rounded-tl-[70px] transition-colors hover:bg-white/5" data-action="left" aria-label={t.left}></button>
+            <button type="button" class="demo-press absolute top-0 right-0 h-40 w-1/2 rounded-tr-[70px] transition-colors hover:bg-white/5" data-action="right" aria-label={t.right}></button>
+            <button type="button" class="demo-press relative z-10 flex h-20 w-8 flex-col items-center justify-center rounded-full bg-surface-container-lowest p-1 shadow-inner" data-action="middle" aria-label={t.middle}>
+              <span id="demo-wheel" class="h-12 w-3.5 rounded-full bg-gradient-to-b from-primary-container to-secondary-container shadow-[0_0_12px_#ff6b35] transition-transform"></span>
+            </button>
+            <div class="pointer-events-none -mt-10 flex w-full justify-between px-6 font-code text-[10px] text-on-surface-variant">
               <span>L1 PRIMARY</span><span>R1 SECONDARY</span>
             </div>
-            <div class="absolute top-32 left-0 flex -translate-x-3 flex-col gap-3">
-              <div class="flex h-10 w-3 items-center justify-center rounded-l-lg bg-primary-container shadow-[0_0_12px_#ff6b35]"><span class="h-4 w-1 rounded-full bg-white/70"></span></div>
-              <div class="flex h-10 w-3 items-center justify-center rounded-l-lg bg-surface-bright transition-colors hover:bg-secondary"><span class="h-4 w-1 rounded-full bg-white/40"></span></div>
+            <div class="absolute top-32 left-0 z-10 flex -translate-x-3 flex-col gap-3">
+              <button type="button" class="demo-press demo-side flex h-10 w-3 items-center justify-center rounded-l-lg bg-primary-container shadow-[0_0_12px_#ff6b35]" data-action="b4" aria-label="Button 4 · Mission Control"><span class="h-4 w-1 rounded-full bg-white/70"></span></button>
+              <button type="button" class="demo-press demo-side flex h-10 w-3 items-center justify-center rounded-l-lg bg-surface-bright transition-colors hover:bg-secondary" data-action="b5" aria-label={`Button 5 · ${t.spaces}`}><span class="h-4 w-1 rounded-full bg-white/40"></span></button>
+            </div>
+            <span class="pointer-events-none absolute top-[7.5rem] -left-40 hidden font-code text-[10px] text-primary lg:block">{t.tryClick}</span>
+            <div id="demo-toast" class="pointer-events-none absolute top-1/2 left-1/2 z-20 flex -translate-x-1/2 -translate-y-1/2 scale-90 items-center gap-2 rounded-xl bg-surface-container-lowest/95 px-4 py-3 font-display text-sm whitespace-nowrap opacity-0 shadow-2xl transition-all duration-200">
+              <span id="demo-toast-icon" class="material-symbols-outlined text-[20px] text-primary">mouse</span>
+              <span id="demo-toast-text"></span>
             </div>
             <div class="mt-auto mb-6 flex flex-col items-center">
               <div class="flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-lowest shadow-inner">
@@ -203,9 +236,9 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
             </div>
           </div>
           <div class="mt-6 flex items-center gap-4 rounded-full bg-surface-container/90 px-5 py-2.5 font-code text-xs shadow-lg">
-            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-tertiary"></span>{t.smooth}: <strong class="text-tertiary">{t.on}</strong></span>
+            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-tertiary"></span>{t.smooth}: <strong id="demo-smooth-state" class="text-tertiary" data-on={t.on} data-off={t.off}>{t.on}</strong></span>
             <span class="text-outline">|</span>
-            <span>{t.direction}: <strong class="text-primary-container">{t.natural}</strong></span>
+            <span>{t.direction}: <strong id="demo-dir-state" class="text-primary-container">{t.natural}</strong></span>
           </div>
         </div>
       </div>
@@ -306,6 +339,9 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
     box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
   }
   .lum { appearance: none; background: var(--c-surface-container-lowest); }
+  .demo-dir { color: var(--c-on-surface-variant); }
+  .demo-dir[aria-checked="true"] { background: var(--c-surface-container-high); color: var(--c-on-surface); font-weight: 600; }
+  .demo-side.pressed, .demo-press.pressed { filter: brightness(1.4); }
 </style>
 
 <script>
@@ -321,6 +357,79 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
   }
   tabs.forEach((t) => t.addEventListener("click", () => show(t.dataset.tab!)));
   show("mouse");
+
+  // Mouse demo: the box scrolls the way Longo Mouse would, and the buttons show what they're mapped to.
+  const box = document.getElementById("demo-scroll");
+  const content = document.getElementById("demo-content");
+  const smooth = document.getElementById("demo-smooth") as HTMLInputElement | null;
+  const mode = document.getElementById("demo-mode");
+  const smoothState = document.getElementById("demo-smooth-state");
+  const dirState = document.getElementById("demo-dir-state");
+  const wheel = document.getElementById("demo-wheel");
+  let position = 0, target = 0, frame = 0, natural = true;
+  const limit = () => Math.max(0, (content?.scrollHeight ?? 0) - (box?.clientHeight ?? 0));
+  const render = () => { if (content) content.style.transform = `translateY(${-position}px)`; };
+  const glide = () => {
+    position += (target - position) * 0.12; // the same ease-out as the app: each frame covers part of what's left
+    if (Math.abs(target - position) < 0.5) { position = target; frame = 0; } else frame = requestAnimationFrame(glide);
+    render();
+  };
+  box?.addEventListener("wheel", (event) => {
+    event.preventDefault();
+    const sign = natural ? 1 : -1;
+    if (smooth?.checked) {
+      target = Math.min(limit(), Math.max(0, target + event.deltaY * sign));
+      if (!frame) frame = requestAnimationFrame(glide);
+    } else {
+      // A plain mouse: a whole notch at once, no motion in between.
+      cancelAnimationFrame(frame); frame = 0;
+      position = target = Math.min(limit(), Math.max(0, position + Math.sign(event.deltaY) * sign * 60));
+      render();
+    }
+    if (wheel) { wheel.style.transform = `translateY(${Math.sign(event.deltaY) * 3}px)`; setTimeout(() => (wheel.style.transform = ""), 120); }
+  }, { passive: false });
+  // Touch screens: drag the box directly.
+  let touchY = 0;
+  box?.addEventListener("touchstart", (e) => { touchY = e.touches[0].clientY; }, { passive: true });
+  box?.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    position = target = Math.min(limit(), Math.max(0, position + (touchY - y)));
+    touchY = y;
+    render();
+  }, { passive: false });
+  smooth?.addEventListener("change", () => {
+    if (mode) mode.textContent = smooth.checked ? mode.dataset.glide ?? "" : mode.dataset.stepped ?? "";
+    if (smoothState) smoothState.textContent = smooth.checked ? smoothState.dataset.on ?? "" : smoothState.dataset.off ?? "";
+  });
+  document.querySelectorAll<HTMLButtonElement>(".demo-dir").forEach((button) => {
+    button.addEventListener("click", () => {
+      natural = button.dataset.dir === "natural";
+      document.querySelectorAll(".demo-dir").forEach((b) => b.setAttribute("aria-checked", String(b === button)));
+      if (dirState) dirState.textContent = button.textContent;
+    });
+  });
+  const panel = document.querySelector<HTMLElement>('[data-panel="mouse"]');
+  const toast = document.getElementById("demo-toast");
+  const toastText = document.getElementById("demo-toast-text");
+  const toastIcon = document.getElementById("demo-toast-icon");
+  const icons: Record<string, string> = { left: "left_click", right: "right_click", middle: "tab", b4: "grid_view", b5: "view_carousel" };
+  let toastTimer = 0;
+  document.querySelectorAll<HTMLButtonElement>(".demo-press").forEach((button) => {
+    button.addEventListener("click", () => {
+      const action = button.dataset.action ?? "";
+      if (!toast || !toastText || !toastIcon) return;
+      toastText.textContent = panel?.dataset[action] ?? "";
+      toastIcon.textContent = icons[action] ?? "mouse";
+      toast.classList.remove("opacity-0", "scale-90");
+      document.querySelectorAll(`.demo-side[data-action="${action}"]`).forEach((side) => side.classList.add("pressed"));
+      clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => {
+        toast.classList.add("opacity-0", "scale-90");
+        document.querySelectorAll(".demo-side.pressed").forEach((side) => side.classList.remove("pressed"));
+      }, 1300);
+    });
+  });
 
   document.querySelectorAll<HTMLInputElement>("input.lum").forEach((input) => {
     const label = input.parentElement?.querySelector(".lum-value");
