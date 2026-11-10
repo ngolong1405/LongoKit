@@ -148,6 +148,16 @@ final class AppModel: ObservableObject {
                                                object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.tick() }
         }
+        // Keyboards (Bluetooth ones especially) come back from sleep without their tables.
+        for name in [NSWorkspace.didWakeNotification, NSWorkspace.screensDidWakeNotification] {
+            NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                for delay in [1.0, 4.0] {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                        MainActor.assumeIsolated { self?.reapplyIfDropped() }
+                    }
+                }
+            }
+        }
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.tick() }
         }
@@ -309,15 +319,18 @@ final class AppModel: ObservableObject {
             hasInputMonitoring = listening
             if listening { monitor.reopen() }
         }
-        reapplyIfDropped()
+        ticks += 1
+        if ticks % 30 == 0 { reapplyIfDropped() }
     }
 
     /// macOS can drop a keyboard's table without the keyboard disconnecting for the app to see (a Bluetooth
-    /// keyboard waking up, a late service): put it back. Checked every few seconds; cheap when nothing changed.
+    /// keyboard waking up, a late service): put it back. Checked after the Mac wakes and every 30 s as a backstop;
+    /// it only reads the tables, and runs `hidutil` only when one is missing.
     private func reapplyIfDropped() {
-        ticks += 1
-        guard live, !confirming, ticks % 3 == 0 else { return }
+        guard live, !confirming else { return }
         let tables = tables()
+        // Nothing to keep on and nothing left on: no need to look.
+        guard tables.values.contains(where: { !$0.isEmpty }) || defaults.bool(forKey: Keys.applied) else { return }
         if KeyMapper.isOutOfDate(keyboards.map { ($0, tables[$0.id] ?? [:]) }) { applyMappings() }
     }
 
