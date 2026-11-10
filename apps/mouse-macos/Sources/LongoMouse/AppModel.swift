@@ -650,6 +650,8 @@ final class AppModel: ObservableObject {
 
     private func applyEngineBindings() {
         MouseEngine.shared.update(effectiveBindings)
+        let layouts = [bindings] + profiles.values.filter(\.independent).map(\.bindings)
+        MouseEngine.shared.keyButtonsMapped = layouts.joined().contains { MouseKeys.isKeyButton($0.trigger.button) }
     }
 
     // MARK: - Per-mouse scrolling

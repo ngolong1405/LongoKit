@@ -139,8 +139,15 @@ final class MouseEngine {
         return true
     }
 
+    /// Some mouse (not necessarily the one in use) has a button that sends a key combo mapped. The key tap then
+    /// stays on, so that button's first press after switching mice is already caught.
+    var keyButtonsMapped = false {
+        didSet { if keyButtonsMapped != oldValue { updateKeyTap() } }
+    }
+
     private func updateKeyTap() {
-        let needed = tap != nil && (captureHandler != nil || bindings.contains { MouseKeys.isKeyButton($0.trigger.button) })
+        let needed = tap != nil
+            && (captureHandler != nil || keyButtonsMapped || bindings.contains { MouseKeys.isKeyButton($0.trigger.button) })
         guard needed != (keyTap != nil) else { return }
         if needed {
             let mask = (CGEventMask(1) << CGEventType.keyDown.rawValue) | (CGEventMask(1) << CGEventType.keyUp.rawValue)
