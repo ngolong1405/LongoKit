@@ -1,0 +1,10 @@
+# Only the website and the brand assets it uses are uploaded for CLI deploys.
+**/node_modules
+**/.build
+**/build
+**/dist
+**/.astro
+apps
+packages
+.github
+.env*
