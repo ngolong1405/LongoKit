@@ -14,6 +14,7 @@ const t = pick(lang, {
       ["Switches automatically", "to the mouse you're using."],
       ["Own buttons and scrolling", "for every mouse."],
       ["Trackpad & Magic Mouse", "stay untouched."],
+      ["Side buttons that send keys", "(UGREEN and others send ⌃← / ⌃→) become buttons you can map."],
     ],
     devices: [
       ["IN USE (BT)", "Own buttons · Own scrolling", "Smooth scroll", "800 ms"],
@@ -38,6 +39,7 @@ const t = pick(lang, {
       ["Tự đổi", "theo chuột đang dùng."],
       ["Nút và cuộn riêng", "cho từng con chuột."],
       ["Trackpad & Magic Mouse", "giữ nguyên."],
+      ["Nút hông gửi phím", "(UGREEN và một số chuột gửi ⌃← / ⌃→) cũng thành nút để gán."],
     ],
     devices: [
       ["ĐANG DÙNG (BT)", "Nút riêng · Cuộn riêng", "Cuộn mượt", "800 ms"],
@@ -66,7 +68,7 @@ const devices = style.map((s, i) => {
   const [state, profile, left, right] = t.devices[i];
   return { ...s, state, profile, left, right };
 });
-const checks = ["text-primary", "text-secondary", "text-tertiary"];
+const checks = ["text-primary", "text-secondary", "text-tertiary", "text-primary"];
 ---
 
 <section class="w-full bg-surface-container-low px-margin-mobile py-space-3xl md:px-margin-desktop">

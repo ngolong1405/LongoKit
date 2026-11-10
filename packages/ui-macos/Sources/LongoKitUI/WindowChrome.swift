@@ -188,6 +188,8 @@ public enum MainWindowRef {
         window?.orderOut(nil)
         WindowVisibility.shared.isShown = false
         if !keepsDockIconWhenHidden { NSApp.setActivationPolicy(.accessory) }
+        // Give the memory the torn-down views used back to macOS, once SwiftUI has let go of them.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { malloc_zone_pressure_relief(nil, 0) }
     }
 
     /// Brings the window (and the Dock icon) back. Returns false when SwiftUI hasn't created the window yet.
