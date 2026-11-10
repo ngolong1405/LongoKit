@@ -185,11 +185,11 @@ final class AppModel: ObservableObject {
         }
         startKeysIfPossible()
 
+        // The volume tells us when it changes; the built-in brightness has to be asked, and only while it matters.
+        SystemVolume.observe { [weak self] in MainActor.assumeIsolated { self?.refreshSystemVolume() } }
+        refreshSystemVolume()
         syncTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated {
-                self?.followBuiltin()
-                self?.refreshSystemVolume()
-            }
+            MainActor.assumeIsolated { self?.followBuiltin() }
         }
         // Permissions change in System Settings without telling us, so re-check on focus and on a timer.
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification,
@@ -489,8 +489,17 @@ final class AppModel: ObservableObject {
 
     /// Tracks the built-in display's brightness (it changes with the keys and ambient light); in Sync mode the
     /// external displays follow it.
+    /// Reading the built-in brightness is only needed while external displays follow it, the extra dimming
+    /// below 0% is on, or a window shows the slider; otherwise the timer skips it.
+    private var needsBuiltinBrightness: Bool {
+        guard let builtin else { return false }
+        if mode == .sync, isEnabled, externals.contains(where: { isOn($0) && settings(for: $0).syncs }) { return true }
+        if settings(for: builtin).extraDim > 0 { return true }
+        return NSApp.windows.contains { $0.isVisible && $0.occlusionState.contains(.visible) && !$0.className.contains("StatusBar") }
+    }
+
     private func followBuiltin() {
-        guard let engine, let builtin, let builtinValue = engine.builtinBrightness(),
+        guard needsBuiltinBrightness, let engine, let builtin, let builtinValue = engine.builtinBrightness(),
               lastBuiltin.map({ abs($0 - builtinValue) > 0.004 }) ?? true else { return }
         lastBuiltin = builtinValue
         if builtinValue > 0, settings(for: builtin).extraDim > 0 {

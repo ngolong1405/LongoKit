@@ -56,6 +56,15 @@ final class DeviceMonitor {
             kIOHIDDeviceUsageKey: kHIDUsage_GD_Mouse,
         ]]
         IOHIDManagerSetDeviceMatchingMultiple(manager, matching as CFArray)
+        // Only the values that matter: buttons, keys (mice that send key combos), and X motion and the wheel to tell
+        // which mouse is in use. Y, horizontal pan and the rest would only wake the app for nothing.
+        let inputs: [[String: Any]] = [
+            [kIOHIDElementUsagePageKey: kHIDPage_Button],
+            [kIOHIDElementUsagePageKey: kHIDPage_KeyboardOrKeypad],
+            [kIOHIDElementUsagePageKey: kHIDPage_GenericDesktop, kIOHIDElementUsageKey: kHIDUsage_GD_X],
+            [kIOHIDElementUsagePageKey: kHIDPage_GenericDesktop, kIOHIDElementUsageKey: kHIDUsage_GD_Wheel],
+        ]
+        IOHIDManagerSetInputValueMatchingMultiple(manager, inputs as CFArray)
 
         let context = Unmanaged.passUnretained(self).toOpaque()
         IOHIDManagerRegisterDeviceMatchingCallback(manager, { context, _, _, device in

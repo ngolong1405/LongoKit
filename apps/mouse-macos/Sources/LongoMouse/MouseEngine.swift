@@ -18,7 +18,9 @@ final class MouseEngine {
     private(set) var bindings: [MouseBinding] = []
 
     /// While set, extra-button gestures are classified and delivered here instead of being remapped.
-    var captureHandler: ((Trigger, ClickType) -> Void)?
+    var captureHandler: ((Trigger, ClickType) -> Void)? {
+        didSet { updateKeyTap() }
+    }
 
     /// Double-click fix for a worn left/right button that chatters (one press arrives as two clicks): a release is
     /// held this long, and a press arriving meanwhile is the same press bouncing, so both are dropped. Nil is off.
@@ -41,6 +43,10 @@ final class MouseEngine {
     }
 
     private var tap: CFMachPort?
+    /// A second tap, on key events, that only exists while listening or while a button that sends a key combo
+    /// is mapped. Otherwise typing never passes through this app.
+    private var keyTap: CFMachPort?
+    private var keyTapSource: CFRunLoopSource?
     private var presses: [Int: Press] = [:]
     private var pendingClicks: [Int: DispatchWorkItem] = [:]
     private var pendingCapture: (button: Int, work: DispatchWorkItem)?
@@ -103,12 +109,13 @@ final class MouseEngine {
 
     func update(_ bindings: [MouseBinding]) {
         self.bindings = bindings
+        updateKeyTap()
     }
 
     @discardableResult
     func start() -> Bool {
         guard tap == nil else { return true }
-        let types: [CGEventType] = [.keyDown, .keyUp, .otherMouseDown, .otherMouseUp, .otherMouseDragged,
+        let types: [CGEventType] = [.otherMouseDown, .otherMouseUp, .otherMouseDragged,
                                     .leftMouseDown, .leftMouseUp, .leftMouseDragged,
                                     .rightMouseDown, .rightMouseUp, .rightMouseDragged, .scrollWheel]
         let mask = types.reduce(CGEventMask(0)) { $0 | (CGEventMask(1) << $1.rawValue) }
@@ -128,7 +135,41 @@ final class MouseEngine {
         CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
         self.tap = tap
+        updateKeyTap()
         return true
+    }
+
+    private func updateKeyTap() {
+        let needed = tap != nil && (captureHandler != nil || bindings.contains { MouseKeys.isKeyButton($0.trigger.button) })
+        guard needed != (keyTap != nil) else { return }
+        if needed {
+            let mask = (CGEventMask(1) << CGEventType.keyDown.rawValue) | (CGEventMask(1) << CGEventType.keyUp.rawValue)
+            guard let keyTap = CGEvent.tapCreate(
+                tap: .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap, eventsOfInterest: mask,
+                callback: { _, type, event, refcon in
+                    Unmanaged<MouseEngine>.fromOpaque(refcon!).takeUnretainedValue().handle(type, event)
+                },
+                userInfo: Unmanaged.passUnretained(self).toOpaque()
+            ) else { return }
+            let source = CFMachPortCreateRunLoopSource(nil, keyTap, 0)
+            CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+            CGEvent.tapEnable(tap: keyTap, enable: true)
+            self.keyTap = keyTap
+            keyTapSource = source
+        } else {
+            if let keyTap { CGEvent.tapEnable(tap: keyTap, enable: false); CFMachPortInvalidate(keyTap) }
+            if let keyTapSource { CFRunLoopRemoveSource(CFRunLoopGetMain(), keyTapSource, .commonModes) }
+            keyTap = nil
+            keyTapSource = nil
+            // Keys still waiting for the mouse's report go through as they were.
+            for held in heldKeys.values {
+                held.work.cancel()
+                Self.repost(held.down)
+                held.up.map(Self.repost)
+            }
+            heldKeys.removeAll()
+            swallowedKeys.removeAll()
+        }
     }
 
     // MARK: - Event handling
@@ -177,6 +218,7 @@ final class MouseEngine {
             // Events were missed while off; start clean rather than finish a gesture half-seen.
             forgetGestures()
             if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
+            if let keyTap { CGEvent.tapEnable(tap: keyTap, enable: true) }
             return pass
         }
         if event.getIntegerValueField(.eventSourceUserData) == ActionPerformer.syntheticTag { return pass }

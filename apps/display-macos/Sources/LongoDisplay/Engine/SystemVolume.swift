@@ -29,6 +29,32 @@ enum SystemVolume {
         return Double(volume)
     }
 
+    private static var watchedDevice: AudioDeviceID?
+    private static var volumeListener: AudioObjectPropertyListenerBlock?
+
+    /// Calls `changed` (on the main queue) when the output volume or the output device changes, so the app
+    /// doesn't have to keep asking.
+    static func observe(_ changed: @escaping () -> Void) {
+        var defaultOutput = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain)
+        let volume: AudioObjectPropertyListenerBlock = { _, _ in changed() }
+        volumeListener = volume
+        func watchOutput() {
+            if let old = watchedDevice { AudioObjectRemovePropertyListenerBlock(old, &address, .main, volume) }
+            watchedDevice = outputDevice()
+            if let device = watchedDevice, AudioObjectHasProperty(device, &address) {
+                AudioObjectAddPropertyListenerBlock(device, &address, .main, volume)
+            }
+        }
+        watchOutput()
+        AudioObjectAddPropertyListenerBlock(AudioObjectID(kAudioObjectSystemObject), &defaultOutput, .main) { _, _ in
+            watchOutput()
+            changed()
+        }
+    }
+
     static func set(_ value: Double) {
         guard let device = outputDevice() else { return }
         var settable = DarwinBoolean(false)
