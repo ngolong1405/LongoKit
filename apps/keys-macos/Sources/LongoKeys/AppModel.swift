@@ -295,6 +295,8 @@ final class AppModel: ObservableObject {
         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
     }
 
+    private var ticks = 0
+
     private func tick() {
         let trusted = AXIsProcessTrusted()
         if trusted != hasAccessibility { hasAccessibility = trusted }
@@ -307,6 +309,16 @@ final class AppModel: ObservableObject {
             hasInputMonitoring = listening
             if listening { monitor.reopen() }
         }
+        reapplyIfDropped()
+    }
+
+    /// macOS can drop a keyboard's table without the keyboard disconnecting for the app to see (a Bluetooth
+    /// keyboard waking up, a late service): put it back. Checked every few seconds; cheap when nothing changed.
+    private func reapplyIfDropped() {
+        ticks += 1
+        guard live, !confirming, ticks % 3 == 0 else { return }
+        let tables = tables()
+        if KeyMapper.isOutOfDate(keyboards.map { ($0, tables[$0.id] ?? [:]) }) { applyMappings() }
     }
 
     func requestInputMonitoring() {

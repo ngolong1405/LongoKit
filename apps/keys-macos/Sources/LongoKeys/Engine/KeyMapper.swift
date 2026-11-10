@@ -28,6 +28,26 @@ enum KeyMapper {
         return applied
     }
 
+    /// Whether some keyboard service doesn't have the table it should. macOS drops a keyboard's table when it
+    /// reconnects or wakes (Bluetooth keyboards do this on their own), sometimes after the app last applied it.
+    static func isOutOfDate(_ tables: [(KeyboardDevice, [Key: Key])]) -> Bool {
+        let services = keyboardServices()
+        for (keyboard, table) in tables {
+            let expected = mappingArray(table)
+            for service in services where matches(service, keyboard) {
+                let current = IOHIDServiceClientCopyProperty(service, property) as? [[String: Any]] ?? []
+                let pairs = current.compactMap { entry -> [String: UInt64]? in
+                    guard let src = (entry["HIDKeyboardModifierMappingSrc"] as? NSNumber)?.uint64Value,
+                          let dst = (entry["HIDKeyboardModifierMappingDst"] as? NSNumber)?.uint64Value else { return nil }
+                    return ["HIDKeyboardModifierMappingSrc": src, "HIDKeyboardModifierMappingDst": dst]
+                }
+                let sorted = pairs.sorted { ($0["HIDKeyboardModifierMappingSrc"] ?? 0) < ($1["HIDKeyboardModifierMappingSrc"] ?? 0) }
+                if sorted != expected { return true }
+            }
+        }
+        return false
+    }
+
     /// Every keyboard back to normal.
     static func clearAll() {
         for service in keyboardServices() {
