@@ -101,6 +101,7 @@ enum ClickType: String, Codable, CaseIterable, Identifiable {
 enum ActionKind: String, Codable, CaseIterable, Identifiable {
     case none
     case lookUp, smartZoom, primaryClick, secondaryClick, middleClick
+    case primaryDoubleClick, primaryTripleClick, secondaryDoubleClick, secondaryTripleClick
     case back, forward
     case missionControl, appExpose, showDesktop, launchpad, spaceLeft, spaceRight
     case shortcut, mediaKey
@@ -111,6 +112,7 @@ enum ActionKind: String, Codable, CaseIterable, Identifiable {
 
     static let pressGroups: [[ActionKind]] = [
         [.lookUp, .smartZoom, .primaryClick, .secondaryClick, .middleClick],
+        [.primaryDoubleClick, .primaryTripleClick, .secondaryDoubleClick, .secondaryTripleClick],
         [.back, .forward],
         [.missionControl, .appExpose, .showDesktop, .launchpad, .spaceLeft, .spaceRight],
     ]
@@ -123,6 +125,10 @@ enum ActionKind: String, Codable, CaseIterable, Identifiable {
         case .primaryClick: return L("Primary Click")
         case .secondaryClick: return L("Secondary Click")
         case .middleClick: return L("Middle Click")
+        case .primaryDoubleClick: return L("Left Double Click")
+        case .primaryTripleClick: return L("Left Triple Click")
+        case .secondaryDoubleClick: return L("Right Double Click")
+        case .secondaryTripleClick: return L("Right Triple Click")
         case .back: return L("Back")
         case .forward: return L("Forward")
         case .missionControl: return L("Mission Control")
@@ -286,6 +292,8 @@ extension ActionKind {
         case .lookUp: return L("Simulates Force Click")
         case .smartZoom: return L("Trackpad gesture")
         case .primaryClick, .secondaryClick, .middleClick: return L("Mouse button")
+        case .primaryDoubleClick, .primaryTripleClick, .secondaryDoubleClick, .secondaryTripleClick:
+            return L("Several clicks in one press")
         case .back, .forward: return L("Browser & Finder history")
         case .missionControl, .appExpose, .showDesktop, .launchpad: return L("macOS window management")
         case .spaceLeft, .spaceRight, .dragSpaces, .scrollSpaces: return L("Virtual desktop paging")
@@ -304,6 +312,7 @@ extension ActionKind {
         case .lookUp: return "magnifyingglass"
         case .smartZoom: return "plus.magnifyingglass"
         case .primaryClick, .secondaryClick, .middleClick: return "cursorarrow.click"
+        case .primaryDoubleClick, .primaryTripleClick, .secondaryDoubleClick, .secondaryTripleClick: return "cursorarrow.click.2"
         case .back: return "chevron.backward"
         case .forward: return "chevron.forward"
         case .missionControl: return "rectangle.3.group"

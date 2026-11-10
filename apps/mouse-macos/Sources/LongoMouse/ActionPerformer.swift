@@ -15,6 +15,10 @@ enum ActionPerformer {
         case .primaryClick: postClick(button: 0)
         case .secondaryClick: postClick(button: 1)
         case .middleClick: postClick(button: 2)
+        case .primaryDoubleClick: postClick(button: 0, count: 2)
+        case .primaryTripleClick: postClick(button: 0, count: 3)
+        case .secondaryDoubleClick: postClick(button: 1, count: 2)
+        case .secondaryTripleClick: postClick(button: 1, count: 3)
         case .back: postKey(33, [.command]) // ⌘[
         case .forward: postKey(30, [.command]) // ⌘]
         case .missionControl: openMissionControl()
@@ -49,8 +53,10 @@ enum ActionPerformer {
         }
     }
 
-    static func postClick(button: Int) {
-        if let recorder { return recorder("click \(button)") }
+    /// Clicks `count` times at the pointer. Apps count clicks by the click state each event carries, not by timing,
+    /// so the presses are numbered 1, 2, 3 and arrive as a real double or triple click.
+    static func postClick(button: Int, count: Int = 1) {
+        if let recorder { return recorder(count == 1 ? "click \(button)" : "click \(button) ×\(count)") }
         let location = CGEvent(source: nil)?.location ?? .zero
         let types: [CGEventType]
         switch button {
@@ -59,12 +65,15 @@ enum ActionPerformer {
         default: types = [.otherMouseDown, .otherMouseUp]
         }
         let cgButton = CGMouseButton(rawValue: UInt32(button)) ?? .center
-        for type in types {
-            guard let event = CGEvent(mouseEventSource: nil, mouseType: type,
-                                      mouseCursorPosition: location, mouseButton: cgButton) else { continue }
-            event.setIntegerValueField(.mouseEventButtonNumber, value: Int64(button))
-            event.setIntegerValueField(.eventSourceUserData, value: syntheticTag)
-            event.post(tap: .cghidEventTap)
+        for click in 1...max(1, count) {
+            for type in types {
+                guard let event = CGEvent(mouseEventSource: nil, mouseType: type,
+                                          mouseCursorPosition: location, mouseButton: cgButton) else { continue }
+                event.setIntegerValueField(.mouseEventButtonNumber, value: Int64(button))
+                event.setIntegerValueField(.mouseEventClickState, value: Int64(click))
+                event.setIntegerValueField(.eventSourceUserData, value: syntheticTag)
+                event.post(tap: .cghidEventTap)
+            }
         }
     }
 

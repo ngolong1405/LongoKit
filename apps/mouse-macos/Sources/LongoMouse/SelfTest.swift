@@ -45,6 +45,12 @@ enum SelfTest {
         check("Hold-only button replays its normal click on a quick press", [bind(b4, .hold, .appExpose)], expect: ["click 3"]) {
             press(3); release(3)
         }
+        check("A button can triple-click the left button", [bind(b4, .click, .primaryTripleClick)], expect: ["click 0 ×3"]) {
+            press(3); release(3)
+        }
+        check("…or double-click the right one", [bind(b4, .click, .secondaryDoubleClick)], expect: ["click 1 ×2"]) {
+            press(3); release(3)
+        }
         check("Double click runs the double action", [bind(b4, .click, .spaceLeft), bind(b4, .doubleClick, .showDesktop)],
               expect: ["key 103"]) {
             press(3); release(3); wait(0.08); press(3); release(3); wait(NSEvent.doubleClickInterval + 0.2)

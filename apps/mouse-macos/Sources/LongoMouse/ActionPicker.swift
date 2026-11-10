@@ -128,7 +128,9 @@ struct ActionPicker: View {
                 ("Window & Mission Control", [.missionControl, .appExpose, .showDesktop, .launchpad]),
                 ("Spaces", [.spaceLeft, .spaceRight]),
                 ("Navigation", [.back, .forward]),
-                ("Clicks & Lookup", [.lookUp, .primaryClick, .secondaryClick, .middleClick, .smartZoom]),
+                ("Clicks", [.primaryClick, .primaryDoubleClick, .primaryTripleClick,
+                            .secondaryClick, .secondaryDoubleClick, .secondaryTripleClick, .middleClick]),
+                ("Look Up & Zoom", [.lookUp, .smartZoom]),
             ]
         }
     }
@@ -150,6 +152,8 @@ struct ActionPicker: View {
         case .spaceRight: return "⌃→"
         case .scrollZoom: return L("⌘± ")
         case .smartZoom: return L("Soon")
+        case .primaryDoubleClick, .secondaryDoubleClick: return "×2"
+        case .primaryTripleClick, .secondaryTripleClick: return "×3"
         default: return nil
         }
     }
