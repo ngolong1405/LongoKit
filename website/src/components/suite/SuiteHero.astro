@@ -321,21 +321,26 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
           <span class="rounded bg-secondary-container/40 px-3 py-1 font-code text-xs text-secondary">Hyper = ⌥ ⌘ ⌃ ⇧</span>
         </div>
         <div class="w-full overflow-x-auto rounded-xl bg-surface-container-lowest/90 p-4 shadow-inner md:p-6">
-          <div class="flex min-w-[680px] flex-col gap-2 font-code text-xs">
+          <!-- On phones only the Hyper row shows, wide enough to hold HYPER with one finger and tap H J K L with another. -->
+          <div class="flex flex-col gap-2 font-code text-xs sm:min-w-[680px]">
             {
               keyRows.map((row) => (
-                <div class="flex gap-1.5">
+                <div class="hidden gap-1.5 sm:flex">
                   {row.map((k) => (
-                    <span class:list={["flex h-10 items-center justify-center rounded bg-surface-container-high", k.length > 2 ? "w-14" : "w-10"]}>{k}</span>
+                    <button type="button" class:list={["demo-key flex h-10 items-center justify-center rounded bg-surface-container-high select-none", k.length > 2 ? "w-14" : "w-10"]} data-key={k.length > 2 ? k.split(" ")[0].toLowerCase() : k.toLowerCase()}>{k}</button>
                   ))}
                 </div>
               ))
             }
             <div class="flex gap-1.5">
-              <button type="button" id="demo-hyper" class="flex h-10 touch-none items-center justify-center rounded bg-gradient-to-r from-primary-container to-secondary px-3 font-bold text-white shadow-[0_0_12px_#ff6b35] transition-transform select-none">HYPER</button>
-              {homeRow.map((k) => <span class="flex h-10 w-10 items-center justify-center rounded bg-surface-container-high">{k}</span>)}
-              {vim.map((k) => <button type="button" class="demo-vim flex h-10 w-12 items-center justify-center rounded bg-surface-container-high font-semibold text-secondary transition-colors" data-key={k[0].toLowerCase()}>{k}</button>)}
-              <span class="flex h-10 w-20 items-center justify-center rounded bg-surface-container-high">ENTER</span>
+              <button type="button" id="demo-hyper" class="flex h-14 flex-[1.6] touch-none items-center justify-center rounded bg-gradient-to-r from-primary-container to-secondary px-3 font-bold text-white shadow-[0_0_12px_#ff6b35] select-none sm:h-10 sm:flex-none">HYPER</button>
+              {homeRow.map((k) => <button type="button" class="demo-key hidden h-10 w-10 items-center justify-center rounded bg-surface-container-high select-none sm:flex" data-key={k.toLowerCase()}>{k}</button>)}
+              {vim.map((k) => (
+                <button type="button" class="demo-key demo-vim flex h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded bg-surface-container-high font-semibold text-secondary select-none sm:h-10 sm:w-12 sm:flex-none sm:flex-row sm:gap-1" data-key={k[0].toLowerCase()}>
+                  <span>{k.split(" ")[0]}</span><span>{k.split(" ")[1]}</span>
+                </button>
+              ))}
+              <button type="button" class="demo-key hidden h-10 w-20 items-center justify-center rounded bg-surface-container-high select-none sm:flex" data-key="enter">ENTER</button>
             </div>
           </div>
         </div>
@@ -378,9 +383,17 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
   .demo-dir { color: var(--c-on-surface-variant); }
   .demo-dir[aria-checked="true"] { background: var(--c-surface-container-high); color: var(--c-on-surface); font-weight: 600; }
   .demo-side.pressed, .demo-press.pressed { filter: brightness(1.4); }
-  #demo-hyper.held { transform: scale(0.94); box-shadow: 0 0 24px #ff6b35; }
+  #demo-hyper.held { transform: translateY(2px) scale(0.94); box-shadow: 0 0 28px #ff6b35, inset 0 2px 4px rgb(0 0 0 / 0.3); }
   [data-panel="keyboard"].hyper .demo-vim { background: var(--c-secondary-container); color: white; }
-  .demo-vim.hit { filter: brightness(1.5); }
+  /* A key going down: pressed in, lit, then springing back. */
+  .demo-key, #demo-hyper { transition: transform 0.08s, box-shadow 0.12s, background-color 0.12s, color 0.12s; touch-action: manipulation; }
+  .demo-key:hover { background: var(--c-surface-container-highest); }
+  [data-panel="keyboard"] .demo-key.hit, [data-panel="keyboard"] .demo-key:active {
+    transform: translateY(2px) scale(0.92);
+    background: var(--c-secondary);
+    color: white;
+    box-shadow: 0 0 14px var(--c-secondary), inset 0 2px 4px rgb(0 0 0 / 0.25);
+  }
   #demo-grid .cursor { background: var(--c-secondary); box-shadow: 0 0 8px var(--c-secondary); }
 </style>
 
@@ -512,8 +525,16 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
   const drawCursor = () => cells.forEach((cell, i) => cell.classList.toggle("cursor", i === cursor));
   drawCursor();
   const moves: Record<string, [number, string]> = { h: [-1, "←"], j: [7, "↓"], k: [-7, "↑"], l: [1, "→"] };
+  const names: Record<string, string> = { esc: "⎋", bksp: "⌫", tab: "⇥", enter: "↩", "\\": "\\" };
+  function flash(key: string) {
+    document.querySelectorAll<HTMLElement>(`.demo-key[data-key="${CSS.escape(key)}"]`).forEach((b) => {
+      b.classList.add("hit");
+      setTimeout(() => b.classList.remove("hit"), 160);
+    });
+  }
   function press(key: string) {
     if (!out) return;
+    flash(key);
     if (hyper && moves[key]) {
       usedHyper = true;
       const [step, arrow] = moves[key];
@@ -522,32 +543,42 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
       if (next >= 0 && next < cells.length && (Math.abs(step) === 7 || sameRow)) cursor = next;
       drawCursor();
       out.textContent = `Hyper + ${key.toUpperCase()} → ${arrow}`;
-    } else {
-      typed = (typed + key).slice(-24);
-      out.textContent = `${out.dataset.typed}: ${typed}`;
+      return;
     }
-    document.querySelectorAll<HTMLElement>(`.demo-vim[data-key="${key}"]`).forEach((b) => {
-      b.classList.add("hit");
-      setTimeout(() => b.classList.remove("hit"), 150);
-    });
+    if (hyper) usedHyper = true;
+    if (key === "bksp") typed = typed.slice(0, -1);
+    else typed = (typed + (names[key] ?? key)).slice(-24);
+    out.textContent = `${out.dataset.typed}: ${typed}`;
   }
+  // Hyper follows the pointer that pressed it, so a second finger can tap H J K L meanwhile.
+  let hyperPointer: number | null = null;
   function setHyper(on: boolean) {
     if (on === hyper) return;
     hyper = on;
     hyperKey?.classList.toggle("held", on);
     keysPanel?.classList.toggle("hyper", on);
     if (on) { hyperSince = Date.now(); usedHyper = false; }
-    else if (!usedHyper && Date.now() - hyperSince < 250 && out) out.textContent = out.dataset.esc ?? "Esc";
+    else if (!usedHyper && Date.now() - hyperSince < 250 && out) { flash("esc"); out.textContent = out.dataset.esc ?? "Esc"; }
   }
-  hyperKey?.addEventListener("pointerdown", (e) => { e.preventDefault(); setHyper(true); });
-  window.addEventListener("pointerup", () => setHyper(false));
-  hyperKey?.addEventListener("pointercancel", () => setHyper(false));
-  document.querySelectorAll<HTMLButtonElement>(".demo-vim").forEach((b) => b.addEventListener("click", () => press(b.dataset.key ?? "")));
-  // Real keys too, while the Keys panel is open.
+  hyperKey?.addEventListener("pointerdown", (e) => { e.preventDefault(); hyperPointer = e.pointerId; setHyper(true); });
+  const releaseHyper = (e: PointerEvent) => { if (e.pointerId === hyperPointer) { hyperPointer = null; setHyper(false); } };
+  window.addEventListener("pointerup", releaseHyper);
+  window.addEventListener("pointercancel", releaseHyper);
+  // Keys react on press, not release, like a real keyboard.
+  document.querySelectorAll<HTMLButtonElement>(".demo-key").forEach((b) => b.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    press(b.dataset.key ?? "");
+  }));
+  // Real keys too, while the Keys panel is open and on screen.
   window.addEventListener("keydown", (e) => {
-    if (keysPanel?.classList.contains("hidden") || e.metaKey || e.ctrlKey || e.altKey) return;
-    const key = e.key.toLowerCase();
-    if (moves[key]) { e.preventDefault(); press(key); }
+    if (!keysPanel || keysPanel.classList.contains("hidden") || e.metaKey || e.ctrlKey || e.altKey) return;
+    const r = keysPanel.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > innerHeight) return;
+    const map: Record<string, string> = { escape: "esc", backspace: "bksp", tab: "tab", enter: "enter", "|": "\\" };
+    const key = map[e.key.toLowerCase()] ?? e.key.toLowerCase();
+    if (!document.querySelector(`.demo-key[data-key="${CSS.escape(key)}"]`)) return;
+    e.preventDefault();
+    press(key);
   });
   document.querySelectorAll<HTMLButtonElement>("button.copy").forEach((button) => {
     button.addEventListener("click", () => {
