@@ -330,20 +330,20 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
               keyRows.map((row) => (
                 <div class="hidden gap-1.5 sm:flex">
                   {row.map((k) => (
-                    <button type="button" class:list={["demo-key flex h-10 items-center justify-center rounded bg-surface-container-high select-none", k.length > 2 ? "w-14" : "w-10"]} data-key={k.length > 2 ? k.split(" ")[0].toLowerCase() : k.toLowerCase()}>{k}</button>
+                    <button type="button" class:list={["demo-key flex h-10 items-center justify-center rounded bg-surface-container-high select-none", k.length > 2 ? "flex-[1.5]" : "flex-1"]} data-key={k.length > 2 ? k.split(" ")[0].toLowerCase() : k.toLowerCase()}>{k}</button>
                   ))}
                 </div>
               ))
             }
             <div class="flex gap-1.5">
-              <button type="button" id="demo-hyper" class="flex h-14 flex-[1.6] touch-none items-center justify-center rounded bg-gradient-to-r from-primary-container to-secondary px-3 font-bold text-white shadow-[0_0_12px_#ff6b35] select-none sm:h-10 sm:flex-none">HYPER</button>
-              {homeRow.map((k) => <button type="button" class="demo-key hidden h-10 w-10 items-center justify-center rounded bg-surface-container-high select-none sm:flex" data-key={k.toLowerCase()}>{k}</button>)}
+              <button type="button" id="demo-hyper" class="flex h-14 flex-[1.6] touch-none items-center justify-center rounded bg-gradient-to-r from-primary-container to-secondary px-3 font-bold text-white shadow-[0_0_12px_#ff6b35] select-none sm:h-10 sm:flex-[1.6]">HYPER</button>
+              {homeRow.map((k) => <button type="button" class="demo-key hidden h-10 flex-1 items-center justify-center rounded bg-surface-container-high select-none sm:flex" data-key={k.toLowerCase()}>{k}</button>)}
               {vim.map((k) => (
-                <button type="button" class="demo-key demo-vim flex h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded bg-surface-container-high font-semibold text-secondary select-none sm:h-10 sm:w-12 sm:flex-none sm:flex-row sm:gap-1" data-key={k[0].toLowerCase()}>
+                <button type="button" class="demo-key demo-vim flex h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded bg-surface-container-high font-semibold text-secondary select-none sm:h-10 sm:flex-row sm:gap-1" data-key={k[0].toLowerCase()}>
                   <span>{k.split(" ")[0]}</span><span>{k.split(" ")[1]}</span>
                 </button>
               ))}
-              <button type="button" class="demo-key hidden h-10 w-20 items-center justify-center rounded bg-surface-container-high select-none sm:flex" data-key="enter">ENTER</button>
+              <button type="button" class="demo-key hidden h-10 flex-[2.5] items-center justify-center rounded bg-surface-container-high select-none sm:flex" data-key="enter">ENTER</button>
             </div>
           </div>
         </div>
