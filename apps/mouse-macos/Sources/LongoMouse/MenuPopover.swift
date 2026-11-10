@@ -91,7 +91,27 @@ struct MenuPopover: View {
                     .opacity(model.inUseScroll.smoothEnabled ? 1 : 0.4)
                     .disabled(!model.inUseScroll.smoothEnabled)
             }
+            Hairline()
+            shortcutRow(L("Scroll sideways"), keys: ["⇧"], isOn: model.inUseScroll.horizontalSwipe) {
+                model.inUseScroll.horizontalSwipe.toggle()
+            }
+            shortcutRow(L("Back & forward"), keys: ["⌃", "⇧"], isOn: model.inUseScroll.swipeNavigation) {
+                model.inUseScroll.swipeNavigation.toggle()
+            }
         }
+    }
+
+    /// A wheel shortcut: its name, the keys to hold while scrolling, and its switch.
+    private func shortcutRow(_ title: String, keys: [String], isOn: Bool, toggle: @escaping () -> Void) -> some View {
+        HStack(spacing: 6) {
+            Text(title).font(.ui(12)).foregroundStyle(Theme.text)
+            Spacer()
+            ForEach(keys, id: \.self) { KeyCap(text: $0) }
+            Text(L("+ scroll")).font(.ui(10)).foregroundStyle(Theme.textMuted)
+                .padding(.trailing, 4)
+            QuickSwitch(isOn: isOn, action: toggle)
+        }
+        .opacity(isOn ? 1 : 0.7)
     }
 
     private var mice: some View {

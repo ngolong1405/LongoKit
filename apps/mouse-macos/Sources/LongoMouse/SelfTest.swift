@@ -51,6 +51,10 @@ enum SelfTest {
         check("…or double-click the right one", [bind(b4, .click, .secondaryDoubleClick)], expect: ["click 1 ×2"]) {
             press(3); release(3)
         }
+        let older = try? JSONDecoder().decode(ScrollSettings.self, from: Data(#"{"speed":1.2}"#.utf8))
+        report("Sideways scrolling and back/forward are on by default, also for older settings",
+               ScrollSettings().horizontalSwipe && ScrollSettings().swipeNavigation
+               && older?.horizontalSwipe == true && older?.swipeNavigation == true, "older: \(String(describing: older))")
         engine.clickGuard = 0.06
         check("Double-click fix: a bouncing press stays one click", [], expect: ["release 0"]) {
             assertSwallowed(press(0), false); assertSwallowed(release(0), true)
