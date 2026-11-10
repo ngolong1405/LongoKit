@@ -14,18 +14,20 @@ enum KeyMapper {
         }
     }
 
-    /// Sets each keyboard's table; an empty table restores the keyboard. Returns how many services took it.
+    /// Sets each keyboard's table; an empty table restores the keyboard. Returns how many keyboards took it.
+    ///
+    /// Goes through `hidutil`: a table set from this app's own HID client is stored on the keyboard (and reads back)
+    /// but macOS doesn't use it for typing, while the same table set by `hidutil` takes effect right away.
     @discardableResult
     static func apply(_ tables: [(KeyboardDevice, [Key: Key])]) -> Int {
-        let services = keyboardServices()
-        var applied = 0
-        for (keyboard, table) in tables {
-            let array = mappingArray(table) as CFArray
-            for service in services where matches(service, keyboard) {
-                if IOHIDServiceClientSetProperty(service, property, array) { applied += 1 }
-            }
-        }
-        return applied
+        tables.filter { keyboard, table in
+            let matching: [String: Any] = [
+                kIOHIDVendorIDKey: keyboard.vendorID,
+                kIOHIDProductIDKey: keyboard.productID,
+                kIOHIDLocationIDKey: UInt32(truncatingIfNeeded: keyboard.locationID),
+            ]
+            return hidutil(matching: matching, table: mappingArray(table))
+        }.count
     }
 
     /// Whether some keyboard service doesn't have the table it should. macOS drops a keyboard's table when it
@@ -50,8 +52,27 @@ enum KeyMapper {
 
     /// Every keyboard back to normal.
     static func clearAll() {
-        for service in keyboardServices() {
-            IOHIDServiceClientSetProperty(service, property, [] as CFArray)
+        hidutil(matching: [kIOHIDPrimaryUsagePageKey: kHIDPage_GenericDesktop, kIOHIDPrimaryUsageKey: kHIDUsage_GD_Keyboard],
+                table: [])
+    }
+
+    /// `hidutil property --matching … --set '{"UserKeyMapping": …}'`. True when it ran fine.
+    @discardableResult
+    private static func hidutil(matching: [String: Any], table: [[String: UInt64]]) -> Bool {
+        guard let match = try? JSONSerialization.data(withJSONObject: matching),
+              let set = try? JSONSerialization.data(withJSONObject: [property as String: table]) else { return false }
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/hidutil")
+        process.arguments = ["property", "--matching", String(decoding: match, as: UTF8.self),
+                             "--set", String(decoding: set, as: UTF8.self)]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+            process.waitUntilExit()
+            return process.terminationStatus == 0
+        } catch {
+            return false
         }
     }
 
