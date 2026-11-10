@@ -19,6 +19,15 @@ final class MouseEngine {
     /// While set, extra-button gestures are classified and delivered here instead of being remapped.
     var captureHandler: ((Trigger, ClickType) -> Void)?
 
+    /// Double-click fix for a worn left/right button that chatters (one press arrives as two clicks): a release is
+    /// held this long, and a press arriving meanwhile is the same press bouncing, so both are dropped. Nil is off.
+    var clickGuard: TimeInterval? {
+        didSet { if clickGuard == nil { releaseHeldUps() } }
+    }
+    private var heldUps: [Int: (event: CGEvent, work: DispatchWorkItem)] = [:]
+    /// The click state of each button's last press, given to its delayed release.
+    private var pressClickState: [Int: Int64] = [:]
+
     private struct Press {
         var trigger: Trigger
         var capturing: Bool
@@ -127,6 +136,7 @@ final class MouseEngine {
 
     /// Drops held buttons, waiting clicks and any glide in progress.
     private func forgetGestures() {
+        releaseHeldUps()
         presses.values.forEach { $0.holdTimer?.cancel() }
         presses.removeAll()
         pendingClicks.values.forEach { $0.cancel() }
@@ -161,10 +171,15 @@ final class MouseEngine {
             dropStalePresses()
             let modifiers = Modifiers(event.flags)
             // Plain left/right clicks are how you use the Mac (and this app); only modified ones can be remapped.
-            if button < 2 && modifiers.isEmpty { return pass }
+            if button < 2 && modifiers.isEmpty {
+                if guardPress(button) { return nil }
+                pressClickState[button] = event.getIntegerValueField(.mouseEventClickState)
+                return pass
+            }
             return mouseDown(button, modifiers) ? nil : pass
         case .otherMouseUp, .leftMouseUp, .rightMouseUp:
-            return mouseUp(button) ? nil : pass
+            if mouseUp(button) { return nil }
+            return button < 2 && guardRelease(button, event) ? nil : pass
         case .otherMouseDragged, .leftMouseDragged, .rightMouseDragged:
             return mouseDragged(button, event) ? nil : pass
         default:
@@ -448,6 +463,42 @@ final class MouseEngine {
         event.setIntegerValueField(vertical.line, value: 0)
         event.setIntegerValueField(vertical.point, value: 0)
         event.setDoubleValueField(vertical.fixed, value: 0)
+    }
+
+    // MARK: Double-click fix
+
+    /// A press while the button's release is still held back: the contact bounced. Drop both, so it stays one press.
+    private func guardPress(_ button: Int) -> Bool {
+        guard let held = heldUps.removeValue(forKey: button) else { return false }
+        held.work.cancel()
+        return true
+    }
+
+    /// Holds a plain left/right release back for `clickGuard`, then lets it through.
+    private func guardRelease(_ button: Int, _ event: CGEvent) -> Bool {
+        guard let window = clickGuard, isEnabled, captureHandler == nil, let copy = event.copy() else { return false }
+        copy.setIntegerValueField(.eventSourceUserData, value: ActionPerformer.syntheticTag)
+        if let state = pressClickState[button] { copy.setIntegerValueField(.mouseEventClickState, value: state) }
+        let work = schedule(window) { [weak self] in
+            guard self?.heldUps.removeValue(forKey: button) != nil else { return }
+            Self.post(copy, button)
+        }
+        heldUps[button] = (copy, work)
+        return true
+    }
+
+    /// Lets every held release through now, so no button is left looking pressed.
+    private func releaseHeldUps() {
+        for (button, held) in heldUps {
+            held.work.cancel()
+            Self.post(held.event, button)
+        }
+        heldUps.removeAll()
+    }
+
+    private static func post(_ release: CGEvent, _ button: Int) {
+        if let recorder = ActionPerformer.recorder { return recorder("release \(button)") }
+        release.post(tap: .cghidEventTap)
     }
 
     private func deliverCapture(_ trigger: Trigger, _ type: ClickType) {

@@ -84,6 +84,22 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Double-click fix for a worn left/right button; `clickGuardMs` is how close a second press must come to count
+    /// as the same press bouncing.
+    @Published var clickGuardOn: Bool {
+        didSet {
+            defaults.set(clickGuardOn, forKey: Keys.clickGuard)
+            applyClickGuard()
+        }
+    }
+    @Published var clickGuardMs: Double {
+        didSet {
+            defaults.set(clickGuardMs, forKey: Keys.clickGuardMs)
+            applyClickGuard()
+        }
+    }
+    static let clickGuardRange = 20.0...150.0
+
     @Published var scroll: ScrollSettings {
         didSet {
             applyEngineScroll()
@@ -149,6 +165,8 @@ final class AppModel: ObservableObject {
         static let autoSwitch = "autoSwitchProfiles"
         static let language = "language"
         static let appearance = "appearance"
+        static let clickGuard = "clickGuard"
+        static let clickGuardMs = "clickGuardMs"
     }
 
     init(startsEngine: Bool = true, defaults: UserDefaults = .standard) {
@@ -156,6 +174,8 @@ final class AppModel: ObservableObject {
         bindings = Self.load([MouseBinding].self, from: defaults, forKey: Keys.bindings) ?? Self.defaultBindings()
         isEnabled = defaults.object(forKey: Keys.enabled) as? Bool ?? true
         scroll = Self.load(ScrollSettings.self, from: defaults, forKey: Keys.scroll) ?? ScrollSettings()
+        clickGuardOn = defaults.bool(forKey: Keys.clickGuard)
+        clickGuardMs = defaults.object(forKey: Keys.clickGuardMs) as? Double ?? 60
         let menuBarIcon = defaults.object(forKey: Keys.menuBarIcon) as? Bool ?? true
         showMenuBarIcon = menuBarIcon
         MainWindowRef.keepsDockIconWhenHidden = !menuBarIcon
@@ -169,6 +189,7 @@ final class AppModel: ObservableObject {
 
         applyEngineBindings()
         applyEngineScroll()
+        applyClickGuard()
         syncEngine()
         guard startsEngine else { return }
 
@@ -681,6 +702,10 @@ final class AppModel: ObservableObject {
                 scroll = newValue
             }
         }
+    }
+
+    private func applyClickGuard() {
+        MouseEngine.shared.clickGuard = clickGuardOn ? clickGuardMs / 1000 : nil
     }
 
     private func applyEngineScroll() {

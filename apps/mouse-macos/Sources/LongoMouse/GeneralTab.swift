@@ -9,15 +9,43 @@ struct GeneralTab: View {
             StatusCard()
             // Missing permissions come first; once everything is granted the everyday settings move up.
             if model.allPermissionsGranted {
+                ClickFixCard()
                 StartupCard()
                 PermissionsCard()
             } else {
                 PermissionsCard()
+                ClickFixCard()
                 StartupCard().opacity(0.8)
             }
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
+    }
+}
+
+/// For a worn left/right button that sometimes clicks twice: presses that bounce closer than the threshold count once.
+private struct ClickFixCard: View {
+    @EnvironmentObject private var model: AppModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            CardHeader(symbol: "cursorarrow.click.badge.clock", title: L("Double-Click Fix"),
+                       subtitle: L("For a worn button that sometimes clicks twice when pressed once."),
+                       tint: Theme.solar) {
+                DSSwitch(isOn: model.clickGuardOn) { model.clickGuardOn.toggle() }
+            }
+            if model.clickGuardOn {
+                HStack(spacing: 12) {
+                    Text(L("Ignore a second click within")).font(.ui(12)).foregroundStyle(Theme.textSecondary)
+                    DSSlider(value: $model.clickGuardMs, range: AppModel.clickGuardRange, step: 5,
+                             label: "\(Int(model.clickGuardMs)) ms")
+                }
+                Text(L("Left and right buttons. A real double click is slower than this, so it still works; raise it if the button still double-clicks, lower it if your own fast double clicks stop working."))
+                    .font(.ui(11)).foregroundStyle(Theme.textMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .panel()
     }
 }
 

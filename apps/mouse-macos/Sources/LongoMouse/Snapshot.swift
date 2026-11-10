@@ -19,6 +19,7 @@ enum Snapshot {
         let suite = "MouseMapper.snapshot"
         UserDefaults().removePersistentDomain(forName: suite)
         let model = AppModel(startsEngine: false, defaults: UserDefaults(suiteName: suite)!)
+        model.clickGuardOn = true
         let b4 = Trigger(button: 3, modifiers: [])
         let b5 = Trigger(button: 4, modifiers: [])
         model.bindings = [

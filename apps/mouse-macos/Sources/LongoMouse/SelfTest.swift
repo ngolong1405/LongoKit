@@ -51,6 +51,23 @@ enum SelfTest {
         check("…or double-click the right one", [bind(b4, .click, .secondaryDoubleClick)], expect: ["click 1 ×2"]) {
             press(3); release(3)
         }
+        engine.clickGuard = 0.06
+        check("Double-click fix: a bouncing press stays one click", [], expect: ["release 0"]) {
+            assertSwallowed(press(0), false); assertSwallowed(release(0), true)
+            assertSwallowed(press(0), true); assertSwallowed(release(0), true)
+            wait(0.15)
+        }
+        check("Double-click fix: a real double click still gets through", [], expect: ["release 0", "release 0"]) {
+            assertSwallowed(press(0), false); release(0); wait(0.15)
+            assertSwallowed(press(0), false); release(0); wait(0.15)
+        }
+        check("Double-click fix: a held press can still drag", [], expect: ["release 1"]) {
+            press(1); release(1); assertSwallowed(press(1), true); wait(0.2); release(1); wait(0.15)
+        }
+        engine.clickGuard = nil
+        check("Double-click fix off: releases pass straight through", [], expect: []) {
+            press(0); assertSwallowed(release(0), false)
+        }
         check("Double click runs the double action", [bind(b4, .click, .spaceLeft), bind(b4, .doubleClick, .showDesktop)],
               expect: ["key 103"]) {
             press(3); release(3); wait(0.08); press(3); release(3); wait(NSEvent.doubleClickInterval + 0.2)
