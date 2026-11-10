@@ -181,9 +181,12 @@ public enum MainWindowRef {
     /// Off while the menu bar icon is shown: then a hidden window also hides the Dock icon, like other menu bar apps.
     public static var keepsDockIconWhenHidden = false
 
-    /// Closing only hides the window; the app keeps running from the menu bar until Quit.
+    /// Closing only hides the window; the app keeps running from the menu bar until Quit. The window's
+    /// content is dropped while hidden (see `ReleasedWhenHidden`), so a closed window costs no memory or updates.
     public static func hide() {
+        if let size = window?.contentView?.frame.size { WindowVisibility.shared.hiddenSize = size }
         window?.orderOut(nil)
+        WindowVisibility.shared.isShown = false
         if !keepsDockIconWhenHidden { NSApp.setActivationPolicy(.accessory) }
     }
 
@@ -193,6 +196,7 @@ public enum MainWindowRef {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         guard let window else { return false }
+        WindowVisibility.shared.isShown = true
         window.makeKeyAndOrderFront(nil)
         return true
     }
@@ -207,6 +211,33 @@ public enum MainWindowRef {
                   let window = MainWindowRef.window, event.window === window else { return event }
             MainWindowRef.hide()
             return nil
+        }
+    }
+}
+
+/// Whether the main window is showing. While it's hidden its SwiftUI content is torn down.
+public final class WindowVisibility: ObservableObject {
+    public static let shared = WindowVisibility()
+    @Published public var isShown = true
+    /// The content's size when it was hidden; the stand-in keeps it so the window doesn't move or resize.
+    var hiddenSize = CGSize(width: 1, height: 1)
+}
+
+/// Wraps a window's content so it only exists while the window is visible: views, their state and the
+/// work of keeping them up to date all go away when the window is hidden, and come back when it's shown.
+public struct ReleasedWhenHidden<Content: View>: View {
+    @ObservedObject private var visibility = WindowVisibility.shared
+    private let content: () -> Content
+
+    public init(@ViewBuilder _ content: @escaping () -> Content) {
+        self.content = content
+    }
+
+    public var body: some View {
+        if visibility.isShown {
+            content()
+        } else {
+            Color.clear.frame(width: visibility.hiddenSize.width, height: visibility.hiddenSize.height)
         }
     }
 }

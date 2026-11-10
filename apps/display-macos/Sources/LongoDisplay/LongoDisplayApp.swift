@@ -16,7 +16,8 @@ struct LongoDisplayApp: App {
 
     var body: some Scene {
         Window(AppInfo.name, id: "main") {
-            MainWindow().environmentObject(model)
+            // Torn down while the window is hidden, so the app idles in the menu bar on next to nothing.
+            ReleasedWhenHidden { MainWindow().environmentObject(model) }
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
                     model.prepareToQuit()
                 }
