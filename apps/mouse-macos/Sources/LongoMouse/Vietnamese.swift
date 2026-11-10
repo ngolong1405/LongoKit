@@ -226,6 +226,8 @@ enum Vietnamese {
         "Listening… press a mouse button": "Đang nghe… nhấn một nút chuột",
         "Click to stop, or press Esc": "Bấm để dừng, hoặc nhấn Esc",
         "Press any mouse button to add it or find it": "Nhấn nút chuột bất kỳ để thêm hoặc tìm nút đó",
+        "Any button; for left / right hold ⌥ ⌃ ⌘ or ⇧": "Nút bất kỳ; nút trái / phải thì giữ ⌥ ⌃ ⌘ hoặc ⇧",
+        "Left / right: hold ⌥ ⌃ ⌘ or ⇧. A click or Esc stops.": "Trái / phải: giữ ⌥ ⌃ ⌘ hoặc ⇧. Click hoặc Esc để dừng.",
         "Nothing set up yet": "Chưa gán nút nào",
         "%d buttons · %d gestures set up": "%d nút · %d cử chỉ đã gán",
         "Remove this gesture": "Xoá cử chỉ này",

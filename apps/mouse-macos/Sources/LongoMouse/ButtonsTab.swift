@@ -170,9 +170,11 @@ private struct ListenButton: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(active ? L("Listening… press a mouse button") : L("Listen for a button"))
                         .font(.ui(13, .semibold))
-                    Text(active ? L("Click to stop, or press Esc") : L("Press any mouse button to add it or find it"))
+                    Text(active ? L("Left / right: hold ⌥ ⌃ ⌘ or ⇧. A click or Esc stops.")
+                                : L("Any button; for left / right hold ⌥ ⌃ ⌘ or ⇧"))
                         .font(.ui(10))
                         .opacity(0.8)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .foregroundStyle(active ? Theme.text : .white)
                 Spacer(minLength: 0)
