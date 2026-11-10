@@ -53,11 +53,15 @@ struct Trigger: Codable, Hashable {
         case 0: return L("Left Button")
         case 1: return L("Right Button")
         case 2: return L("Middle Button")
+        case _ where MouseKeys.isKeyButton(button): return L("%@ Button", MouseKeys.symbol(of: button))
         default: return L("Button %d", button + 1)
         }
     }
 
     /// What the button usually is on a mouse, shown next to its group.
+    /// Buttons that arrive as key combos have no drag events, so they can't be click-dragged.
+    var canDrag: Bool { !MouseKeys.isKeyButton(button) }
+
     var role: String {
         switch button {
         case 0: return L("Primary + modifier")
@@ -65,6 +69,7 @@ struct Trigger: Codable, Hashable {
         case 2: return L("Wheel click")
         case 3: return L("Back side")
         case 4: return L("Forward side")
+        case _ where MouseKeys.isKeyButton(button): return L("Sends a key combo")
         default: return L("Extra button")
         }
     }

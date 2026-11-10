@@ -41,6 +41,10 @@ final class DeviceMonitor {
     var onChange: (([MouseDevice]) -> Void)?
     /// Called with a device id whenever input starts coming from a different mouse.
     var onActivity: ((String) -> Void)?
+    /// A key pressed (true) or released on a mouse's own keyboard interface: HID usage and the mouse's modifier bits.
+    var onMouseKey: ((_ usage: Int, _ modifiers: Int, _ down: Bool) -> Void)?
+    /// Modifier keys (HID 0xE0–0xE7) each mouse is holding, as bits.
+    private var mouseModifiers: [UnsafeMutableRawPointer: Int] = [:]
 
     private let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
     private var devices: [UnsafeMutableRawPointer: MouseDevice] = [:]
@@ -62,7 +66,9 @@ final class DeviceMonitor {
         }, context)
         IOHIDManagerRegisterInputValueCallback(manager, { context, _, _, value in
             let device = IOHIDElementGetDevice(IOHIDValueGetElement(value))
-            Unmanaged<DeviceMonitor>.fromOpaque(context!).takeUnretainedValue().activity(device)
+            let monitor = Unmanaged<DeviceMonitor>.fromOpaque(context!).takeUnretainedValue()
+            monitor.activity(device)
+            monitor.keyboardValue(value, from: device)
         }, context)
         IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
         IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
@@ -94,6 +100,28 @@ final class DeviceMonitor {
         guard let id = devices[Self.key(device)]?.id, id != lastActive else { return }
         lastActive = id
         onActivity?(id)
+    }
+
+    /// Keys from a mouse's keyboard interface. Only devices that are mice first count, so a keyboard with a
+    /// built-in touchpad still types normally.
+    private func keyboardValue(_ value: IOHIDValue, from device: IOHIDDevice) {
+        let element = IOHIDValueGetElement(value)
+        guard IOHIDElementGetUsagePage(element) == UInt32(kHIDPage_KeyboardOrKeypad), devices[Self.key(device)] != nil,
+              IOHIDDeviceGetProperty(device, kIOHIDPrimaryUsageKey as CFString) as? Int == kHIDUsage_GD_Mouse
+        else { return }
+        let usage = Int(IOHIDElementGetUsage(element))
+        let down = IOHIDValueGetIntegerValue(value) != 0
+        switch usage {
+        case 0xE0...0xE7:
+            let bit = 1 << (usage - 0xE0)
+            mouseModifiers[Self.key(device), default: 0] = down
+                ? mouseModifiers[Self.key(device), default: 0] | bit
+                : mouseModifiers[Self.key(device), default: 0] & ~bit
+        case 0x04...0xA4:
+            onMouseKey?(usage, mouseModifiers[Self.key(device), default: 0], down)
+        default:
+            break // array slots and "no event" values
+        }
     }
 
     private func publish() {

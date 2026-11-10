@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import Carbon.HIToolbox
 import LongoKitUI
 
 /// Intercepts extra mouse buttons (middle and up) and the scroll wheel system-wide through a CGEventTap.
@@ -43,6 +44,19 @@ final class MouseEngine {
     private var presses: [Int: Press] = [:]
     private var pendingClicks: [Int: DispatchWorkItem] = [:]
     private var pendingCapture: (button: Int, work: DispatchWorkItem)?
+    /// Buttons that send key combos (see MouseKeys), by key code, while the mouse reports them held;
+    /// `swallowed` when the press is listened for or mapped, so the key events must not reach apps.
+    private var keyButtonsDown: [UInt16: (button: Int, swallowed: Bool)] = [:]
+    /// Key presses held back until the mouse's own report says whether they came from the mouse.
+    private var heldKeys: [UInt16: (down: CGEvent, up: CGEvent?, work: DispatchWorkItem)] = [:]
+    /// Key codes whose press was swallowed, so its auto-repeats and release are swallowed too.
+    private var swallowedKeys: Set<UInt16> = []
+    /// Key codes some mouse has sent before. Only these (or any key while listening) wait for the mouse's report.
+    var mouseKeyCodes: Set<UInt16> = []
+    /// Called when a mouse sends a key code for the first time, to remember it.
+    var onNewMouseKeyCode: ((UInt16) -> Void)?
+    /// How long a key press may wait for the mouse's report before it goes through as a normal key.
+    private static let mouseKeyWait = 0.06
     private var lastSpaceSwitch = Date.distantPast
     private var lastPageSwipe = Date.distantPast
     /// Smooth scrolling: pixels still to scroll on each axis, and the fractions not yet posted.
@@ -94,7 +108,7 @@ final class MouseEngine {
     @discardableResult
     func start() -> Bool {
         guard tap == nil else { return true }
-        let types: [CGEventType] = [.otherMouseDown, .otherMouseUp, .otherMouseDragged,
+        let types: [CGEventType] = [.keyDown, .keyUp, .otherMouseDown, .otherMouseUp, .otherMouseDragged,
                                     .leftMouseDown, .leftMouseUp, .leftMouseDragged,
                                     .rightMouseDown, .rightMouseUp, .rightMouseDragged, .scrollWheel]
         let mask = types.reduce(CGEventMask(0)) { $0 | (CGEventMask(1) << $1.rawValue) }
@@ -127,6 +141,10 @@ final class MouseEngine {
     /// Self-test only: forget any half-finished gesture between cases.
     func resetState() {
         forgetGestures()
+        heldKeys.values.forEach { $0.work.cancel() }
+        heldKeys.removeAll()
+        keyButtonsDown.removeAll()
+        swallowedKeys.removeAll()
         pendingCapture?.work.cancel()
         pendingCapture = nil
     }
@@ -163,6 +181,7 @@ final class MouseEngine {
         }
         if event.getIntegerValueField(.eventSourceUserData) == ActionPerformer.syntheticTag { return pass }
         if type == .scrollWheel { return scrollWheel(event) ? nil : pass }
+        if type == .keyDown || type == .keyUp { return key(type == .keyDown, event) ? nil : pass }
 
         let button = Int(event.getIntegerValueField(.mouseEventButtonNumber))
         switch type {
@@ -499,6 +518,71 @@ final class MouseEngine {
     private static func post(_ release: CGEvent, _ button: Int) {
         if let recorder = ActionPerformer.recorder { return recorder("release \(button)") }
         release.post(tap: .cghidEventTap)
+    }
+
+    // MARK: - Buttons that send key combos
+
+    /// A key pressed or released on a mouse's own keyboard interface, as DeviceMonitor reports it.
+    func mouseKey(usage: Int, modifiers: Int, down: Bool) {
+        guard let code = MouseKeys.keyCode(usage: usage) else { return }
+        guard down else {
+            guard let held = keyButtonsDown.removeValue(forKey: code) else { return }
+            if held.swallowed { _ = mouseUp(held.button) }
+            return
+        }
+        if mouseKeyCodes.insert(code).inserted { onNewMouseKeyCode?(code) }
+        let button = MouseKeys.button(usage: usage, modifiers: modifiers)
+        let swallowed = mouseDown(button, [])
+        keyButtonsDown[code] = (button, swallowed)
+        // The key event may have reached the tap first and be waiting for this report.
+        guard let held = heldKeys.removeValue(forKey: code) else { return }
+        held.work.cancel()
+        if swallowed {
+            if held.up == nil { swallowedKeys.insert(code) }
+        } else {
+            Self.repost(held.down)
+            held.up.map(Self.repost)
+        }
+    }
+
+    /// Returns true when a key event should be swallowed: it is a mouse button that is listened for or mapped.
+    private func key(_ down: Bool, _ event: CGEvent) -> Bool {
+        let code = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
+        if !down {
+            if swallowedKeys.remove(code) != nil { return true }
+            if heldKeys[code] != nil, heldKeys[code]?.up == nil, let copy = event.copy() {
+                heldKeys[code]?.up = copy // released before the mouse's report came: decide both together
+                return true
+            }
+            return false
+        }
+        if swallowedKeys.contains(code) { return true } // auto-repeat of a swallowed press
+        if let held = keyButtonsDown[code] {
+            if held.swallowed { swallowedKeys.insert(code) }
+            return held.swallowed
+        }
+        // The mouse's report may still be on its way. Wait a moment for keys mice are known to send,
+        // or for any key while listening (except Esc, which cancels listening).
+        let listening = captureHandler != nil
+        guard listening || isEnabled, listening ? code != UInt16(kVK_Escape) : mouseKeyCodes.contains(code),
+              event.getIntegerValueField(.keyboardEventAutorepeat) == 0, heldKeys[code] == nil,
+              let copy = event.copy() else { return false }
+        let work = schedule(Self.mouseKeyWait) { [weak self] in
+            guard let held = self?.heldKeys.removeValue(forKey: code) else { return }
+            Self.repost(held.down)
+            held.up.map(Self.repost)
+        }
+        heldKeys[code] = (copy, nil, work)
+        return true
+    }
+
+    /// Lets a held key event through after all, marked so the tap doesn't stop it again.
+    private static func repost(_ event: CGEvent) {
+        if let recorder = ActionPerformer.recorder {
+            return recorder("key passed \(event.getIntegerValueField(.keyboardEventKeycode))")
+        }
+        event.setIntegerValueField(.eventSourceUserData, value: ActionPerformer.syntheticTag)
+        event.post(tap: .cghidEventTap)
     }
 
     private func deliverCapture(_ trigger: Trigger, _ type: ClickType) {

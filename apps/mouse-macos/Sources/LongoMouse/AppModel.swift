@@ -163,6 +163,7 @@ final class AppModel: ObservableObject {
         static let autoUpdates = "autoCheckUpdates"
         static let profiles = "deviceProfiles"
         static let autoSwitch = "autoSwitchProfiles"
+        static let mouseKeyCodes = "mouseKeyCodes"
         static let language = "language"
         static let appearance = "appearance"
         static let clickGuard = "clickGuard"
@@ -215,6 +216,13 @@ final class AppModel: ObservableObject {
 
         deviceMonitor.onChange = { [weak self] in self?.devicesChanged($0) }
         deviceMonitor.onActivity = { [weak self] in self?.activeDeviceID = $0 }
+        // Mice that send side buttons as key combos: hand those keys to the engine, and remember which
+        // key codes mice send so their key events wait for the mouse's report.
+        deviceMonitor.onMouseKey = { usage, modifiers, down in MouseEngine.shared.mouseKey(usage: usage, modifiers: modifiers, down: down) }
+        MouseEngine.shared.mouseKeyCodes = Set((defaults.array(forKey: Keys.mouseKeyCodes) as? [Int] ?? []).map(UInt16.init))
+        MouseEngine.shared.onNewMouseKeyCode = { [weak self] _ in
+            self?.defaults.set(MouseEngine.shared.mouseKeyCodes.map(Int.init), forKey: Keys.mouseKeyCodes)
+        }
         deviceMonitor.start()
     }
 

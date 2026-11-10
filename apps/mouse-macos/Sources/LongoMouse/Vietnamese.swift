@@ -123,6 +123,8 @@ enum Vietnamese {
         "Back side": "Bên hông sau",
         "Forward side": "Bên hông trước",
         "Extra button": "Nút phụ",
+        "%@ Button": "Nút %@",
+        "Sends a key combo": "Gửi tổ hợp phím",
 
         // Gestures
         "Click": "Click",

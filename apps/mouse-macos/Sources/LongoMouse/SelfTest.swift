@@ -178,6 +178,9 @@ enum SelfTest {
         expectCapture("Recording: drag", .drag) { press(3); drag(3, dx: 20); release(3) }
         expectCapture("Recording: click and scroll", .scroll) { press(3); scroll(1); release(3) }
 
+        // Mice that send a side button as a key combo (UGREEN: ⌃→).
+        checkMouseKeys()
+
         // Per-mouse layouts.
         checkProfiles()
 
@@ -303,6 +306,59 @@ enum SelfTest {
                engine.pendingGlide > 0 && engine.pendingGlide <= MouseEngine.maxGlide, "pending \(engine.pendingGlide)")
         engine.resetState()
         engine.scroll.inertia = false
+    }
+
+    /// ⌃→ from the mouse's keyboard interface: HID usage 0x4F with Left Control (bit 0).
+    private static let arrowUsage = 0x4F
+    private static var arrowButton: Int { MouseKeys.button(usage: arrowUsage, modifiers: 1) }
+
+    private static func keyEvent(_ down: Bool) -> CGEvent {
+        let event = CGEvent(keyboardEventSource: nil, virtualKey: 124, keyDown: down)!
+        event.flags = .maskControl
+        return event
+    }
+
+    private static func checkMouseKeys() {
+        // Listening: the report arrives first, then the key events, which must not reach apps.
+        engine.resetState()
+        engine.update([])
+        var captured: [Trigger] = []
+        engine.captureHandler = { trigger, _ in captured.append(trigger) }
+        engine.mouseKey(usage: arrowUsage, modifiers: 1, down: true)
+        let downSwallowed = engine.process(.keyDown, keyEvent(true))
+        engine.mouseKey(usage: arrowUsage, modifiers: 1, down: false)
+        let upSwallowed = engine.process(.keyUp, keyEvent(false))
+        wait(NSEvent.doubleClickInterval + 0.2)
+        engine.captureHandler = nil
+        report("Key-combo button is captured and its keys swallowed",
+               captured.map(\.button) == [arrowButton] && downSwallowed && upSwallowed,
+               "captured \(captured.map(\.title)), swallowed \(downSwallowed)/\(upSwallowed)")
+
+        // Mapped, with the key event reaching the tap before the mouse's report.
+        let trigger = Trigger(button: arrowButton, modifiers: [])
+        check("Key-combo button runs its action even when the key event comes first",
+              [bind(trigger, .click, .missionControl)], expect: ["missionControl"]) {
+            assertSwallowed(engine.process(.keyDown, keyEvent(true)), true)
+            engine.mouseKey(usage: arrowUsage, modifiers: 1, down: true)
+            engine.mouseKey(usage: arrowUsage, modifiers: 1, down: false)
+            assertSwallowed(engine.process(.keyUp, keyEvent(false)), true)
+        }
+
+        // The same keys typed on a keyboard: held a moment, then let through unchanged.
+        check("The same keys from a keyboard still go through", [bind(trigger, .click, .missionControl)],
+              expect: ["key passed 124", "key passed 124"]) {
+            _ = engine.process(.keyDown, keyEvent(true))
+            _ = engine.process(.keyUp, keyEvent(false))
+            wait(0.15)
+        }
+
+        // Not mapped and not listening: the mouse's keys keep doing what they did (switch Spaces).
+        check("Unmapped key-combo button keeps its keys", [], expect: []) {
+            engine.mouseKey(usage: arrowUsage, modifiers: 1, down: true)
+            assertSwallowed(engine.process(.keyDown, keyEvent(true)), false)
+            engine.mouseKey(usage: arrowUsage, modifiers: 1, down: false)
+            assertSwallowed(engine.process(.keyUp, keyEvent(false)), false)
+        }
     }
 
     private static func expectCapture(_ name: String, _ expected: ClickType, _ steps: () -> Void) {

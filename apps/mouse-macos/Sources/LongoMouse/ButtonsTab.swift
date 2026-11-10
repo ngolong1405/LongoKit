@@ -395,7 +395,9 @@ private struct ButtonCard: View {
     let group: AppModel.BindingGroup
 
     var body: some View {
-        let unused = ClickType.allCases.filter { type in !group.rows.contains { $0.clickType == type } }
+        let unused = ClickType.allCases.filter { type in
+            !group.rows.contains { $0.clickType == type } && (type != .drag || group.trigger.canDrag)
+        }
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Text(group.trigger.title).font(.ui(13, .semibold)).foregroundStyle(Theme.text)
