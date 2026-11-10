@@ -1,0 +1,92 @@
+---
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Double-Click Fix · next release", title: "A Worn Button, Clicking Once Again",
+    lead: "Old mouse switches chatter: you press once, the contact bounces, and macOS sees a double click. Files open when you meant to select them, and drags drop halfway.",
+    points: [
+      "Turn on Double-Click Fix in General: a second press closer than 20–150 ms (60 by default) is the same press bouncing, and counts once.",
+      "Works for the left and right buttons. Holding and dragging still work, and a real double click is slower, so it still gets through.",
+      "Need another button to act as a click instead? Any button can send a left or right click, double click or triple click.",
+    ],
+    worn: "Worn switch", press: "Press once", fix: "Double-Click Fix", on: "On", off: "Off",
+    macos: "macOS receives", single: "one click", double: "a double click", bounce: "bounce after", ms: "ms",
+    ready: "Press the button: the switch bounces like a worn one.",
+  },
+  vi: {
+    badge: "Sửa lỗi double click · bản kế tiếp", title: "Nút Chuột Mòn, Lại Click Một Lần",
+    lead: "Công tắc chuột cũ hay bị dội: bạn bấm một lần, tiếp điểm nảy lên và macOS thấy thành double click. Muốn chọn file thì file lại mở ra, đang kéo thì bị thả giữa chừng.",
+    points: [
+      "Bật Sửa lỗi double click trong tab Chung: lần nhấn thứ hai tới sát hơn 20–150 ms (mặc định 60) là cùng một lần bấm bị dội, chỉ tính một lần.",
+      "Áp dụng cho nút trái và phải. Vẫn giữ và kéo-thả được, còn double click thật chậm hơn nên vẫn dùng bình thường.",
+      "Muốn dùng nút khác thay cho click? Nút nào cũng gửi được click, double click hay triple click trái hoặc phải.",
+    ],
+    worn: "Công tắc bị mòn", press: "Bấm một lần", fix: "Sửa lỗi double click", on: "Bật", off: "Tắt",
+    macos: "macOS nhận", single: "một click", double: "một double click", bounce: "dội sau", ms: "ms",
+    ready: "Bấm nút: công tắc sẽ dội như công tắc đã mòn.",
+  },
+});
+---
+
+<section id="click-fix" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <div class="order-2 rounded-2xl bg-surface-container-low p-space-lg shadow-xl lg:order-1" id="click-fix-demo">
+      <div class="mb-space-md flex items-center justify-between">
+        <span class="flex items-center gap-space-xs font-display text-headline-sm"><span class="material-symbols-outlined text-[22px] text-primary">mouse</span>{t.worn}</span>
+        <button type="button" data-toggle aria-pressed="true" class="flex items-center gap-space-xs rounded-full bg-surface-container-high px-3 py-1 font-code text-[11px]">
+          {t.fix}: <span class="font-bold text-primary" data-state>{t.on}</span>
+        </button>
+      </div>
+      <div class="flex flex-col items-center gap-space-md rounded-xl bg-surface-container-lowest p-space-lg">
+        <button type="button" data-press class="rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container px-8 py-4 font-display text-sm font-semibold text-white shadow-[0_8px_28px_rgba(255,107,53,0.35)] transition-transform active:scale-95">{t.press}</button>
+        <div class="relative h-12 w-full overflow-hidden rounded-lg bg-surface-container" data-track></div>
+      </div>
+      <div class="mt-space-md min-h-[44px] rounded-lg bg-surface-container px-3 py-2 font-code text-[11px] text-on-surface-variant" data-log>
+        <span class="text-primary">●</span> {t.ready}
+      </div>
+    </div>
+
+    <div class="order-1 flex flex-col gap-space-md lg:order-2">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-primary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-primary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ t }}>
+  const demo = document.getElementById("click-fix-demo");
+  const track = demo.querySelector("[data-track]"), log = demo.querySelector("[data-log]");
+  const toggle = demo.querySelector("[data-toggle]");
+  let fixOn = true;
+  toggle.addEventListener("click", () => {
+    fixOn = !fixOn;
+    toggle.setAttribute("aria-pressed", String(fixOn));
+    demo.querySelector("[data-state]").textContent = fixOn ? t.on : t.off;
+  });
+  // One press on a worn switch: down, a bounce of a few ms, down again. Drawn on a 200 ms timeline.
+  const mark = (ms, kept) => {
+    const el = document.createElement("span");
+    el.className = "absolute top-2 h-8 w-1.5 rounded-full transition-opacity";
+    el.style.left = `${4 + ms / 200 * 92}%`;
+    el.style.background = kept ? "#ff6b35" : "transparent";
+    el.style.border = kept ? "none" : "2px dashed #8b5cf6";
+    track.appendChild(el);
+  };
+  demo.querySelector("[data-press]").addEventListener("click", () => {
+    track.innerHTML = "";
+    const bounce = 8 + Math.round(Math.random() * 25);
+    mark(0, true);
+    mark(bounce, !fixOn);
+    log.innerHTML = `<span class="text-primary">●</span> ${t.bounce} ${bounce} ${t.ms} → ${t.macos}: <b class="text-on-surface">${fixOn ? t.single : t.double}</b>`;
+  });
+</script>
