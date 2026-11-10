@@ -1,6 +1,6 @@
 ---
 import Logo from "./Logo.astro";
-import { repo, mouseDownload, mouseReleaseNotes, mouseVersion, coffeeURL } from "../data/site";
+import { repo, mouseDownload, mouseReleaseNotes, mouseVersion, keysVersion, coffeeURL } from "../data/site";
 import { localize, pick, type Lang } from "../i18n";
 
 interface Props {
@@ -40,7 +40,7 @@ const t = pick(lang, {
 });
 
 const roadmap = [
-  { icon: "keyboard", tint: "text-secondary", name: t.roadmap[0][0], body: t.roadmap[0][1], href: null },
+  { icon: "keyboard", tint: "text-secondary", name: t.roadmap[0][0], body: t.roadmap[0][1], href: keysVersion ? localize(lang, "/keys") : null },
   { icon: "desktop_windows", tint: "text-tertiary", name: t.roadmap[1][0], body: t.roadmap[1][1], href: localize(lang, "/display") },
 ];
 ---

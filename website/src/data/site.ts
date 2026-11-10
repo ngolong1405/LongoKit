@@ -9,9 +9,9 @@ export const displayVersion = "0.1.1";
 // Same for Longo Display: bump displayVersion and upload LongoDisplay-<version>.dmg to tag display-macos/v<version>.
 export const displayDownload = `${repo}/releases/download/display-macos/v${displayVersion}/LongoDisplay-${displayVersion}.dmg`;
 export const displayReleaseNotes = `${repo}/releases/tag/display-macos/v${displayVersion}`;
-// Longo Keys has no release yet: null shows "coming soon" and the build-from-source command instead of a download.
+// Null shows "coming soon" and the build-from-source command instead of a download.
 // When releasing, set keysVersion and upload LongoKeys-<version>.dmg to tag keys-macos/v<version>.
-export const keysVersion: string | null = null;
+export const keysVersion: string | null = "0.1.0";
 export const keysDownload = keysVersion ? `${repo}/releases/download/keys-macos/v${keysVersion}/LongoKeys-${keysVersion}.dmg` : null;
 export const keysReleaseNotes = keysVersion ? `${repo}/releases/tag/keys-macos/v${keysVersion}` : null;
 export const keysBuildFromSource = "git clone https://github.com/ngolong1405/LongoKit && cd LongoKit/apps/keys-macos && ./scripts/build-app.sh";

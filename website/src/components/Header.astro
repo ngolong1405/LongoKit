@@ -1,6 +1,7 @@
 ---
 import Logo from "./Logo.astro";
 import { counterpart, localize, pick, type Lang } from "../i18n";
+import { keysVersion } from "../data/site";
 
 interface Props {
   lang: Lang;
@@ -17,7 +18,7 @@ const t = pick(lang, {
 
 const products = [
   { id: "mouse", href: localize(lang, "/mouse"), icon: "mouse", tint: "text-primary", name: "LongoMouse", soon: false },
-  { id: "keys", href: localize(lang, "/keys"), icon: "keyboard", tint: "text-secondary", name: "LongoKeys", soon: true },
+  { id: "keys", href: localize(lang, "/keys"), icon: "keyboard", tint: "text-secondary", name: "LongoKeys", soon: !keysVersion },
   { id: "display", href: localize(lang, "/display"), icon: "desktop_windows", tint: "text-tertiary", name: "LongoDisplay", soon: false },
 ];
 ---

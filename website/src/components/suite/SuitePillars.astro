@@ -1,6 +1,7 @@
 ---
 import ProductIcon from "../ProductIcon.astro";
 import { localize, pick, type Lang } from "../../i18n";
+import { keysVersion } from "../../data/site";
 
 interface Props {
   lang: Lang;
@@ -56,7 +57,7 @@ const pillars = [
     tagline: "DDC/CI Hardware Brightness", ...t.display, tech: "DDC/CI + DisplayServices",
   },
   {
-    name: "LongoKeys", product: "keys" as const, href: localize(lang, "/keys"), status: t.soon,
+    name: "LongoKeys", product: "keys" as const, href: localize(lang, "/keys"), status: keysVersion ? t.available : t.soon,
     tint: "text-secondary", glow: "bg-secondary-container/20 group-hover:bg-secondary-container/30", dot: "bg-secondary",
     tagline: "Driverless Layer Remapping", ...t.keys, tech: "UserKeyMapping + CGEventTap",
   },

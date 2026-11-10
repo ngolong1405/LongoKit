@@ -1,7 +1,7 @@
 ---
 import ProductIcon from "../ProductIcon.astro";
 import Logo from "../Logo.astro";
-import { repo, mouseDownload, mouseVersion, displayDownload, displayVersion, licenseURL } from "../../data/site";
+import { repo, mouseDownload, mouseVersion, displayDownload, displayVersion, licenseURL, keysVersion, keysDownload } from "../../data/site";
 import { pick, type Lang } from "../../i18n";
 
 interface Props {
@@ -44,9 +44,10 @@ const kits = [
     tagline: "Smooth Scrolling & Gesture Engine", body: t.mouse,
   },
   {
-    name: "LongoKeys", product: "keys" as const, version: t.soon, available: false, download: "",
+    name: "LongoKeys", product: "keys" as const, version: keysVersion ? `v${keysVersion}` : t.soon,
+    available: !!keysDownload, download: keysDownload ?? "",
     tint: "text-secondary", badgeBg: "bg-secondary-container/25",
-    mac: "", tagline: "Layer & Hyperkey Engine", body: t.keys,
+    mac: "bg-secondary-container/25 text-secondary hover:bg-secondary-container/40", tagline: "Layer & Hyperkey Engine", body: t.keys,
   },
   {
     name: "LongoDisplay", product: "display" as const, version: `v${displayVersion}`, available: true, download: displayDownload,
