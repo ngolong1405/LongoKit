@@ -26,29 +26,20 @@ enum Vietnamese {
         "Selected": "Đang chọn",
 
         // Actions
-        "Capture Area": "Chụp vùng",
-        "Capture Window": "Chụp cửa sổ",
         "Capture Full Screen": "Chụp toàn màn hình",
         "Copy Text (OCR)": "Copy chữ (OCR)",
         "Record Screen": "Quay màn hình",
         "Copy Last Capture": "Copy ảnh vừa chụp",
         "Open Save Folder": "Mở thư mục lưu",
         "Open Settings": "Mở cài đặt",
-        "Drag over the part of the screen to capture. Space switches to windows.":
-            "Kéo chọn phần màn hình cần chụp. Nhấn Space để chọn cửa sổ.",
-        "Click a window to capture it with its shadow.": "Bấm vào một cửa sổ để chụp, kèm cả bóng đổ.",
         "The whole screen under the pointer.": "Cả màn hình đang có con trỏ.",
         "Drag over text: it's read on this Mac and copied, ready to paste.":
             "Kéo chọn vùng có chữ: chữ được đọc ngay trên máy và copy sẵn để dán.",
-        "Record the screen or a part of it, and stop with the same shortcut.":
-            "Quay cả màn hình hoặc một phần, bấm lại phím tắt để dừng.",
         "Puts the last capture on the clipboard again.": "Copy lại ảnh vừa chụp vào clipboard.",
         "Shows the folder captures are saved in.": "Mở thư mục đang lưu ảnh chụp.",
         "Opens this window, even with the menu bar icon hidden.": "Mở cửa sổ này, kể cả khi đã ẩn icon trên thanh menu.",
 
         // Overlay & results
-        "Drag to capture  ·  Space: pick a window  ·  Esc: cancel": "Kéo để chụp  ·  Space: chọn cửa sổ  ·  Esc: huỷ",
-        "Click a window to capture it  ·  Space: drag an area  ·  Esc: cancel": "Bấm vào cửa sổ để chụp  ·  Space: kéo chọn vùng  ·  Esc: huỷ",
         "Drag over text to copy it  ·  Esc: cancel": "Kéo chọn vùng có chữ để copy  ·  Esc: huỷ",
         "Copied 1 line of text": "Đã copy 1 dòng chữ",
         "Copied %d lines of text": "Đã copy %d dòng chữ",
@@ -59,8 +50,6 @@ enum Vietnamese {
         "Couldn't save": "Không lưu được",
         "Nothing captured yet": "Chưa chụp ảnh nào",
         "Last capture copied": "Đã copy ảnh vừa chụp",
-        "Screen recording is coming soon": "Quay màn hình sắp có",
-        "It's the next part of %@ being built.": "Đây là phần tiếp theo của %@ đang được làm.",
         "Copy": "Copy",
         "Copied": "Đã copy",
         "Show in Finder": "Mở trong Finder",
@@ -136,8 +125,6 @@ enum Vietnamese {
 
         // Menu & About
         "Preferences…": "Mở cài đặt…",
-        "Screenshots and text from the screen in one shortcut: saved to your folder, on the clipboard, ready to paste. Light, and quiet in the background.":
-            "Chụp màn hình và lấy chữ trên màn hình chỉ với một phím tắt: lưu vào thư mục, có sẵn trong clipboard để dán. Nhẹ, chạy nền êm.",
         "License": "Giấy phép",
         "Part of LongoKit · Crafted by %@": "Thuộc LongoKit · Thực hiện bởi %@",
 
@@ -145,5 +132,115 @@ enum Vietnamese {
         "Granted": "Đã cấp",
         "App": "Ứng dụng",
         "Permissions": "Quyền",
+
+        // Recording
+        "Screen recording": "Quay màn hình",
+        "Recording": "Đang quay",
+        "Stop Recording": "Dừng quay",
+        "Stop": "Dừng",
+        "Stop recording": "Dừng quay",
+        "Stop recording (%@)": "Dừng quay (%@)",
+        "Couldn't start recording": "Không bắt đầu quay được",
+        "Couldn't save the recording": "Không lưu được video",
+        "Recording saved": "Đã lưu video",
+        "Recording copied": "Đã copy video",
+        "Frame rate": "Số khung hình",
+        "60 fps is smoother for motion; 30 fps makes smaller files.": "60 fps mượt hơn khi có chuyển động; 30 fps cho file nhẹ hơn.",
+        "Record the Mac's sound": "Thu âm thanh của máy",
+        "What the Mac plays (videos, calls, apps), without Longo Shot's own sounds.":
+            "Âm thanh máy đang phát (video, cuộc gọi, app), không gồm tiếng của Longo Shot.",
+        "Record the microphone": "Thu micro",
+        "Your voice, on its own audio track. macOS asks for Microphone access the first time.":
+            "Giọng bạn, ở một rãnh âm thanh riêng. Lần đầu macOS sẽ hỏi quyền dùng Micro.",
+        "Needs macOS 15 or later.": "Cần macOS 15 trở lên.",
+        "Show the pointer": "Hiện con trỏ",
+        "Show clicks": "Hiện cú click",
+        "A ring around the pointer at each click.": "Một vòng tròn quanh con trỏ mỗi lần click.",
+        "Screenshots, screen recordings and text from the screen in one shortcut: saved to your folder, on the clipboard, ready to paste. Light, and quiet in the background.":
+            "Chụp màn hình, quay màn hình và lấy chữ trên màn hình chỉ với một phím tắt: lưu vào thư mục, có sẵn trong clipboard để dán. Nhẹ, chạy nền êm.",
+        "Pause / Resume Recording": "Tạm dừng / Tiếp tục quay",
+        "Holds the recording and goes on from the same moment; the pause isn't in the video.":
+            "Tạm dừng rồi quay tiếp đúng từ chỗ đó; đoạn tạm dừng không có trong video.",
+        "Pause Recording": "Tạm dừng quay",
+        "Resume Recording": "Tiếp tục quay",
+        "Pause recording": "Tạm dừng quay",
+        "Resume recording": "Tiếp tục quay",
+        "Nothing is being recorded": "Chưa quay gì cả",
+        "Start a recording with %@.": "Bấm %@ để bắt đầu quay.",
+        "Count down 3 seconds": "Đếm ngược 3 giây",
+        "3, 2, 1 over the area before recording starts, to get the screen ready. Esc cancels it.":
+            "Hiện 3, 2, 1 trên vùng quay trước khi bắt đầu, để bạn kịp chuẩn bị màn hình. Bấm Esc để huỷ.",
+        "Paused": "Đã tạm dừng",
+        "Drag an area to record  ·  Double-click: whole screen  ·  Space: pick a window  ·  Esc: cancel":
+            "Kéo chọn vùng để quay  ·  Nhấp đúp: cả màn hình  ·  Space: chọn cửa sổ  ·  Esc: huỷ",
+        "Drag the area or its corners to adjust  ·  ↩: start  ·  Esc: cancel":
+            "Kéo khung hoặc các góc để chỉnh  ·  ↩: bắt đầu  ·  Esc: huỷ",
+        "Drag an area and adjust it, then Start; double-click for the whole screen. The same shortcut stops it.":
+            "Kéo chọn vùng, chỉnh lại rồi bấm Bắt đầu; nhấp đúp để quay cả màn hình. Bấm lại phím tắt để dừng.",
+        "Whole Screen": "Cả màn hình",
+        "Record the whole screen instead": "Quay cả màn hình thay vì vùng này",
+        "Start Recording": "Bắt đầu quay",
+        "Start recording this area": "Bắt đầu quay vùng này",
+        "On": "Bật",
+        "Off": "Tắt",
+
+        // Drawing
+        "Draw on Capture": "Vẽ lên ảnh chụp",
+        "Draw on Last Capture": "Vẽ lên ảnh vừa chụp",
+        "Arrows, pen, boxes and highlights in a few colors; Done saves over it and copies it.":
+            "Mũi tên, bút vẽ, khung và bút dạ quang nhiều màu; bấm Xong để lưu đè và copy.",
+        "Only screenshots can be drawn on": "Chỉ vẽ được lên ảnh chụp",
+        "Drawing saved": "Đã lưu ảnh đã vẽ",
+        "Drawing copied": "Đã copy ảnh đã vẽ",
+        "Draw": "Vẽ",
+        "Draw arrows, lines and boxes on it": "Vẽ mũi tên, nét và khung lên ảnh",
+        "Arrow": "Mũi tên",
+        "Pen": "Bút vẽ",
+        "Box": "Khung",
+        "Highlighter": "Bút dạ quang",
+        "Thin": "Mảnh",
+        "Medium": "Vừa",
+        "Thick": "Dày",
+        "Undo": "Hoàn tác",
+        "Redo": "Làm lại",
+        "Done": "Xong",
+        "Save over the capture and copy it": "Lưu đè lên ảnh chụp và copy",
+        "Draw right after capturing": "Vẽ ngay sau khi chụp",
+        "An area, a window or the whole screen stays put with arrows, pen, boxes and colors; Done or ⌘C saves and copies it, Esc only copies it.":
+            "Vùng, cửa sổ hoặc cả màn hình vừa chụp đứng yên kèm mũi tên, bút, khung và bảng màu; bấm Xong hoặc ⌘C để lưu và copy, Esc chỉ copy.",
+        "Capture Area or Window": "Chụp vùng / cửa sổ",
+        "Drag over an area, or click a window to capture it with its shadow; double-click for the whole screen.":
+            "Kéo chọn một vùng, hoặc bấm vào cửa sổ để chụp cửa sổ đó kèm bóng đổ; nhấp đúp để chụp cả màn hình.",
+        "Drag an area  ·  Click a window  ·  Double-click: whole screen  ·  Esc: cancel":
+            "Kéo chọn vùng  ·  Bấm vào cửa sổ  ·  Nhấp đúp: cả màn hình  ·  Esc: huỷ",
+        "Throw this capture away": "Bỏ ảnh chụp này",
+        "Copy (⌘C)": "Copy (⌘C)",
+        "Save and copy the capture (↩ or ⌘C); Esc only copies": "Lưu và copy ảnh chụp (↩ hoặc ⌘C); Esc chỉ copy",
+        "After a capture": "Sau khi chụp",
+        "Draw on it": "Vẽ ngay",
+        "Preview": "Xem nhanh",
+        "Sounds": "Âm thanh",
+        "macOS's own sounds: the shutter, recording start, pause and stop, the countdown and copied text. Never in a recording.":
+            "Âm thanh có sẵn của macOS: tiếng chụp, bắt đầu, tạm dừng và dừng quay, đếm ngược, copy chữ. Không bị thu vào video.",
+        "Audio": "Thu âm",
+        "The Mac's sound": "Âm thanh máy",
+        "Microphone": "Micro",
+        "On screen": "Hiển thị",
+        "Pointer": "Con trỏ",
+        "Clicks": "Cú click",
+        "3 s countdown": "Đếm ngược 3 giây",
+
+        // Recent
+        "Recent": "Gần đây",
+        "Clear": "Xoá",
+        "Forget these captures (files in your save folder stay)": "Xoá danh sách này (file trong thư mục lưu vẫn còn)",
+        "Open": "Mở",
+        "Remove from Recent": "Xoá khỏi Gần đây",
+        "History": "Lịch sử",
+        "The last 10 captures in the menu, to copy again or drag into another app. Off forgets them.":
+            "10 ảnh và video gần nhất trong menu, để copy lại hoặc kéo thả sang app khác. Tắt là xoá hết.",
+        "Click to preview": "Bấm để xem trước",
+        "Copy it again (⌘C)": "Copy lại (⌘C)",
+        "Recording starts soon · Esc cancels": "Sắp bắt đầu quay · Esc để huỷ",
     ]
 }

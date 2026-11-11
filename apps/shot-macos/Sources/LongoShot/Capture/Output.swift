@@ -1,4 +1,5 @@
 import AppKit
+import AVFoundation
 import ImageIO
 import UniformTypeIdentifiers
 
@@ -48,6 +49,23 @@ enum Output {
         if let file { item.setString(file.absoluteString, forType: .fileURL) }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.writeObjects([item])
+    }
+
+    /// A file on its own (a recording): pastes as the file in Finder, chats and mail.
+    static func copy(file: URL) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.writeObjects([file as NSURL])
+    }
+
+    /// A recording's first frame, small, and its length in seconds.
+    static func movieThumbnail(_ url: URL) async -> (NSImage, Int)? {
+        let asset = AVURLAsset(url: url)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.maximumSize = CGSize(width: 520, height: 520)
+        guard let (image, _) = try? await generator.image(at: .zero) else { return nil }
+        let seconds = (try? await asset.load(.duration)).map { Int(CMTimeGetSeconds($0).rounded()) } ?? 0
+        return (NSImage(cgImage: image, size: CGSize(width: image.width / 2, height: image.height / 2)), seconds)
     }
 
     static func copy(text: String) {

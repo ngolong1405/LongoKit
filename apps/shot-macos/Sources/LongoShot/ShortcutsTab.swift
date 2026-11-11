@@ -6,8 +6,8 @@ struct ShortcutsTab: View {
     @EnvironmentObject private var model: AppModel
 
     private let groups: [(String, [ShotAction])] = [
-        ("Capture", [.captureArea, .captureWindow, .captureScreen, .captureText, .record]),
-        ("Quick access", [.copyLast, .openFolder, .openSettings]),
+        ("Capture", [.captureArea, .captureScreen, .captureText, .record, .pauseRecording]),
+        ("Quick access", [.annotateLast, .copyLast, .openFolder, .openSettings]),
     ]
 
     var body: some View {
@@ -52,22 +52,16 @@ private struct ShortcutRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 12) {
-                GlyphTile(tint: action.isComingSoon ? Theme.textFaint : Theme.violet, size: 30) {
-                    Image(systemName: action.symbol).font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(action.isComingSoon ? Theme.textFaint : Theme.violet)
+                GlyphTile(tint: Theme.violet, size: 30) {
+                    Image(systemName: action.symbol).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.violet)
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Text(action.title).font(.ui(13, .medium)).foregroundStyle(Theme.text)
-                        if action.isComingSoon { Chip.soon }
-                    }
+                    Text(action.title).font(.ui(13, .medium)).foregroundStyle(Theme.text)
                     Text(action.detail).font(.ui(11)).foregroundStyle(Theme.textMuted)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 12)
-                if !action.isComingSoon {
-                    ShortcutRecorder(action: action)
-                }
+                ShortcutRecorder(action: action)
             }
             if let note {
                 HStack(spacing: 6) {

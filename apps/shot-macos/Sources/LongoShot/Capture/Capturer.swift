@@ -39,8 +39,9 @@ enum Capturer {
         return try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
     }
 
-    /// One window on its own, with its shadow, even if other windows cover part of it; and its pixel density.
-    static func image(window windowID: CGWindowID) async throws -> (CGImage, CGFloat) {
+    /// One window on its own, even if other windows cover part of it; and its pixel density. Without its shadow the
+    /// picture matches the window's frame on screen exactly (to draw on it in place).
+    static func image(window windowID: CGWindowID, shadow: Bool = true) async throws -> (CGImage, CGFloat) {
         let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
         guard let window = content.windows.first(where: { $0.windowID == windowID }) else { throw Failure.notFound }
         let filter = SCContentFilter(desktopIndependentWindow: window)
@@ -50,7 +51,23 @@ enum Capturer {
         config.height = max(1, Int((filter.contentRect.height * scale).rounded()))
         config.showsCursor = false
         config.captureResolution = .best
+        config.ignoreShadowsSingleWindow = !shadow
         return (try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config), scale)
+    }
+
+    /// Where a window is: the screen most of it is on, and its frame there in points from the screen's top-left.
+    /// Nil when it doesn't fit on one screen.
+    static func place(of windowID: CGWindowID) -> (NSScreen, CGRect)? {
+        guard let info = (CGWindowListCopyWindowInfo([.optionIncludingWindow], windowID) as? [[String: Any]])?.first,
+              let bounds = info[kCGWindowBounds as String] as? NSDictionary,
+              let frame = CGRect(dictionaryRepresentation: bounds) else { return nil }
+        for screen in NSScreen.screens {
+            let display = CGDisplayBounds(screen.displayID)
+            guard display.contains(CGPoint(x: frame.midX, y: frame.midY)) else { continue }
+            let local = frame.offsetBy(dx: -display.minX, dy: -display.minY)
+            return CGRect(origin: .zero, size: display.size).contains(local) ? (screen, local) : nil
+        }
+        return nil
     }
 
     /// The display the pointer is on.

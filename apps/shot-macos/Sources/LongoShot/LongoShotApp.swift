@@ -4,7 +4,7 @@ import SwiftUI
 @main
 struct LongoShotApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @StateObject private var model = AppModel(live: !Snapshot.isRequested && !SelfTest.isRequested)
+    @StateObject private var model = AppDelegate.model
 
     init() {
         Localizer.vietnamese = Vietnamese.strings
@@ -30,7 +30,9 @@ struct LongoShotApp: App {
         )) {
             MenuPopover().environmentObject(model)
         } label: {
-            Image(nsImage: MenuBarIcon.image)
+            // While recording: a red center and the time, so it's clear from anywhere.
+            Image(nsImage: model.isRecordingScreen
+                  ? MenuBarIcon.recording(seconds: model.recordingSeconds, paused: model.isRecordingPaused) : MenuBarIcon.image)
         }
         .menuBarExtraStyle(.window)
     }
@@ -47,10 +49,13 @@ private struct WindowOpener: View {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    /// Made here so quitting can reach it to finish a recording.
+    @MainActor static let model = AppModel(live: !Snapshot.isRequested && !SelfTest.isRequested && !SelfTest.isRecordTestRequested
+                                               && !SelfTest.isDrawTestRequested)
     private var closeShortcutMonitor: Any?
 
     func applicationWillFinishLaunching(_ notification: Notification) {
-        if Snapshot.isRequested || SelfTest.isRequested {
+        if Snapshot.isRequested || SelfTest.isRequested || SelfTest.isRecordTestRequested || SelfTest.isDrawTestRequested {
             AppLaunch.runInBackground()
         } else if !AppLaunch.claimSingleInstance() {
             exit(0)
@@ -60,10 +65,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         if Snapshot.isRequested { MainActor.assumeIsolated { Snapshot.renderAndExit() } }
         if SelfTest.isRequested { MainActor.assumeIsolated { SelfTest.runAndExit() } }
+        if SelfTest.isRecordTestRequested { MainActor.assumeIsolated { SelfTest.recordAndExit() } }
+        if SelfTest.isDrawTestRequested { MainActor.assumeIsolated { SelfTest.drawAndExit() } }
         closeShortcutMonitor = MainWindowRef.interceptCloseShortcut()
         // Started at login, the app waits in the background for its shortcuts instead of opening its window.
         if Self.launchedAtLogin {
             DispatchQueue.main.async { MainWindowRef.hide() }
+        }
+    }
+
+    /// A recording under way is finished and saved before the app quits.
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        MainActor.assumeIsolated {
+            guard Self.model.isRecordingScreen else { return .terminateNow }
+            Self.model.finishRecording { NSApp.reply(toApplicationShouldTerminate: true) }
+            return .terminateLater
         }
     }
 

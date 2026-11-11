@@ -89,17 +89,18 @@ struct Shortcut: Codable, Hashable {
 
 /// Everything a shortcut can run.
 enum ShotAction: String, CaseIterable, Codable, Identifiable {
-    case captureArea, captureWindow, captureScreen, captureText, record, copyLast, openFolder, openSettings
+    case captureArea, captureScreen, captureText, record, pauseRecording, annotateLast, copyLast, openFolder, openSettings
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .captureArea: return L("Capture Area")
-        case .captureWindow: return L("Capture Window")
+        case .captureArea: return L("Capture Area or Window")
         case .captureScreen: return L("Capture Full Screen")
         case .captureText: return L("Copy Text (OCR)")
         case .record: return L("Record Screen")
+        case .pauseRecording: return L("Pause / Resume Recording")
+        case .annotateLast: return L("Draw on Last Capture")
         case .copyLast: return L("Copy Last Capture")
         case .openFolder: return L("Open Save Folder")
         case .openSettings: return L("Open Settings")
@@ -108,11 +109,12 @@ enum ShotAction: String, CaseIterable, Codable, Identifiable {
 
     var detail: String {
         switch self {
-        case .captureArea: return L("Drag over the part of the screen to capture. Space switches to windows.")
-        case .captureWindow: return L("Click a window to capture it with its shadow.")
+        case .captureArea: return L("Drag over an area, or click a window to capture it with its shadow; double-click for the whole screen.")
         case .captureScreen: return L("The whole screen under the pointer.")
         case .captureText: return L("Drag over text: it's read on this Mac and copied, ready to paste.")
-        case .record: return L("Record the screen or a part of it, and stop with the same shortcut.")
+        case .record: return L("Drag an area and adjust it, then Start; double-click for the whole screen. The same shortcut stops it.")
+        case .pauseRecording: return L("Holds the recording and goes on from the same moment; the pause isn't in the video.")
+        case .annotateLast: return L("Arrows, pen, boxes and highlights in a few colors; Done saves over it and copies it.")
         case .copyLast: return L("Puts the last capture on the clipboard again.")
         case .openFolder: return L("Shows the folder captures are saved in.")
         case .openSettings: return L("Opens this window, even with the menu bar icon hidden.")
@@ -122,31 +124,41 @@ enum ShotAction: String, CaseIterable, Codable, Identifiable {
     var symbol: String {
         switch self {
         case .captureArea: return "rectangle.dashed"
-        case .captureWindow: return "macwindow"
         case .captureScreen: return "display"
         case .captureText: return "text.viewfinder"
         case .record: return "record.circle"
+        case .pauseRecording: return "pause.circle"
+        case .annotateLast: return "pencil.tip.crop.circle"
         case .copyLast: return "doc.on.clipboard"
         case .openFolder: return "folder"
         case .openSettings: return "gearshape"
         }
     }
 
-    /// Not built yet: listed, but no shortcut can be set.
-    var isComingSoon: Bool { self == .record }
-
     var defaultShortcut: Shortcut? {
         let optionShift = optionKey | shiftKey
         switch self {
         case .captureArea: return Shortcut(keyCode: kVK_ANSI_1, modifiers: optionShift)
-        case .captureWindow: return Shortcut(keyCode: kVK_ANSI_2, modifiers: optionShift)
-        case .captureScreen: return Shortcut(keyCode: kVK_ANSI_3, modifiers: optionShift)
-        case .captureText: return Shortcut(keyCode: kVK_ANSI_4, modifiers: optionShift)
-        case .record: return Shortcut(keyCode: kVK_ANSI_5, modifiers: optionShift)
+        case .captureScreen: return Shortcut(keyCode: kVK_ANSI_2, modifiers: optionShift)
+        case .captureText: return Shortcut(keyCode: kVK_ANSI_3, modifiers: optionShift)
+        case .record: return Shortcut(keyCode: kVK_ANSI_4, modifiers: optionShift)
         case .openSettings: return Shortcut(keyCode: kVK_ANSI_0, modifiers: optionShift)
-        case .copyLast, .openFolder: return nil
+        // Pause is on the recording bar and in the menu while recording; a shortcut is there to set if wanted.
+        case .pauseRecording, .annotateLast, .copyLast, .openFolder: return nil
         }
     }
+
+    /// What 0.1 set up by default (area, window, screen, text, record, settings on ⌥⇧1–5 and ⌥⇧0). Shortcuts left
+    /// like that move to the current defaults; changed ones are kept.
+    static let defaults01: [String: Shortcut] = {
+        let optionShift = optionKey | shiftKey
+        return ["captureArea": Shortcut(keyCode: kVK_ANSI_1, modifiers: optionShift),
+                "captureWindow": Shortcut(keyCode: kVK_ANSI_2, modifiers: optionShift),
+                "captureScreen": Shortcut(keyCode: kVK_ANSI_3, modifiers: optionShift),
+                "captureText": Shortcut(keyCode: kVK_ANSI_4, modifiers: optionShift),
+                "record": Shortcut(keyCode: kVK_ANSI_5, modifiers: optionShift),
+                "openSettings": Shortcut(keyCode: kVK_ANSI_0, modifiers: optionShift)]
+    }()
 
     static var defaultShortcuts: [ShotAction: Shortcut] {
         Dictionary(uniqueKeysWithValues: allCases.compactMap { action in action.defaultShortcut.map { (action, $0) } })

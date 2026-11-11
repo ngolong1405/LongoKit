@@ -15,8 +15,17 @@ final class PreviewPanel {
 
     struct Capture {
         let thumbnail: NSImage
-        let png: Data
+        /// The picture itself; nil for a recording, which is only ever a file.
+        let png: Data?
         let file: URL?
+        /// Off for recordings kept on the clipboard only (their file sits in a temporary folder).
+        var showsInFinder = true
+        /// A recording's length, shown on the thumbnail.
+        var badge: String?
+        /// Already on the clipboard: no Copy button then.
+        var copied = true
+        /// Opens the capture in the drawing window; nil for recordings.
+        var annotate: (() -> Void)?
     }
 
     func show(_ capture: Capture, on screen: NSScreen?) {
@@ -41,9 +50,7 @@ final class PreviewPanel {
 
     private func present<V: View>(_ content: V, on screen: NSScreen?) {
         dismiss()
-        let host = NSHostingView(rootView: content.padding(14))
-        host.layoutSubtreeIfNeeded()
-        let size = host.fittingSize
+        let (host, size) = fixedHostingView(content.padding(14))
         let visible = (screen ?? NSScreen.main ?? NSScreen.screens[0]).visibleFrame
         let frame = CGRect(x: visible.maxX - size.width - 6, y: visible.minY + 6, width: size.width, height: size.height)
         let panel = NSPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
@@ -97,6 +104,23 @@ final class PreviewPanel {
     }
 }
 
+/// SwiftUI content for a small floating panel, at the size it has now and never resizing the panel itself.
+/// As a window's content view, a hosting view keeps adjusting the window's size limits from inside layout; with a
+/// changing view (a timer, a pulse, "Copied") AppKit gives up after too many passes and stops the app. Inside a plain
+/// container it's just a view of a fixed size.
+@MainActor
+func fixedHostingView<V: View>(_ content: V) -> (NSView, CGSize) {
+    let host = NSHostingView(rootView: content)
+    // Measured first: with its sizing options off, a hosting view reports no size at all.
+    let size = host.fittingSize
+    host.sizingOptions = []
+    let container = NSView(frame: CGRect(origin: .zero, size: size))
+    host.frame = container.bounds
+    host.autoresizingMask = [.width, .height]
+    container.addSubview(host)
+    return (container, size)
+}
+
 private struct CardBackground: ViewModifier {
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -122,19 +146,39 @@ private struct CaptureCard: View {
                 .frame(maxWidth: 232, maxHeight: 150)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.hairline))
+                .overlay(alignment: .bottomLeading) {
+                    if let badge = capture.badge {
+                        Label(badge, systemImage: "play.fill")
+                            .font(.mono(10, .semibold))
+                            .foregroundStyle(Color.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(Color.black.opacity(0.65)))
+                            .padding(6)
+                    }
+                }
                 .onDrag { dragItem }
                 .onTapGesture { if let file = capture.file { NSWorkspace.shared.open(file); panel.dismiss() } }
                 .help(capture.file == nil ? L("Drag into another app") : L("Drag into another app, or click to open"))
             HStack(spacing: 6) {
-                Button { Output.copy(png: capture.png, file: capture.file); copied = true } label: {
-                    Label(copied ? L("Copied") : L("Copy"), systemImage: copied ? "checkmark" : "doc.on.doc")
+                if let annotate = capture.annotate {
+                    Button { panel.dismiss(); annotate() } label: { Label(L("Draw"), systemImage: "pencil.tip") }
+                        .buttonStyle(GhostButtonStyle(tint: Theme.solarLight, compact: true))
+                        .help(L("Draw arrows, lines and boxes on it"))
                 }
-                .buttonStyle(GhostButtonStyle(compact: true))
-                if let file = capture.file {
-                    Button { NSWorkspace.shared.activateFileViewerSelecting([file]); panel.dismiss() } label: {
-                        Label(L("Show in Finder"), systemImage: "folder")
+                // Shown only when the capture isn't on the clipboard already (copying turned off).
+                if !capture.copied {
+                    Button { copy(); copied = true } label: {
+                        Label(copied ? L("Copied") : L("Copy"), systemImage: copied ? "checkmark" : "doc.on.doc")
                     }
                     .buttonStyle(GhostButtonStyle(compact: true))
+                }
+                if let file = capture.file, capture.showsInFinder {
+                    Button { NSWorkspace.shared.activateFileViewerSelecting([file]); panel.dismiss() } label: {
+                        Image(systemName: "folder")
+                    }
+                    .buttonStyle(GhostButtonStyle(compact: true))
+                    .help(L("Show in Finder"))
                 }
                 Spacer(minLength: 0)
                 Button { panel.dismiss() } label: {
@@ -151,9 +195,17 @@ private struct CaptureCard: View {
         .onHover { hovering = $0; panel.hovering($0) }
     }
 
+    private func copy() {
+        if let png = capture.png {
+            Output.copy(png: png, file: capture.file)
+        } else if let file = capture.file {
+            Output.copy(file: file)
+        }
+    }
+
     private var dragItem: NSItemProvider {
         if let file = capture.file, let provider = NSItemProvider(contentsOf: file) { return provider }
-        return NSItemProvider(item: capture.png as NSData, typeIdentifier: UTType.png.identifier)
+        return NSItemProvider(item: (capture.png ?? Data()) as NSData, typeIdentifier: UTType.png.identifier)
     }
 }
 

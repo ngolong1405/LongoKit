@@ -8,7 +8,7 @@ struct AboutTab: View {
                 AppLogo(size: 72)
                 Text(AppInfo.name).font(.display(22, .bold)).foregroundStyle(Theme.text)
                 Chip("v\(AppInfo.version) beta", tone: .solar)
-                Text(L("Screenshots and text from the screen in one shortcut: saved to your folder, on the clipboard, ready to paste. Light, and quiet in the background."))
+                Text(L("Screenshots, screen recordings and text from the screen in one shortcut: saved to your folder, on the clipboard, ready to paste. Light, and quiet in the background."))
                     .font(.ui(12))
                     .foregroundStyle(Theme.textMuted)
                     .multilineTextAlignment(.center)
