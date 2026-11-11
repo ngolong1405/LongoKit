@@ -343,15 +343,19 @@ public struct DSSlider: View {
     public var label: String?
     /// A secondary slider in one color (volume next to brightness): thinner track, smaller knob.
     public var accent: Color?
+    /// On an accent slider, where the safe zone ends (80% volume, say): past it the fill turns amber to red, with
+    /// a tick marking the spot.
+    public var caution: Double?
 
     public init(value: Binding<Double>, range: ClosedRange<Double>, step: Double = 0.01, origin: Double? = nil,
-                label: String? = nil, accent: Color? = nil) {
+                label: String? = nil, accent: Color? = nil, caution: Double? = nil) {
         self._value = value
         self.range = range
         self.step = step
         self.origin = origin
         self.label = label
         self.accent = accent
+        self.caution = caution
     }
 
     public var body: some View {
@@ -366,10 +370,26 @@ public struct DSSlider: View {
             ZStack(alignment: .leading) {
                 Color.clear.frame(height: track).recessed(radius: track / 2)
                 if let accent {
+                    let fill = max(travel * fraction + half, track)
+                    let edge = caution.map { travel * (($0 - range.lowerBound) / span) + half }
                     Capsule()
                         .fill(LinearGradient(colors: [accent.opacity(0.65), accent], startPoint: .leading, endPoint: .trailing))
-                        .frame(width: max(travel * fraction + half, track), height: track)
+                        .frame(width: min(fill, edge ?? fill), height: track)
                         .shadow(color: accent.opacity(0.45), radius: 4)
+                    if let edge {
+                        // Past the caution mark: amber into red.
+                        if fill > edge {
+                            Capsule()
+                                .fill(LinearGradient(colors: [Theme.amber, Theme.danger], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: fill - edge + track / 2, height: track)
+                                .offset(x: edge - track / 2)
+                                .shadow(color: Theme.danger.opacity(0.5), radius: 4)
+                        }
+                        Capsule()
+                            .fill(Theme.amber.opacity(0.8))
+                            .frame(width: 2, height: 10)
+                            .offset(x: edge - 1)
+                    }
                 } else if let origin, origin > range.lowerBound {
                     let start = (origin - range.lowerBound) / span
                     // The stretch below the origin, faintly violet so it reads as a different zone.
@@ -396,11 +416,12 @@ public struct DSSlider: View {
                     if let label {
                         ValueKnob(label: label, below: below)
                     } else if let accent {
+                        let hot = caution.map { value > $0 } ?? false
                         ZStack {
                             Circle().fill(Color.dynamic(dark: 0xF4F4F6, light: 0xFFFFFF))
-                            Circle().strokeBorder(accent, lineWidth: 1.5)
+                            Circle().strokeBorder(hot ? Theme.danger : accent, lineWidth: 1.5)
                         }
-                        .shadow(color: accent.opacity(0.4), radius: 3)
+                        .shadow(color: (hot ? Theme.danger : accent).opacity(0.4), radius: 3)
                     } else {
                         ZStack {
                             Circle().fill(LinearGradient(colors: [Color(hex: 0xF4F4F6), Color(hex: 0xA9ABB3)],
