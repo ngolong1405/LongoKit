@@ -31,11 +31,11 @@ const t = pick(lang, {
     hyperHint: "Hold HYPER (mouse or finger), then press H J K L", tapEsc: "Tapped: Esc", typed: "Typed",
     keysTitle: "CapsLock → Hyper & Vim layer",
     keysNote: "✨ Tap CapsLock for Esc, hold it for Hyper; H J K L become arrow keys while Hyper is held.",
-    shotTitle: "Screenshots & text from the screen",
-    shotBody: "One shortcut captures an area, a window or the whole screen: saved as a PNG and copied, ready to paste. ⌥⇧4 copies the text in any area instead.",
-    shotArea: "Capture Area", shotText: "Copy Text", shotHint: "Drag across the screen", shotHintText: "Drag over the note's text",
+    shotTitle: "Screenshots, recordings & text from the screen",
+    shotBody: "⌥⇧1 captures an area or a window, ⌥⇧2 the whole screen, and you can draw on it right away: saved as a PNG and copied, ready to paste. ⌥⇧3 copies the text in any area, ⌥⇧4 records the screen.",
+    shotArea: "Capture Area", shotRecord: "Record Screen", shotText: "Copy Text", shotHint: "Drag across the screen", shotHintText: "Drag over the note's text",
     shotSaved: "Saved & copied to the clipboard", shotCopied: "Text copied", shotNone: "No text there",
-    shotLines: ["Meeting notes", "Ship v0.1 on Friday", "Phở at 12:30, Hàng Bè"],
+    shotLines: ["Meeting notes", "Ship v0.2 on Friday", "Phở at 12:30, Hàng Bè"],
     shotNote: "✨ Text is recognized on your Mac, English and Vietnamese with diacritics. Nothing leaves the Mac.",
   },
   vi: {
@@ -61,11 +61,11 @@ const t = pick(lang, {
     hyperHint: "Giữ phím HYPER (bằng chuột hoặc ngón tay), rồi bấm H J K L", tapEsc: "Nhấn nhanh: Esc", typed: "Đã gõ",
     keysTitle: "CapsLock → Hyper & lớp phím Vim",
     keysNote: "✨ Nhấn CapsLock là Esc, giữ là Hyper; H J K L thành phím mũi tên khi giữ Hyper.",
-    shotTitle: "Chụp màn hình & lấy chữ trên màn hình",
-    shotBody: "Một phím tắt chụp một vùng, một cửa sổ hoặc cả màn hình: lưu thành PNG và copy sẵn để dán. ⌥⇧4 thì copy chữ trong vùng bạn chọn.",
-    shotArea: "Chụp vùng", shotText: "Copy chữ", shotHint: "Kéo trên màn hình", shotHintText: "Kéo qua chữ trong ghi chú",
+    shotTitle: "Chụp, quay màn hình & lấy chữ trên màn hình",
+    shotBody: "⌥⇧1 chụp một vùng hoặc một cửa sổ, ⌥⇧2 chụp cả màn hình, và vẽ lên được ngay: lưu thành PNG và copy sẵn để dán. ⌥⇧3 copy chữ trong vùng bạn chọn, ⌥⇧4 quay màn hình.",
+    shotArea: "Chụp vùng", shotRecord: "Quay màn hình", shotText: "Copy chữ", shotHint: "Kéo trên màn hình", shotHintText: "Kéo qua chữ trong ghi chú",
     shotSaved: "Đã lưu & copy vào clipboard", shotCopied: "Đã copy chữ", shotNone: "Không có chữ ở đó",
-    shotLines: ["Ghi chú cuộc họp", "Phát hành v0.1 thứ Sáu", "Phở lúc 12:30, Hàng Bè"],
+    shotLines: ["Ghi chú cuộc họp", "Phát hành v0.2 thứ Sáu", "Phở lúc 12:30, Hàng Bè"],
     shotNote: "✨ Chữ được nhận dạng ngay trên máy Mac, cả tiếng Anh lẫn tiếng Việt có dấu. Không gì rời khỏi máy.",
   },
 });
@@ -378,7 +378,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
       <div class="hub-panel hidden grid-cols-1 items-center gap-8 bg-gradient-to-b from-surface-container-low/70 to-surface-container-lowest p-6 md:p-10 lg:grid-cols-12" data-panel="shot">
         <div class="flex flex-col gap-5 lg:col-span-5">
           <div class="flex items-center gap-2">
-            <span class="font-code text-label-badge tracking-widest text-tertiary uppercase">Capture + OCR</span>
+            <span class="font-code text-label-badge tracking-widest text-tertiary uppercase">Capture · Record · OCR</span>
             <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] text-on-surface-variant">v{shotVersion}</span>
           </div>
           <h3 class="text-headline-md">{t.shotTitle}</h3>
@@ -387,12 +387,16 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
             <span class="font-code text-xs text-on-surface-variant" id="shot-hint" data-area={t.shotHint} data-text={t.shotHintText}>{t.shotHint}</span>
             <div class="flex shrink-0 rounded-lg bg-surface-container-lowest p-1 font-code text-xs" role="radiogroup">
               <button type="button" class="shot-mode rounded-md px-3 py-1" data-mode="area" aria-checked="true">⌥⇧1</button>
-              <button type="button" class="shot-mode rounded-md px-3 py-1" data-mode="text" aria-checked="false">⌥⇧4</button>
+              <button type="button" class="shot-mode rounded-md px-3 py-1" data-mode="text" aria-checked="false">⌥⇧3</button>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-3 font-code text-[11px]">
-            <span class="flex items-center gap-2 rounded-lg bg-surface-container-low p-3"><span class="material-symbols-outlined text-[18px] text-primary">screenshot_region</span>{t.shotArea}</span>
-            <span class="flex items-center gap-2 rounded-lg bg-surface-container-low p-3"><span class="material-symbols-outlined text-[18px] text-tertiary">document_scanner</span>{t.shotText}</span>
+          <div class="grid grid-cols-3 gap-2 font-code text-[11px] sm:gap-3">
+            {[["screenshot_region", "text-primary", t.shotArea, "⌥⇧1"], ["document_scanner", "text-tertiary", t.shotText, "⌥⇧3"], ["radio_button_checked", "text-[#ef4444]", t.shotRecord, "⌥⇧4"]].map(([icon, tint, name, keys]) => (
+              <span class="flex min-w-0 flex-col gap-1 rounded-lg bg-surface-container-low p-2.5 sm:p-3">
+                <span class="flex items-center justify-between gap-1"><span class:list={["material-symbols-outlined text-[18px]", tint]}>{icon}</span><span class="text-[10px] text-on-surface-variant">{keys}</span></span>
+                <span class="break-words">{name}</span>
+              </span>
+            ))}
           </div>
           <span class="font-code text-xs text-on-surface-variant">{t.shotNote}</span>
         </div>

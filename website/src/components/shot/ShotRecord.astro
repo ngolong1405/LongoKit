@@ -1,0 +1,268 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Feature 03 · Record", title: "Record the Screen, Pause Without a Gap",
+    lead: "Press ⌥⇧4 and drag an area. It stays on screen so you can adjust it, with a toolbar under it: start when you're ready, and press ⌥⇧4 again to stop.",
+    points: [
+      "Drag the viewfinder corners or the side grips to resize, or inside to move. Double-click records the whole screen; Space picks a window.",
+      "MP4 (H.264, or HEVC beyond 4K) at 30 or 60 fps, with the pointer and your clicks shown.",
+      "The Mac's sound and your microphone, each one toggle. The microphone and click rings need macOS 15 or later.",
+      "Pause leaves no gap: the video goes on seamlessly from the same moment. Quitting mid-recording still saves the file.",
+      "Saved to your folder (or only to the clipboard), with a preview that shows its length.",
+    ],
+    whole: "Whole Screen", sound: "Mac's sound", mic: "Microphone", cancel: "Cancel", start: "Start Recording",
+    recording: "Recording", paused: "Paused", pause: "Pause", resume: "Resume", stop: "Stop",
+    countdown: "3 s countdown", fps: "Frame rate",
+    ready: "Adjust the area: drag a grip to resize, drag inside to move. ↩ starts, Esc cancels.",
+    counting: "Recording starts soon · Esc cancels", rolling: "Recording: a dashed red outline marks the area, the menu bar shows the time.",
+    holding: "Paused: when you resume, the video goes on from the same frame.",
+    saved: "Saved", cancelled: "Cancelled.", noAudio: "no sound",
+    video: "Product demo", hint: "Demo: drag the area or its grips, then Start Recording. Try Pause.",
+    hintPhone: "Demo: drag the area or its grips with your finger, then Start Recording.",
+  },
+  vi: {
+    badge: "Chức năng 03 · Quay", title: "Quay Màn Hình, Tạm Dừng Không Đứt Đoạn",
+    lead: "Bấm ⌥⇧4 rồi kéo chọn vùng. Vùng đó đứng yên trên màn hình để bạn chỉnh lại, kèm thanh công cụ bên dưới: sẵn sàng thì bắt đầu, bấm lại ⌥⇧4 để dừng.",
+    points: [
+      "Kéo các góc khung ngắm hoặc tay nắm ở cạnh để đổi kích thước, kéo bên trong để di chuyển. Nhấp đúp để quay cả màn hình; Space để chọn cửa sổ.",
+      "MP4 (H.264, hoặc HEVC khi lớn hơn 4K) ở 30 hoặc 60 fps, có hiện con trỏ và cú click.",
+      "Âm thanh máy và micro, mỗi thứ một nút bật tắt. Micro và vòng tròn cú click cần macOS 15 trở lên.",
+      "Tạm dừng không để lại khoảng trống: video quay tiếp liền mạch từ đúng chỗ đó. Thoát app giữa chừng vẫn lưu được file.",
+      "Lưu vào thư mục của bạn (hoặc chỉ copy vào clipboard), kèm ảnh xem nhanh hiện độ dài video.",
+    ],
+    whole: "Cả màn hình", sound: "Âm thanh máy", mic: "Micro", cancel: "Huỷ", start: "Bắt đầu quay",
+    recording: "Đang quay", paused: "Đã tạm dừng", pause: "Tạm dừng", resume: "Tiếp tục", stop: "Dừng",
+    countdown: "Đếm ngược 3 giây", fps: "Số khung hình",
+    ready: "Chỉnh vùng quay: kéo tay nắm để đổi cỡ, kéo bên trong để di chuyển. ↩ để bắt đầu, Esc để huỷ.",
+    counting: "Sắp bắt đầu quay · Esc để huỷ", rolling: "Đang quay: viền đỏ nét đứt đánh dấu vùng quay, thanh menu hiện thời gian.",
+    holding: "Đã tạm dừng: khi tiếp tục, video quay tiếp đúng từ khung hình đó.",
+    saved: "Đã lưu", cancelled: "Đã huỷ.", noAudio: "không tiếng",
+    video: "Demo sản phẩm", hint: "Minh hoạ: kéo vùng quay hoặc các tay nắm, rồi bấm Bắt đầu quay. Thử cả Tạm dừng.",
+    hintPhone: "Minh hoạ: dùng ngón tay kéo vùng quay hoặc các tay nắm, rồi bấm Bắt đầu quay.",
+  },
+});
+const grips = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
+---
+
+<section id="record" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <!-- Record: an area to adjust with eight grips and a toolbar, an optional countdown, then the recording bar. -->
+    <div class="order-last min-w-0 lg:order-first" id="shot-record">
+      <div class="rounded-2xl bg-surface-container-low p-space-md shadow-xl sm:p-space-lg">
+        <div class="mb-space-sm flex flex-wrap items-center gap-space-xs font-code text-[11px]">
+          <span class="text-on-surface-variant">{t.fps}</span>
+          <div class="flex rounded-lg bg-surface-container-lowest p-0.5">
+            {["30", "60"].map((f) => <button type="button" data-fps={f} class="rounded-md px-2 py-0.5 text-on-surface-variant">{f} fps</button>)}
+          </div>
+          <button type="button" data-countdown aria-pressed="true" class="ml-auto flex items-center gap-1 rounded-lg bg-surface-container-lowest px-2 py-1 text-on-surface-variant"><span class="flex h-3.5 w-3.5 items-center justify-center rounded-[4px] border border-current text-[10px] leading-none" data-check>✓</span>{t.countdown}</button>
+        </div>
+
+        <!-- The screen: a video window to record, a menu bar that turns red with the time while recording. -->
+        <div class="relative aspect-[16/10] touch-none overflow-hidden rounded-xl bg-gradient-to-br from-[#06b6d4] via-[#8b5cf6] to-[#ff8a50] select-none" data-screen>
+          <div class="absolute inset-x-0 top-0 z-10 flex h-5 items-center justify-between bg-black/25 px-2 font-code text-[9px] text-white/90">
+            <span>Keynote</span>
+            <span class="flex items-center gap-1.5"><span class="rounded px-1 font-bold" data-mb>◉</span>9:41</span>
+          </div>
+          <div class="absolute top-[16%] left-[12%] flex h-[66%] w-[56%] flex-col overflow-hidden rounded-lg bg-[#1c2028] shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
+            <span class="px-2 py-1 font-code text-[9px] text-white/80">{t.video}</span>
+            <div class="relative flex flex-1 items-center justify-center bg-gradient-to-br from-[#ff6b35] to-[#8a4cfc]">
+              <span class="h-[30%] w-[30%] animate-pulse rounded-full bg-white/30"></span>
+            </div>
+          </div>
+          <div class="absolute top-[30%] right-[6%] h-[40%] w-[22%] rounded-lg bg-white/85 p-[2%] shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
+            {[70, 45, 60, 35].map((w) => <span class="mb-[10%] block h-[8%] rounded-full bg-[#c7cbe0]" style={`width:${w}%`}></span>)}
+          </div>
+
+          <!-- The area being recorded. -->
+          <div class="absolute" data-area>
+            <div class="absolute inset-0 cursor-move" data-move></div>
+            {grips.map((g) => <span class={`grip grip-${g}`} data-grip={g}><span></span></span>)}
+            <div class="pointer-events-none absolute inset-0 hidden items-center justify-center font-display text-5xl font-bold text-white drop-shadow-lg sm:text-7xl" data-count></div>
+          </div>
+
+          <!-- The recording bar at the bottom of the screen. -->
+          <div class="absolute bottom-[4%] left-1/2 z-10 hidden -translate-x-1/2 items-center gap-1.5 rounded-full bg-[#111216]/95 py-1 pr-1 pl-2.5 font-display text-[10px] whitespace-nowrap text-white shadow-xl sm:gap-2 sm:text-xs" data-bar>
+            <span class="h-2 w-2 rounded-full bg-[#ef4444]" data-dot></span>
+            <span data-status>{t.recording}</span>
+            <span class="font-code tabular-nums text-white/80" data-timer>0:00</span>
+            <button type="button" class="flex items-center gap-0.5 rounded-full bg-white/10 px-2 py-0.5" data-pause><span class="material-symbols-outlined text-[14px]" data-pause-icon>pause</span><span class="hidden sm:inline" data-pause-text>{t.pause}</span></button>
+            <button type="button" class="flex items-center gap-0.5 rounded-full bg-[#ef4444] px-2 py-0.5 font-semibold" data-stop><span class="material-symbols-outlined text-[14px]">stop</span>{t.stop}</button>
+          </div>
+
+          <!-- The preview after saving, with the video's length. -->
+          <div class="pointer-events-none absolute right-[3%] bottom-[4%] z-10 w-[26%] translate-x-[130%] overflow-hidden rounded-md border-2 border-white shadow-xl transition-transform duration-300" data-thumb>
+            <div class="aspect-[16/10] bg-gradient-to-br from-[#ff6b35] to-[#8a4cfc]"></div>
+            <div class="absolute inset-0 flex items-center justify-center"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-[9px] text-white">▶</span></div>
+            <span class="absolute right-1 bottom-1 rounded bg-black/60 px-1 font-code text-[8px] text-white" data-length>0:00</span>
+          </div>
+        </div>
+
+        <!-- The toolbar under the area while adjusting, as in the app. -->
+        <div class="relative z-10 mx-auto -mt-4 flex w-fit max-w-full flex-wrap items-center justify-center gap-1 rounded-2xl border border-white/15 bg-[#111216]/95 p-1.5 font-display text-xs text-white shadow-[0_4px_20px_rgba(0,0,0,0.45)] transition-opacity" data-toolbar>
+          <button type="button" class="flex items-center gap-1 rounded-lg px-2 py-1 text-white/85 hover:bg-white/10" data-whole><span class="material-symbols-outlined text-[16px]">desktop_windows</span>{t.whole}</button>
+          <span class="h-5 w-px bg-white/[0.12]"></span>
+          <button type="button" class="tog flex h-7 w-8 items-center justify-center rounded-lg" aria-pressed="true" data-audio="sound" title={t.sound} aria-label={t.sound}><span class="material-symbols-outlined text-[17px]" data-on="volume_up" data-off="volume_off">volume_up</span></button>
+          <button type="button" class="tog flex h-7 w-8 items-center justify-center rounded-lg" aria-pressed="false" data-audio="mic" title={t.mic} aria-label={t.mic}><span class="material-symbols-outlined text-[17px]" data-on="mic" data-off="mic_off">mic_off</span></button>
+          <span class="h-5 w-px bg-white/[0.12]"></span>
+          <button type="button" class="rounded-lg px-2 py-1 text-white/85 hover:bg-white/10" data-cancel>{t.cancel}</button>
+          <button type="button" class="flex items-center gap-1 rounded-lg bg-[#ef4444] px-2.5 py-1 font-semibold" data-start><span class="h-2 w-2 rounded-full bg-white"></span>{t.start} <span class="font-code text-[10px] opacity-80">↩</span></button>
+        </div>
+
+        <div class="mt-space-sm min-h-[44px] rounded-lg bg-surface-container px-3 py-2 font-code text-[11px] break-words text-on-surface-variant" data-log></div>
+      </div>
+      <p class="mt-space-sm text-center font-code text-[11px] text-on-surface-variant"><span class="pointer-coarse:hidden">{t.hint}</span><span class="hidden pointer-coarse:inline">{t.hintPhone}</span></p>
+    </div>
+
+    <div class="flex flex-col gap-space-md">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-secondary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-secondary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* The app's adjustable frame: a glowing Solar Amber edge around the area, the rest dimmed. */
+  #shot-record [data-area] { box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.45), 0 0 10px 1px rgb(255 107 53 / 0.7); outline: 1.5px solid #ff6b35; }
+  #shot-record [data-area].rec { box-shadow: none; outline: 2px dashed #ef4444; outline-offset: 2px; }
+  #shot-record [data-area].rec .grip, #shot-record [data-area].rec [data-move] { display: none; }
+  /* Eight grips: L-shaped viewfinder corners and short bars on the sides, each with a larger hit area. */
+  #shot-record .grip { position: absolute; width: 24px; height: 24px; margin: -12px 0 0 -12px; touch-action: none; }
+  #shot-record .grip > span { position: absolute; inset: 7px; border: 0 solid white; filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.5)); }
+  #shot-record .grip-nw { left: 0; top: 0; cursor: nwse-resize; } #shot-record .grip-nw > span { border-width: 3px 0 0 3px; inset: 10px 0 0 10px; }
+  #shot-record .grip-ne { left: 100%; top: 0; cursor: nesw-resize; } #shot-record .grip-ne > span { border-width: 3px 3px 0 0; inset: 10px 10px 0 0; }
+  #shot-record .grip-se { left: 100%; top: 100%; cursor: nwse-resize; } #shot-record .grip-se > span { border-width: 0 3px 3px 0; inset: 0 10px 10px 0; }
+  #shot-record .grip-sw { left: 0; top: 100%; cursor: nesw-resize; } #shot-record .grip-sw > span { border-width: 0 0 3px 3px; inset: 0 0 10px 10px; }
+  #shot-record .grip-n, #shot-record .grip-s { left: 50%; cursor: ns-resize; } #shot-record .grip-n { top: 0; } #shot-record .grip-s { top: 100%; }
+  #shot-record .grip-e, #shot-record .grip-w { top: 50%; cursor: ew-resize; } #shot-record .grip-e { left: 100%; } #shot-record .grip-w { left: 0; }
+  #shot-record .grip-n > span, #shot-record .grip-s > span { inset: 10px 4px; background: white; border-radius: 2px; }
+  #shot-record .grip-e > span, #shot-record .grip-w > span { inset: 4px 10px; background: white; border-radius: 2px; }
+  #shot-record .tog { color: rgb(255 255 255 / 0.5); }
+  #shot-record .tog[aria-pressed="true"] { color: white; background: rgb(255 255 255 / 0.14); }
+  #shot-record [data-fps][aria-pressed="true"] { background: var(--c-surface-container-high); color: var(--c-on-surface); font-weight: 600; }
+  #shot-record [data-countdown][aria-pressed="false"] [data-check] { color: transparent; }
+  #shot-record [data-countdown][aria-pressed="true"] { color: var(--c-on-surface); }
+  #shot-record [data-bar].on, #shot-record [data-count].on { display: flex; }
+  #shot-record [data-thumb].in { translate: 0 0; }
+  #shot-record [data-mb].rec { background: #ef4444; color: white; }
+</style>
+
+<script define:vars={{ t }}>
+  const root = document.getElementById("shot-record");
+  const $ = (q) => root.querySelector(q);
+  const screen = $("[data-screen]"), areaEl = $("[data-area]"), bar = $("[data-bar]"), toolbar = $("[data-toolbar]"), log = $("[data-log]");
+  const count = $("[data-count]"), mb = $("[data-mb]"), thumb = $("[data-thumb]"), dot = $("[data-dot]");
+  const start0 = { x: 0.1, y: 0.13, w: 0.6, h: 0.72 };
+  // phase: "set" adjusting, "count" counting down, "rec" recording, "pause", "done" just saved.
+  let area = { ...start0 }, phase = "set", fps = "60", drag = null, elapsed = 0, since = 0, tick = 0, countTimer = 0, doneTimer = 0, armed = false;
+  const say = (html) => { log.innerHTML = html; };
+  const fmt = (ms) => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+  const now = () => elapsed + (phase === "rec" ? Date.now() - since : 0);
+  const layout = () => Object.assign(areaEl.style, { left: `${area.x * 100}%`, top: `${area.y * 100}%`, width: `${area.w * 100}%`, height: `${area.h * 100}%` });
+
+  const show = () => {
+    const live = phase === "rec" || phase === "pause";
+    areaEl.classList.toggle("rec", live || phase === "count");
+    bar.classList.toggle("on", live);
+    toolbar.style.opacity = phase === "set" ? "1" : "0";
+    toolbar.style.pointerEvents = phase === "set" ? "" : "none";
+    areaEl.style.visibility = phase === "done" ? "hidden" : "";
+    mb.classList.toggle("rec", live);
+    mb.textContent = live ? `● ${fmt(now())}` : "◉";
+    dot.classList.toggle("animate-pulse", phase === "rec");
+    dot.style.opacity = phase === "pause" ? "0.4" : "";
+    $("[data-status]").textContent = phase === "pause" ? t.paused : t.recording;
+    $("[data-timer]").textContent = fmt(now());
+    $("[data-pause-icon]").textContent = phase === "pause" ? "play_arrow" : "pause";
+    $("[data-pause-text]").textContent = phase === "pause" ? t.resume : t.pause;
+  };
+  const ready = () => { clearTimeout(doneTimer); thumb.classList.remove("in"); phase = "set"; show(); say(`<span class="text-tertiary">●</span> ${t.ready}`); };
+  const roll = () => { phase = "rec"; since = Date.now(); elapsed = 0; count.classList.remove("on"); clearInterval(tick); tick = setInterval(show, 250); show(); say(`<span class="text-[#ef4444]">●</span> ${t.rolling}`); };
+  const begin = () => {
+    if (phase !== "set") return;
+    if ($("[data-countdown]").getAttribute("aria-pressed") !== "true") { roll(); return; }
+    // 3, 2, 1 over the area; Esc cancels it.
+    phase = "count"; show(); say(`<span class="text-secondary">●</span> ${t.counting}`);
+    let n = 3;
+    count.textContent = n; count.classList.add("on");
+    const next = () => { n -= 1; if (n === 0) roll(); else { count.textContent = n; countTimer = setTimeout(next, 700); } };
+    countTimer = setTimeout(next, 700);
+  };
+  const cancel = () => { clearTimeout(countTimer); count.classList.remove("on"); area = { ...start0 }; layout(); ready(); say(`<span class="text-secondary">●</span> ${t.cancelled}`); };
+  // Pausing stops the clock; resuming carries on from the same moment, so the video has no gap.
+  const pause = () => {
+    if (phase === "rec") { elapsed = now(); phase = "pause"; say(`<span class="text-secondary">●</span> ${t.holding}`); }
+    else if (phase === "pause") { since = Date.now(); phase = "rec"; say(`<span class="text-[#ef4444]">●</span> ${t.rolling}`); }
+    show();
+  };
+  const stop = () => {
+    if (phase !== "rec" && phase !== "pause") return;
+    const length = fmt(now());
+    clearInterval(tick); phase = "done"; show();
+    $("[data-length]").textContent = length;
+    thumb.classList.add("in");
+    const d = new Date(), p = (n) => String(n).padStart(2, "0");
+    const name = `Longo Shot ${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} at ${p(d.getHours())}.${p(d.getMinutes())}.${p(d.getSeconds())}.mp4`;
+    const audio = [...root.querySelectorAll("[data-audio]")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.title);
+    say(`<span class="text-primary">●</span> ${t.saved} <b class="text-on-surface">${name}</b> · ${length} · ${fps} fps · ${audio.length ? audio.join(" + ") : t.noAudio}`);
+    doneTimer = setTimeout(ready, 3200);
+  };
+
+  // Drag inside to move the area, or a grip to resize it; it stays inside the screen.
+  const local = (e) => { const r = screen.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }; };
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const grab = (e, kind) => { if (phase !== "set") return; e.preventDefault(); e.stopPropagation(); armed = true; e.currentTarget.setPointerCapture(e.pointerId); drag = { kind, from: local(e), start: { ...area } }; };
+  $("[data-move]").addEventListener("pointerdown", (e) => grab(e, "move"));
+  root.querySelectorAll("[data-grip]").forEach((g) => g.addEventListener("pointerdown", (e) => grab(e, g.dataset.grip)));
+  root.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const p = local(e), dx = p.x - drag.from.x, dy = p.y - drag.from.y, s = drag.start, min = 0.12;
+    if (drag.kind === "move") { area.x = clamp(s.x + dx, 0, 1 - s.w); area.y = clamp(s.y + dy, 0, 1 - s.h); layout(); return; }
+    let { x, y, w, h } = s;
+    if (drag.kind.includes("w")) { const nx = clamp(s.x + dx, 0, s.x + s.w - min); w = s.w + s.x - nx; x = nx; }
+    if (drag.kind.includes("e")) w = clamp(s.w + dx, min, 1 - s.x);
+    if (drag.kind.includes("n")) { const ny = clamp(s.y + dy, 0, s.y + s.h - min); h = s.h + s.y - ny; y = ny; }
+    if (drag.kind.includes("s")) h = clamp(s.h + dy, min, 1 - s.y);
+    area = { x, y, w, h }; layout();
+  });
+  const drop = () => { drag = null; };
+  root.addEventListener("pointerup", drop);
+  root.addEventListener("pointercancel", drop);
+  // Double-click inside the area records the whole screen, as in the app.
+  $("[data-move]").addEventListener("dblclick", () => { area = { x: 0, y: 0, w: 1, h: 1 }; layout(); begin(); });
+
+  $("[data-whole]").addEventListener("click", () => { area = { x: 0, y: 0, w: 1, h: 1 }; layout(); begin(); });
+  $("[data-start]").addEventListener("click", begin);
+  $("[data-cancel]").addEventListener("click", cancel);
+  $("[data-pause]").addEventListener("click", pause);
+  $("[data-stop]").addEventListener("click", stop);
+  root.querySelectorAll("[data-audio]").forEach((b) => b.addEventListener("click", () => {
+    const on = b.getAttribute("aria-pressed") !== "true", icon = b.querySelector("span");
+    b.setAttribute("aria-pressed", String(on));
+    icon.textContent = on ? icon.dataset.on : icon.dataset.off;
+  }));
+  root.querySelectorAll("[data-fps]").forEach((b) => b.addEventListener("click", () => { fps = b.dataset.fps; root.querySelectorAll("[data-fps]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); }));
+  $("[data-countdown]").addEventListener("click", (e) => { const b = e.currentTarget; b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); });
+  root.addEventListener("pointerdown", () => { armed = true; });
+  document.addEventListener("pointerdown", (e) => { if (!root.contains(e.target)) armed = false; });
+  // ↩ starts, Esc cancels the area or the countdown, ⌥⇧4 stops, once the demo has been clicked.
+  window.addEventListener("keydown", (e) => {
+    if (!armed) return;
+    if (e.key === "Enter" && phase === "set") { e.preventDefault(); begin(); }
+    else if (e.key === "Escape" && (phase === "set" || phase === "count")) cancel();
+    else if (e.code === "Digit4" && e.altKey && e.shiftKey && (phase === "rec" || phase === "pause")) { e.preventDefault(); stop(); }
+  });
+  root.querySelector('[data-fps="60"]').setAttribute("aria-pressed", "true");
+  layout();
+  ready();
+</script>

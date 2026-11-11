@@ -10,40 +10,42 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    badge: "Screenshots + OCR",
+    badge: "Screenshots · Recording · OCR",
     title: ["Capture It,", "Copy It"],
-    lead: "Capture an area, a window or the whole screen with one shortcut, or drag over any text on screen to copy it. Saved as a PNG and on your clipboard at once. Native and light, from the menu bar.",
+    lead: "Capture an area, a window or the whole screen, record it as a video, or drag over any text on screen to copy it, each from its own shortcut. Draw on a capture right where it is, then paste it anywhere. Native and light, from the menu bar.",
     download: "Download for macOS (.dmg)", source: "Build it from source",
     facts: [["⌥⇧1–4", "Shortcuts, yours to change"], ["1", "Permission: Screen Recording"], ["~0%", "CPU while idle"]],
     window: "Longo Shot · Capture",
     modes: [
-      { id: "area", key: "⌥⇧1", name: "Area", ready: "Drag across the screen to capture an area. Esc cancels." },
-      { id: "window", key: "⌥⇧2", name: "Window", ready: "Click a window: it's captured with its shadow." },
-      { id: "screen", key: "⌥⇧3", name: "Screen", ready: "Click anywhere: the screen under the pointer is captured." },
-      { id: "text", key: "⌥⇧4", name: "Text", ready: "Drag over the note's text: it's recognized and copied." },
+      { id: "area", key: "⌥⇧1", name: "Area / Window", short: "Area", ready: "Drag an area, or click a window: it lights up as you hover. Double-click: the whole screen. Esc cancels." },
+      { id: "screen", key: "⌥⇧2", name: "Screen", short: "Screen", ready: "Click anywhere: the screen under the pointer is captured." },
+      { id: "text", key: "⌥⇧3", name: "Text", short: "Text", ready: "Drag over the note's text: it's recognized and copied." },
+      { id: "record", key: "⌥⇧4", name: "Record", short: "Record", ready: "Drag an area to record, then Start (↩). Double-click: the whole screen." },
     ],
-    saved: "Saved", copied: "and copied to the clipboard", text: "Copied to the clipboard:",
+    saved: "Saved", copied: "and copied to the clipboard", text: "Copied to the clipboard:", win: "Window captured:",
     noText: "No text there. Try dragging over the note.", cancelled: "Cancelled.",
-    notes: ["Meeting notes", "Ship v0.1 on Friday", "Phở at 12:30, Hàng Bè", "Wi-Fi: longo-guest"], chart: "Sales",
-    note: "Demo: drag on the screen, or press ⌥⇧1–4 to switch mode.", notePhone: "Demo: drag on the screen with your finger.",
+    start: "Start", stop: "Stop", recording: "Recording… ⌥⇧4 or Stop ends it.", adjust: "Area set: press ↩ or Start. Esc cancels.",
+    notes: ["Meeting notes", "Ship v0.2 on Friday", "Phở at 12:30, Hàng Bè", "Wi-Fi: longo-guest"], chart: "Sales",
+    note: "Demo: drag on the screen, or press ⌥⇧1–4 to switch mode.", notePhone: "Demo: drag on the screen with your finger, or tap a window.",
   },
   vi: {
-    badge: "Chụp màn hình + OCR",
+    badge: "Chụp · Quay · OCR",
     title: ["Chụp Màn Hình,", "Chép Cả Chữ"],
-    lead: "Chụp một vùng, một cửa sổ hoặc cả màn hình bằng một phím tắt, hoặc kéo qua chữ bất kỳ trên màn hình để copy. Vừa lưu thành PNG, vừa có sẵn trong clipboard. Native, nhẹ, chạy từ thanh menu.",
+    lead: "Chụp một vùng, một cửa sổ hoặc cả màn hình, quay màn hình thành video, hoặc kéo qua chữ bất kỳ trên màn hình để copy, mỗi việc một phím tắt. Vẽ ngay lên ảnh vừa chụp, rồi dán đi đâu cũng được. Native, nhẹ, chạy từ thanh menu.",
     download: "Tải cho macOS (.dmg)", source: "Build từ mã nguồn",
     facts: [["⌥⇧1–4", "Phím tắt, đổi tuỳ ý"], ["1", "Quyền: Ghi màn hình"], ["~0%", "CPU khi rảnh"]],
     window: "Longo Shot · Chụp",
     modes: [
-      { id: "area", key: "⌥⇧1", name: "Vùng", ready: "Kéo trên màn hình để chụp một vùng. Esc để huỷ." },
-      { id: "window", key: "⌥⇧2", name: "Cửa sổ", ready: "Bấm vào một cửa sổ: chụp cả cửa sổ kèm bóng đổ." },
-      { id: "screen", key: "⌥⇧3", name: "Màn hình", ready: "Bấm vào đâu cũng được: chụp màn hình đang có con trỏ." },
-      { id: "text", key: "⌥⇧4", name: "Chữ", ready: "Kéo qua chữ trong ghi chú: chữ được nhận dạng và copy lại." },
+      { id: "area", key: "⌥⇧1", name: "Vùng / Cửa sổ", short: "Vùng", ready: "Kéo chọn vùng, hoặc bấm vào cửa sổ: cửa sổ sáng viền khi rê chuột qua. Nhấp đúp: cả màn hình. Esc để huỷ." },
+      { id: "screen", key: "⌥⇧2", name: "Màn hình", short: "Màn hình", ready: "Bấm vào đâu cũng được: chụp màn hình đang có con trỏ." },
+      { id: "text", key: "⌥⇧3", name: "Chữ", short: "Chữ", ready: "Kéo qua chữ trong ghi chú: chữ được nhận dạng và copy lại." },
+      { id: "record", key: "⌥⇧4", name: "Quay", short: "Quay", ready: "Kéo chọn vùng để quay, rồi bấm Bắt đầu (↩). Nhấp đúp: cả màn hình." },
     ],
-    saved: "Đã lưu", copied: "và copy vào clipboard", text: "Đã copy vào clipboard:",
+    saved: "Đã lưu", copied: "và copy vào clipboard", text: "Đã copy vào clipboard:", win: "Đã chụp cửa sổ:",
     noText: "Không có chữ ở đó. Thử kéo qua ghi chú.", cancelled: "Đã huỷ.",
-    notes: ["Ghi chú cuộc họp", "Phát hành v0.1 thứ Sáu", "Phở lúc 12:30, Hàng Bè", "Wi-Fi: longo-guest"], chart: "Doanh số",
-    note: "Minh hoạ: kéo trên màn hình, hoặc bấm ⌥⇧1–4 để đổi chế độ.", notePhone: "Minh hoạ: dùng ngón tay kéo trên màn hình.",
+    start: "Bắt đầu", stop: "Dừng", recording: "Đang quay… bấm ⌥⇧4 hoặc Dừng để kết thúc.", adjust: "Đã chọn vùng: bấm ↩ hoặc Bắt đầu. Esc để huỷ.",
+    notes: ["Ghi chú cuộc họp", "Phát hành v0.2 thứ Sáu", "Phở lúc 12:30, Hàng Bè", "Wi-Fi: longo-guest"], chart: "Doanh số",
+    note: "Minh hoạ: kéo trên màn hình, hoặc bấm ⌥⇧1–4 để đổi chế độ.", notePhone: "Minh hoạ: dùng ngón tay kéo trên màn hình, hoặc chạm vào một cửa sổ.",
   },
 });
 ---
@@ -81,7 +83,7 @@ const t = pick(lang, {
       </div>
     </div>
 
-    <!-- Interactive screen: drag for an area, click a window or the screen, or drag over text to copy it, as in the app. -->
+    <!-- Interactive screen: drag for an area or click a window, click for the screen, drag over text to copy it, or drag an area to record, as in the app. -->
     <div class="relative min-w-0 lg:col-span-7" id="hero-shot">
       <div class="absolute -inset-4 -z-10 rounded-3xl bg-gradient-to-r from-tertiary/20 to-primary-container/20 blur-2xl"></div>
       <div class="rounded-2xl bg-surface-container-low p-space-md shadow-[0_12px_40px_var(--c-shadow)] sm:p-space-lg">
@@ -96,7 +98,7 @@ const t = pick(lang, {
         <div class="mb-space-sm grid grid-cols-4 gap-1 rounded-xl bg-surface-container-lowest p-1">
           {t.modes.map((m) => (
             <button type="button" data-mode={m.id} class="flex flex-col items-center rounded-lg px-1 py-1.5 text-xs font-semibold text-on-surface-variant transition-all sm:flex-row sm:justify-center sm:gap-1.5">
-              <span>{m.name}</span><span class="font-code text-[10px] font-normal opacity-70">{m.key}</span>
+              <span class="sm:hidden">{m.short}</span><span class="hidden sm:inline">{m.name}</span><span class="font-code text-[10px] font-normal opacity-70">{m.key}</span>
             </button>
           ))}
         </div>
@@ -105,7 +107,7 @@ const t = pick(lang, {
         <div class="relative aspect-[16/10] touch-none select-none overflow-hidden rounded-xl bg-gradient-to-br from-[#ff8a50] via-[#8b5cf6] to-[#06b6d4] shadow-inner" data-screen>
           <div class="absolute inset-x-0 top-0 flex h-5 items-center justify-between bg-black/25 px-2 font-code text-[9px] text-white/90">
             <span>Finder</span>
-            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[12px]">screenshot_region</span>9:41</span>
+            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[12px]" data-mbicon>screenshot_region</span><span class="hidden font-bold text-[#ff6b6b]" data-mbtime></span>9:41</span>
           </div>
           <div class="win absolute top-[17%] left-[5%] flex h-[62%] w-[54%] flex-col gap-[3%] rounded-lg bg-white/90 p-[3%] shadow-[0_10px_30px_rgba(0,0,0,0.35)] dark:bg-[#1c2028]/90" data-win>
             {t.notes.map((line, i) => (
@@ -119,10 +121,18 @@ const t = pick(lang, {
             </div>
           </div>
           <div class="pointer-events-none absolute hidden rounded-[3px]" data-sel></div>
+          <!-- After dragging an area to record: Start under it, as the app's toolbar has. -->
+          <button type="button" class="absolute hidden items-center gap-1 rounded-md bg-[#111216]/95 px-2 py-1 font-code text-[10px] font-semibold text-white shadow-lg" data-start><span class="h-2 w-2 rounded-full bg-[#ef4444]"></span>{t.start} ↩</button>
+          <!-- While recording: the bar at the bottom of the screen. -->
+          <div class="absolute bottom-[4%] left-1/2 hidden -translate-x-1/2 items-center gap-2 rounded-full bg-[#111216]/95 py-1 pr-1 pl-2.5 font-code text-[10px] text-white shadow-xl" data-recbar>
+            <span class="h-2 w-2 animate-pulse rounded-full bg-[#ef4444]"></span><span class="tabular-nums" data-timer>0:00</span>
+            <button type="button" class="rounded-full bg-[#ef4444] px-2 py-0.5 font-semibold" data-stop>{t.stop}</button>
+          </div>
           <div class="pointer-events-none absolute inset-0 bg-white opacity-0" data-flash></div>
           <!-- The preview thumbnail that slides into the corner after a capture. -->
           <div class="pointer-events-none absolute right-[3%] bottom-[4%] w-[26%] translate-x-[130%] overflow-hidden rounded-md border-2 border-white shadow-xl transition-transform duration-300" data-thumb>
             <div class="aspect-[16/10] bg-gradient-to-br from-[#ff8a50] via-[#8b5cf6] to-[#06b6d4]"></div>
+            <div class="absolute inset-0 hidden items-center justify-center" data-play><span class="flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-[9px] text-white">▶</span></div>
           </div>
         </div>
 
@@ -135,7 +145,9 @@ const t = pick(lang, {
 
 <style>
   #hero-shot [data-sel].drag { border: 1.5px solid white; box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.35); }
-  #hero-shot [data-sel].pick { border: 2px solid #4cd7f6; background: rgb(76 215 246 / 0.18); }
+  #hero-shot [data-sel].pick { border: 2px solid #ff6b35; background: rgb(255 107 53 / 0.14); }
+  #hero-shot [data-sel].rec { border: 1.5px dashed #ef4444; }
+  #hero-shot [data-start].on, #hero-shot [data-recbar].on { display: flex; }
   #hero-shot [data-flash] { transition: opacity 0.35s; }
   #hero-shot [data-flash].on { opacity: 0.6; transition: none; }
   #hero-shot [data-thumb].in { translate: 0 0; }
@@ -144,42 +156,39 @@ const t = pick(lang, {
 
 <script define:vars={{ t }}>
   const root = document.getElementById("hero-shot");
-  const screen = root.querySelector("[data-screen]"), sel = root.querySelector("[data-sel]"), log = root.querySelector("[data-log]");
-  const flashEl = root.querySelector("[data-flash]"), thumb = root.querySelector("[data-thumb]"), state = root.querySelector("[data-state]");
+  const $ = (q) => root.querySelector(q);
+  const screen = $("[data-screen]"), sel = $("[data-sel]"), log = $("[data-log]"), flashEl = $("[data-flash]"), thumb = $("[data-thumb]"), state = $("[data-state]");
+  const startBtn = $("[data-start]"), recbar = $("[data-recbar]"), timer = $("[data-timer]"), mbIcon = $("[data-mbicon]"), mbTime = $("[data-mbtime]");
   const wins = [...root.querySelectorAll("[data-win]")];
   const say = (html) => { log.innerHTML = html; };
-  let mode = "area", start = null, thumbTimer = 0;
+  // phase: "" idle, "drag" while dragging, "set" an area waiting for Start, "rec" recording.
+  let mode = "area", start = null, phase = "", area = null, thumbTimer = 0, clickTimer = 0, lastTap = 0, recAt = 0, recTick = 0;
 
-  const setMode = (id) => {
-    mode = id; start = null; hideSel();
-    const m = t.modes.find((x) => x.id === id);
-    state.textContent = `${m.key} ${m.name}`;
-    say(`<span class="text-tertiary">●</span> ${m.ready}`);
-    root.querySelectorAll("[data-mode]").forEach((b) => {
-      const on = b.dataset.mode === id;
-      b.classList.toggle("bg-surface-container-high", on);
-      b.classList.toggle("text-on-surface", on);
-      b.classList.toggle("shadow-sm", on);
-    });
-  };
   const local = (e) => { const r = screen.getBoundingClientRect(); return { x: Math.min(r.width, Math.max(0, e.clientX - r.left)), y: Math.min(r.height, Math.max(0, e.clientY - r.top)) }; };
-  const place = (cls, x, y, w, h) => { sel.classList.remove("hidden", "drag", "pick"); sel.classList.add(cls); Object.assign(sel.style, { left: `${x}px`, top: `${y}px`, width: `${w}px`, height: `${h}px` }); };
+  const place = (cls, b) => { sel.className = `pointer-events-none absolute rounded-[3px] ${cls}`; Object.assign(sel.style, { left: `${b.x}px`, top: `${b.y}px`, width: `${b.w}px`, height: `${b.h}px` }); };
   const hideSel = () => sel.classList.add("hidden");
   const boxOf = (el) => { const r = screen.getBoundingClientRect(), b = el.getBoundingClientRect(); return { x: b.left - r.left, y: b.top - r.top, w: b.width, h: b.height }; };
+  const whole = () => { const r = screen.getBoundingClientRect(); return { x: 0, y: 0, w: r.width, h: r.height }; };
   const winAt = (p) => wins.find((w) => { const b = boxOf(w); return p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h; });
+  const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
-  // Named like the app names its files: "Longo Shot YYYY-MM-DD at HH.MM.SS.png".
-  const fileName = () => {
+  // Named like the app names its files: "Longo Shot YYYY-MM-DD at HH.MM.SS.png" (or .mp4).
+  const fileName = (ext) => {
     const d = new Date(), p = (n) => String(n).padStart(2, "0");
-    return `Longo Shot ${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} at ${p(d.getHours())}.${p(d.getMinutes())}.${p(d.getSeconds())}.png`;
+    return `Longo Shot ${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} at ${p(d.getHours())}.${p(d.getMinutes())}.${p(d.getSeconds())}.${ext}`;
   };
-  const capture = () => {
-    flashEl.classList.add("on");
-    requestAnimationFrame(() => requestAnimationFrame(() => flashEl.classList.remove("on")));
+  const showThumb = (movie) => {
+    $("[data-play]").classList.toggle("hidden", !movie);
+    $("[data-play]").classList.toggle("flex", movie);
     thumb.classList.add("in");
     clearTimeout(thumbTimer);
     thumbTimer = setTimeout(() => thumb.classList.remove("in"), 2600);
-    say(`<span class="text-primary">●</span> ${t.saved} <b class="text-on-surface">${fileName()}</b> ${t.copied}`);
+  };
+  const capture = (prefix = "") => {
+    flashEl.classList.add("on");
+    requestAnimationFrame(() => requestAnimationFrame(() => flashEl.classList.remove("on")));
+    showThumb(false);
+    say(`<span class="text-primary">●</span> ${prefix}${t.saved} <b class="text-on-surface">${fileName("png")}</b> ${t.copied}`);
   };
   // Copy Text: the lines the selection crosses are "recognized", like Vision would.
   const recognize = (s) => {
@@ -192,40 +201,108 @@ const t = pick(lang, {
       : `<span class="text-secondary">●</span> ${t.noText}`);
   };
 
+  // Recording: an area waits for Start, then the bar counts until Stop or ⌥⇧4.
+  const setArea = (b) => {
+    phase = "set"; area = b; place("drag", b);
+    const r = screen.getBoundingClientRect();
+    startBtn.classList.add("on");
+    const bw = startBtn.offsetWidth, bh = startBtn.offsetHeight;
+    startBtn.style.left = `${Math.min(r.width - bw - 4, Math.max(4, b.x + b.w / 2 - bw / 2))}px`;
+    startBtn.style.top = `${b.y + b.h + 6 + bh > r.height ? Math.max(4, b.y + b.h - bh - 6) : b.y + b.h + 6}px`;
+    say(`<span class="text-tertiary">●</span> ${t.adjust}`);
+  };
+  const startRec = () => {
+    startBtn.classList.remove("on");
+    phase = "rec"; place("rec", area); recAt = Date.now();
+    recbar.classList.add("on"); mbIcon.style.display = "none"; mbTime.classList.remove("hidden");
+    const tick = () => { const s = fmt(Math.floor((Date.now() - recAt) / 1000)); timer.textContent = s; mbTime.textContent = `● ${s}`; };
+    tick(); recTick = setInterval(tick, 250);
+    say(`<span class="text-[#ef4444]">●</span> ${t.recording}`);
+  };
+  const reset = () => {
+    clearInterval(recTick); phase = ""; start = null; area = null;
+    startBtn.classList.remove("on"); recbar.classList.remove("on"); mbIcon.style.display = ""; mbTime.classList.add("hidden"); hideSel();
+  };
+  const stopRec = () => {
+    const length = fmt(Math.floor((Date.now() - recAt) / 1000));
+    reset(); showThumb(true);
+    say(`<span class="text-primary">●</span> ${t.saved} <b class="text-on-surface">${fileName("mp4")}</b> · ${length}`);
+  };
+
+  const setMode = (id) => {
+    if (phase === "rec") stopRec(); else reset();
+    mode = id;
+    const m = t.modes.find((x) => x.id === id);
+    state.textContent = `${m.key} ${m.short}`;
+    say(`<span class="text-tertiary">●</span> ${m.ready}`);
+    root.querySelectorAll("[data-mode]").forEach((b) => {
+      const on = b.dataset.mode === id;
+      b.classList.toggle("bg-surface-container-high", on);
+      b.classList.toggle("text-on-surface", on);
+      b.classList.toggle("shadow-sm", on);
+    });
+  };
+
   screen.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("button")) return;
     e.preventDefault();
     const p = local(e);
-    if (mode === "area" || mode === "text") { start = p; screen.setPointerCapture(e.pointerId); place("drag", p.x, p.y, 0, 0); return; }
-    if (mode === "window") { const w = winAt(p); if (!w) return; const b = boxOf(w); place("pick", b.x, b.y, b.w, b.h); capture(); setTimeout(hideSel, 400); return; }
-    capture();
+    if (phase === "rec") return;
+    // A second click soon after the first is a double-click: the whole screen.
+    const now = Date.now(), double = now - lastTap < 320;
+    lastTap = now;
+    if (double && (mode === "area" || mode === "record")) {
+      clearTimeout(clickTimer); start = null;
+      if (mode === "area") { place("pick", whole()); capture(); setTimeout(hideSel, 400); } else { setArea(whole()); startRec(); }
+      return;
+    }
+    if (mode === "screen") { capture(); return; }
+    if (phase === "set") reset();
+    start = p; phase = "drag"; screen.setPointerCapture(e.pointerId);
   });
   screen.addEventListener("pointermove", (e) => {
     const p = local(e);
-    if (start) { place("drag", Math.min(start.x, p.x), Math.min(start.y, p.y), Math.abs(p.x - start.x), Math.abs(p.y - start.y)); return; }
-    if (e.pointerType !== "mouse") return;
-    // Hovering shows what a click would capture, like the app's highlight.
-    if (mode === "window") { const w = winAt(p); if (w) { const b = boxOf(w); place("pick", b.x, b.y, b.w, b.h); } else hideSel(); }
-    else if (mode === "screen") { const r = screen.getBoundingClientRect(); place("pick", 0, 0, r.width, r.height); }
+    if (start) {
+      const b = { x: Math.min(start.x, p.x), y: Math.min(start.y, p.y), w: Math.abs(p.x - start.x), h: Math.abs(p.y - start.y) };
+      if (b.w > 4 || b.h > 4) place("drag", b);
+      return;
+    }
+    if (e.pointerType !== "mouse" || phase) return;
+    // Hovering shows what a click would capture: a window lights up with an orange edge, like the app's highlight.
+    if (mode === "area") { const w = winAt(p); if (w) place("pick", boxOf(w)); else hideSel(); }
+    else if (mode === "screen") place("pick", whole());
   });
-  screen.addEventListener("pointerleave", () => { if (!start) hideSel(); });
-  const finish = (e) => {
+  screen.addEventListener("pointerleave", () => { if (!phase) hideSel(); });
+  screen.addEventListener("pointerup", (e) => {
     if (!start) return;
     const p = local(e), s = { x: Math.min(start.x, p.x), y: Math.min(start.y, p.y), w: Math.abs(p.x - start.x), h: Math.abs(p.y - start.y) };
-    start = null; hideSel();
-    if (s.w < 6 || s.h < 6) return;
+    start = null; phase = "";
+    if (s.w < 6 || s.h < 6) {
+      // A click, not a drag: in Area / Window it picks the window under it (after a moment, in case it's a double-click).
+      hideSel();
+      const w = mode === "area" && winAt(p);
+      if (w) { clearTimeout(clickTimer); clickTimer = setTimeout(() => { place("pick", boxOf(w)); capture(`${t.win} `); setTimeout(() => { if (!phase) hideSel(); }, 400); }, 320); }
+      return;
+    }
+    if (mode === "record") { setArea(s); return; }
+    hideSel();
     if (mode === "text") recognize(s); else capture();
-  };
-  screen.addEventListener("pointerup", finish);
-  screen.addEventListener("pointercancel", () => { start = null; hideSel(); });
+  });
+  screen.addEventListener("pointercancel", () => { if (phase === "drag") { start = null; phase = ""; hideSel(); } });
+  startBtn.addEventListener("click", startRec);
+  $("[data-stop]").addEventListener("click", stopRec);
 
   root.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
-  // The real shortcuts switch mode while the demo is on screen; Esc cancels a drag.
+  // The real shortcuts switch mode while the demo is on screen (⌥⇧4 again stops a recording); ↩ starts, Esc cancels.
   window.addEventListener("keydown", (e) => {
     const r = root.getBoundingClientRect();
     if (r.bottom < 0 || r.top > innerHeight) return;
-    if (e.key === "Escape" && start) { start = null; hideSel(); say(`<span class="text-secondary">●</span> ${t.cancelled}`); return; }
-    const n = { Digit1: "area", Digit2: "window", Digit3: "screen", Digit4: "text" }[e.code];
-    if (n && e.altKey && e.shiftKey && !e.metaKey && !e.ctrlKey) { e.preventDefault(); setMode(n); }
+    if (e.key === "Escape" && (phase === "drag" || phase === "set")) { reset(); say(`<span class="text-secondary">●</span> ${t.cancelled}`); return; }
+    if (e.key === "Enter" && phase === "set") { e.preventDefault(); startRec(); return; }
+    const n = { Digit1: "area", Digit2: "screen", Digit3: "text", Digit4: "record" }[e.code];
+    if (!n || !e.altKey || !e.shiftKey || e.metaKey || e.ctrlKey) return;
+    e.preventDefault();
+    if (n === "record" && phase === "rec") stopRec(); else setMode(n);
   });
   setMode("area");
 </script>

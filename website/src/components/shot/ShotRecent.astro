@@ -1,0 +1,165 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Feature 06 · Recent", title: "Your Last Ten, One Click Away",
+    lead: "The menu bar menu keeps your last 10 captures and recordings as tiles. Click one for a larger preview: copy it again, open it, draw on it, show it in Finder, or drag it straight into another app.",
+    points: [
+      "Saved captures are only pointed to, never stored twice. Clipboard-only ones are kept in the app's cache, so they're still there to paste.",
+      "Remove one, or Clear the list: files in your save folder stay.",
+      "Turn off History in Settings and Longo Shot forgets everything.",
+    ],
+    ready: "Ready", recent: "Recent", clear: "Clear", empty: "Nothing captured yet",
+    copy: "Copy", copied: "Copied", open: "Open", draw: "Draw on it", finder: "Show in Finder", remove: "Remove from Recent",
+    drag: "Drag into another app", select: "Click to preview", clipboardOnly: "Clipboard only",
+    menu: [["screenshot_region", "Capture Area or Window", "⌥⇧1"], ["radio_button_checked", "Record Screen", "⌥⇧4"]],
+    hint: "Demo: click a tile, then Copy, or drag the preview.", hintPhone: "Demo: tap a tile to preview it.",
+    opened: "Opened in Preview", drawing: "Opened the drawing window", shown: "Shown in Finder", dropped: "Dropped into the other app",
+  },
+  vi: {
+    badge: "Chức năng 06 · Gần đây", title: "10 Ảnh Gần Nhất, Chỉ Một Cú Bấm",
+    lead: "Menu trên thanh menu giữ 10 ảnh và video gần nhất dưới dạng ô nhỏ. Bấm vào một ô để xem lớn hơn: copy lại, mở, vẽ lên, mở trong Finder, hoặc kéo thả thẳng sang app khác.",
+    points: [
+      "Ảnh đã lưu chỉ được trỏ tới, không lưu hai lần. Ảnh chỉ copy vào clipboard thì được giữ trong bộ nhớ đệm của app, nên vẫn còn để dán.",
+      "Xoá từng ảnh, hoặc bấm Xoá cả danh sách: file trong thư mục lưu vẫn còn.",
+      "Tắt Lịch sử trong cài đặt là Longo Shot quên hết.",
+    ],
+    ready: "Sẵn sàng", recent: "Gần đây", clear: "Xoá", empty: "Chưa chụp ảnh nào",
+    copy: "Copy", copied: "Đã copy", open: "Mở", draw: "Vẽ ngay", finder: "Mở trong Finder", remove: "Xoá khỏi Gần đây",
+    drag: "Kéo thả sang app khác", select: "Bấm để xem trước", clipboardOnly: "Chỉ copy vào clipboard",
+    menu: [["screenshot_region", "Chụp vùng / cửa sổ", "⌥⇧1"], ["radio_button_checked", "Quay màn hình", "⌥⇧4"]],
+    hint: "Minh hoạ: bấm vào một ô, rồi Copy, hoặc kéo ảnh xem trước.", hintPhone: "Minh hoạ: chạm vào một ô để xem trước.",
+    opened: "Đã mở bằng Preview", drawing: "Đã mở cửa sổ vẽ", shown: "Đã mở trong Finder", dropped: "Đã thả vào app kia",
+  },
+});
+// Ten made-up captures: a gradient each, some recordings (▶ and a length), some kept only for the clipboard.
+const items = [
+  ["#ff8a50", "#8b5cf6", "", false], ["#06b6d4", "#3b82f6", "0:12", false], ["#22c55e", "#06b6d4", "", true],
+  ["#facc15", "#ff6b35", "", false], ["#8b5cf6", "#ef4444", "", false], ["#1c2028", "#4cd7f6", "1:04", false],
+  ["#ffffff", "#c7cbe0", "", true], ["#ef4444", "#facc15", "", false], ["#3b82f6", "#8b5cf6", "0:08", false], ["#141b2b", "#ff6b35", "", false],
+] as const;
+---
+
+<section id="recent" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <div class="flex flex-col gap-space-md">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-tertiary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-tertiary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+    </div>
+
+    <!-- The menu bar menu: a few actions, then Recent with its tiles and, for the one picked, a larger preview. -->
+    <div class="min-w-0" id="shot-recent">
+      <div class="mx-auto w-full max-w-[340px] rounded-2xl border border-outline-variant/20 bg-surface-container-low p-3 shadow-[0_12px_40px_var(--c-shadow)]">
+        <div class="mb-2 flex items-center gap-2 px-1">
+          <span class="h-2 w-2 rounded-full bg-[#28c840]"></span>
+          <span class="text-body-md font-semibold">Longo Shot</span>
+          <span class="font-code text-[11px] text-tertiary">{t.ready}</span>
+        </div>
+        <div class="mb-3 flex flex-col">
+          {t.menu.map(([icon, name, keys]) => (
+            <span class="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-body-md">
+              <span class="flex min-w-0 items-center gap-2"><span class="material-symbols-outlined text-[18px] text-on-surface-variant">{icon}</span><span class="truncate">{name}</span></span>
+              <span class="shrink-0 font-code text-[11px] text-on-surface-variant">{keys}</span>
+            </span>
+          ))}
+        </div>
+        <div class="border-t border-outline-variant/20 px-1 pt-2">
+          <div class="mb-2 flex items-center justify-between">
+            <span class="font-code text-[10px] uppercase tracking-wider text-on-surface-variant">{t.recent}</span>
+            <button type="button" class="font-code text-[11px] text-on-surface-variant hover:text-on-surface" data-clear>{t.clear}</button>
+          </div>
+          <!-- The larger preview of the picked tile. -->
+          <div class="mb-2 hidden flex-col gap-2" data-preview>
+            <div class="relative aspect-[16/10] cursor-grab overflow-hidden rounded-[10px] border border-outline-variant/30" draggable="true" title={t.drag} data-big>
+              <div class="absolute inset-0" data-big-fill></div>
+              <span class="absolute top-[18%] left-[12%] h-[56%] w-[52%] rounded bg-white/80 shadow-lg"></span>
+              <div class="absolute inset-0 hidden items-center justify-center" data-big-play><span class="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-xs text-white">▶</span></div>
+              <span class="absolute right-1.5 bottom-1.5 hidden rounded bg-black/60 px-1.5 font-code text-[10px] text-white" data-big-length></span>
+              <span class="absolute bottom-1.5 left-1.5 hidden rounded bg-black/60 px-1.5 font-code text-[10px] text-white" data-big-cached>{t.clipboardOnly}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" class="flex flex-1 items-center justify-center gap-1 rounded-lg bg-primary-container py-1.5 font-display text-xs font-semibold text-white" title="⌘C" data-copy><span class="material-symbols-outlined text-[15px]" data-copy-icon>content_copy</span><span data-copy-text>{t.copy}</span></button>
+              {[["open_in_new", t.open, "open"], ["edit", t.draw, "draw"], ["folder", t.finder, "finder"], ["delete", t.remove, "remove"]].map(([icon, name, act]) => (
+                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface" title={name} aria-label={name} data-act={act}><span class="material-symbols-outlined text-[17px]">{icon}</span></button>
+              ))}
+            </div>
+          </div>
+          <div class="grid grid-cols-5 gap-1.5" data-tiles>
+            {items.map(([a, b, length, cached]) => (
+              <button type="button" title={t.select} data-tile data-a={a} data-b={b} data-length={length} data-cached={String(cached)} class="relative aspect-[13/10] overflow-hidden rounded-md border border-outline-variant/30 transition-transform hover:scale-105" style={`background:linear-gradient(135deg,${a},${b})`}>
+                <span class="absolute top-[18%] left-[12%] h-[56%] w-[52%] rounded-[2px] bg-white/80"></span>
+                {length && <span class="absolute inset-0 flex items-center justify-center"><span class="flex h-4 w-4 items-center justify-center rounded-full bg-black/60 text-[7px] text-white">▶</span></span>}
+              </button>
+            ))}
+          </div>
+          <p class="hidden py-3 text-center font-code text-[11px] text-on-surface-variant" data-empty>{t.empty}</p>
+        </div>
+      </div>
+      <p class="mt-space-sm min-h-[1.5em] text-center font-code text-[11px] text-on-surface-variant" data-log><span class="pointer-coarse:hidden">{t.hint}</span><span class="hidden pointer-coarse:inline">{t.hintPhone}</span></p>
+    </div>
+  </div>
+</section>
+
+<style>
+  #shot-recent [data-tile][aria-pressed="true"] { border: 2px solid #ff6b35; }
+  #shot-recent [data-preview].on { display: flex; }
+</style>
+
+<script define:vars={{ t }}>
+  const root = document.getElementById("shot-recent");
+  const $ = (q) => root.querySelector(q);
+  const preview = $("[data-preview]"), log = $("[data-log]");
+  let picked = null, copiedTimer = 0;
+  const say = (text) => { log.textContent = text; };
+  const pick = (tile) => {
+    picked = picked === tile ? null : tile;
+    root.querySelectorAll("[data-tile]").forEach((b) => b.setAttribute("aria-pressed", String(b === picked)));
+    preview.classList.toggle("on", !!picked);
+    if (!picked) return;
+    const { a, b, length, cached } = picked.dataset, movie = !!length;
+    $("[data-big-fill]").style.background = `linear-gradient(135deg,${a},${b})`;
+    $("[data-big-play]").style.display = movie ? "flex" : "none";
+    $("[data-big-length]").textContent = length;
+    $("[data-big-length]").classList.toggle("hidden", !movie);
+    $("[data-big-cached]").classList.toggle("hidden", cached !== "true");
+    // Recordings can't be drawn on; clipboard-only captures have no file to show in Finder.
+    $('[data-act="draw"]').classList.toggle("hidden", movie);
+    $('[data-act="finder"]').classList.toggle("hidden", cached === "true");
+    $("[data-copy-text]").textContent = t.copy;
+    $("[data-copy-icon]").textContent = "content_copy";
+  };
+  const copy = () => {
+    if (!picked) return;
+    $("[data-copy-text]").textContent = t.copied;
+    $("[data-copy-icon]").textContent = "check";
+    clearTimeout(copiedTimer);
+    copiedTimer = setTimeout(() => { $("[data-copy-text]").textContent = t.copy; $("[data-copy-icon]").textContent = "content_copy"; }, 1500);
+  };
+  const refresh = () => {
+    const none = !root.querySelector("[data-tile]");
+    $("[data-empty]").classList.toggle("hidden", !none);
+  };
+  root.querySelectorAll("[data-tile]").forEach((b) => b.addEventListener("click", () => pick(b)));
+  $("[data-copy]").addEventListener("click", copy);
+  root.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => {
+    const act = b.dataset.act;
+    if (act === "remove") { const gone = picked; pick(picked); gone.remove(); refresh(); return; }
+    say({ open: t.opened, draw: t.drawing, finder: t.shown }[act]);
+  }));
+  $("[data-clear]").addEventListener("click", () => { if (picked) pick(picked); root.querySelectorAll("[data-tile]").forEach((b) => b.remove()); refresh(); });
+  $("[data-big]").addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", "Longo Shot"); });
+  $("[data-big]").addEventListener("dragend", (e) => { if (e.dataTransfer.dropEffect !== "none") say(t.dropped); else say(t.drag); });
+  // ⌘C copies the picked one while the menu demo has the pointer.
+  window.addEventListener("keydown", (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "c" && picked && root.matches(":hover")) { e.preventDefault(); copy(); } });
+  pick(root.querySelector("[data-tile]"));
+</script>

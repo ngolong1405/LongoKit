@@ -8,7 +8,7 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    badge: "Feature 05 · Light & private", title: "There When You Need It, Gone When You Don't",
+    badge: "Feature 08 · Light & private", title: "There When You Need It, Gone When You Don't",
     lead: "Longo Shot waits in the background for its shortcuts and stays out of the way the rest of the time.",
     cards: [
       ["speed", "~0%", "CPU while idle", "Nothing runs between captures. Closing the window releases what it was holding."],
@@ -16,18 +16,20 @@ const t = pick(lang, {
       ["close", "Close", "Keeps running", "Closing the window doesn't quit: your shortcuts stay on until you choose Quit."],
       ["login", "Login", "Starts silently", "Start at Login opens it in the background, ready from the moment your Mac starts."],
     ],
-    next: "Coming next", nextTitle: "Screen recording",
-    nextBody: "Record the whole screen or a part of it, and stop with the same shortcut. It's the next part being built, coming in the next version.",
+    setTitle: "Settings on one page",
+    setBody: "A 700 pt window with icon tabs. General fits on one page as checkbox chips:",
+    setRows: [["After a capture", "Copy to the clipboard · Draw on it · Preview · Sounds · History"], ["Screen recording", "Frame rate 30 / 60 fps"], ["Audio", "The Mac's sound · Microphone"], ["On screen", "Pointer · Clicks · 3 s countdown"]],
     permTitle: "Permissions, honestly",
     perms: [
-      ["Screenshots and Copy Text", "Screen Recording"],
+      ["Screenshots, recording and Copy Text", "Screen Recording"],
+      ["Recording your voice", "Microphone, only if you turn it on"],
       ["Global shortcuts", "None"],
       ["Accessibility, Input Monitoring", "Not needed"],
     ],
     local: "Everything stays on your Mac: text is recognized on-device, no account, no network, no telemetry. Source available on GitHub.",
   },
   vi: {
-    badge: "Chức năng 05 · Nhẹ & riêng tư", title: "Cần Thì Có, Không Cần Thì Im Lặng",
+    badge: "Chức năng 08 · Nhẹ & riêng tư", title: "Cần Thì Có, Không Cần Thì Im Lặng",
     lead: "Longo Shot chạy nền chờ phím tắt, còn lại thì không làm phiền bạn.",
     cards: [
       ["speed", "~0%", "CPU khi rảnh", "Giữa các lần chụp không có gì chạy. Đóng cửa sổ là giải phóng những gì nó đang giữ."],
@@ -35,11 +37,13 @@ const t = pick(lang, {
       ["close", "Đóng", "Vẫn chạy nền", "Đóng cửa sổ không phải là thoát: phím tắt vẫn bật cho tới khi bạn chọn Thoát."],
       ["login", "Khởi động", "Mở âm thầm", "Mở cùng máy sẽ chạy app ở chế độ nền, sẵn sàng ngay từ lúc máy khởi động."],
     ],
-    next: "Sắp có", nextTitle: "Quay màn hình",
-    nextBody: "Quay cả màn hình hoặc một phần, bấm lại phím tắt để dừng. Đây là phần tiếp theo đang được làm, sẽ có trong bản kế tiếp.",
+    setTitle: "Cài đặt gọn trong một trang",
+    setBody: "Cửa sổ rộng 700 pt với các tab biểu tượng. Tab Chung gói gọn trong một trang bằng các ô đánh dấu:",
+    setRows: [["Sau khi chụp", "Copy vào clipboard · Vẽ ngay · Xem nhanh · Âm thanh · Lịch sử"], ["Quay màn hình", "Số khung hình 30 / 60 fps"], ["Thu âm", "Âm thanh máy · Micro"], ["Hiển thị", "Con trỏ · Cú click · Đếm ngược 3 giây"]],
     permTitle: "Quyền cần cấp, nói thật",
     perms: [
-      ["Chụp màn hình và Copy chữ", "Ghi màn hình"],
+      ["Chụp, quay màn hình và Copy chữ", "Ghi màn hình"],
+      ["Thu giọng nói", "Micro, chỉ khi bạn bật"],
       ["Phím tắt toàn hệ thống", "Không cần"],
       ["Trợ năng, Theo dõi đầu vào", "Không cần"],
     ],
@@ -67,12 +71,17 @@ const t = pick(lang, {
   </div>
 
   <div class="mt-gutter grid grid-cols-1 items-start gap-gutter lg:grid-cols-2">
-    <div class="flex flex-col gap-space-xs rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
-      <span class="flex flex-wrap items-center gap-space-xs font-display text-headline-sm">
-        <span class="material-symbols-outlined text-[22px] text-secondary">videocam</span>{t.nextTitle}
-        <span class="rounded bg-secondary/15 px-2 py-0.5 font-code text-[11px] font-normal text-secondary">{t.next}</span>
-      </span>
-      <p class="text-body-md text-on-surface-variant">{t.nextBody}</p>
+    <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+      <span class="flex items-center gap-space-xs font-display text-headline-sm"><span class="material-symbols-outlined text-[22px] text-secondary">tune</span>{t.setTitle}</span>
+      <p class="text-body-md text-on-surface-variant">{t.setBody}</p>
+      <div class="flex flex-col divide-y divide-outline-variant/20">
+        {t.setRows.map(([group, chips]) => (
+          <div class="flex flex-col gap-0.5 py-1.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-space-sm">
+            <span class="shrink-0 text-body-md text-on-surface-variant">{group}</span>
+            <span class="font-code text-xs text-secondary sm:text-right">{chips}</span>
+          </div>
+        ))}
+      </div>
     </div>
     <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
       <span class="flex items-center gap-space-xs font-display text-headline-sm"><span class="material-symbols-outlined text-[22px] text-tertiary">lock</span>{t.permTitle}</span>
@@ -80,7 +89,7 @@ const t = pick(lang, {
         {t.perms.map(([what, need]) => (
           <div class="flex items-center justify-between gap-space-sm py-1.5 text-body-md">
             <span class="text-on-surface-variant">{what}</span>
-            <span class="shrink-0 font-code text-xs text-tertiary">{need}</span>
+            <span class="font-code text-xs text-right text-tertiary">{need}</span>
           </div>
         ))}
       </div>

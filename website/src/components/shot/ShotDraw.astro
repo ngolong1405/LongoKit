@@ -1,0 +1,228 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Feature 02 · Draw", title: "Point at It Before You Paste It",
+    lead: "After an area, a window or the whole screen, the capture stays right where it was, the rest of the screen dimmed, with a drawing toolbar under it. Add an arrow or a box, press ↩, and it's saved and copied.",
+    points: [
+      "Arrow (A), pen (P), box (R) and highlighter (H), in 8 colors and 3 sizes. ⌘Z undoes, ⇧⌘Z redoes.",
+      "Arrows are one solid shape with a sharp head; boxes have square corners. Both stay readable on light and dark captures.",
+      "↩ Done or ⌘C saves (if saving is on) and copies. Esc only copies, without saving. ✕ throws the capture away.",
+      "Later on, the preview's Draw button opens the same tools in a window. Turn off “Draw on it” to save right away.",
+    ],
+    tools: [["arrow", "north_east", "Arrow", "A"], ["pen", "gesture", "Pen", "P"], ["box", "crop_square", "Box", "R"], ["highlighter", "ink_highlighter", "Highlighter", "H"]],
+    sizes: ["Thin", "Medium", "Thick"], undo: "Undo (⌘Z)", redo: "Redo (⇧⌘Z)", discard: "Throw this capture away", done: "Done",
+    page: { title: "Longo Café · Order", rows: ["Cà phê sữa đá", "Bánh mì pâté", "Delivery"], prices: ["35.000đ", "30.000đ", "15.000đ"], total: "Total 80.000đ", button: "Place order" },
+    saved: "Saved and copied", copied: "Copied, not saved", gone: "Thrown away",
+    hint: "Demo: drag on the capture to draw. Pick a tool, a color and a size; A P R H and ⌘Z work too.",
+    hintPhone: "Demo: draw on the capture with your finger.",
+  },
+  vi: {
+    badge: "Chức năng 02 · Vẽ", title: "Chỉ Rõ Chỗ Cần Xem Trước Khi Dán",
+    lead: "Chụp vùng, cửa sổ hay cả màn hình xong, ảnh chụp đứng yên ngay tại chỗ, phần còn lại của màn hình tối đi, kèm thanh công cụ vẽ ngay bên dưới. Thêm mũi tên hay khung, bấm ↩ là ảnh được lưu và copy.",
+    points: [
+      "Mũi tên (A), bút vẽ (P), khung (R) và bút dạ quang (H), 8 màu và 3 cỡ nét. ⌘Z để hoàn tác, ⇧⌘Z để làm lại.",
+      "Mũi tên là một khối liền với đầu nhọn; khung có góc vuông. Nhìn rõ trên cả ảnh sáng lẫn ảnh tối.",
+      "Bấm ↩ Xong hoặc ⌘C để lưu (nếu đang bật lưu) và copy. Esc chỉ copy, không lưu. ✕ để bỏ ảnh chụp.",
+      "Về sau, nút Vẽ trên ảnh xem nhanh mở cùng bộ công cụ trong một cửa sổ. Tắt “Vẽ ngay” để lưu luôn sau khi chụp.",
+    ],
+    tools: [["arrow", "north_east", "Mũi tên", "A"], ["pen", "gesture", "Bút vẽ", "P"], ["box", "crop_square", "Khung", "R"], ["highlighter", "ink_highlighter", "Bút dạ quang", "H"]],
+    sizes: ["Mảnh", "Vừa", "Dày"], undo: "Hoàn tác (⌘Z)", redo: "Làm lại (⇧⌘Z)", discard: "Bỏ ảnh chụp này", done: "Xong",
+    page: { title: "Longo Café · Đặt món", rows: ["Cà phê sữa đá", "Bánh mì pâté", "Phí giao hàng"], prices: ["35.000đ", "30.000đ", "15.000đ"], total: "Tổng 80.000đ", button: "Đặt món" },
+    saved: "Đã lưu ảnh đã vẽ và copy", copied: "Đã copy, không lưu", gone: "Đã bỏ ảnh chụp",
+    hint: "Minh hoạ: kéo trên ảnh chụp để vẽ. Chọn công cụ, màu và cỡ nét; phím A P R H và ⌘Z cũng dùng được.",
+    hintPhone: "Minh hoạ: dùng ngón tay vẽ lên ảnh chụp.",
+  },
+});
+// The app's palette, in its order.
+const colors = ["#ef4444", "#ff6b35", "#facc15", "#22c55e", "#3b82f6", "#8b5cf6", "#ffffff", "#000000"];
+---
+
+<section id="draw" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <div class="flex flex-col gap-space-md">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-primary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-primary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+    </div>
+
+    <!-- A capture held in place on a dimmed screen, with the app's drawing toolbar under it. Drag on it to draw. -->
+    <div class="min-w-0" id="shot-draw">
+      <div class="rounded-2xl bg-surface-container-low p-space-md shadow-xl sm:p-space-lg">
+        <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#ff8a50] via-[#8b5cf6] to-[#06b6d4] px-[8%] pt-[6%] pb-[13%]">
+          <div class="relative aspect-[8/5] touch-none overflow-hidden rounded-[3px] bg-white shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] select-none" data-canvas>
+            <!-- What was captured: an order page. -->
+            <div class="absolute inset-0 flex flex-col gap-[3%] p-[5%] font-display text-[#141b2b]">
+              <span class="text-[11px] font-bold sm:text-sm">{t.page.title}</span>
+              {t.page.rows.map((row, i) => (
+                <span class="flex items-center justify-between border-b border-[#e1e8fd] pb-[1.5%] text-[10px] sm:text-xs"><span class="truncate">{row}</span><span class="shrink-0 font-code text-[#5a4139]">{t.page.prices[i]}</span></span>
+              ))}
+              <span class="mt-auto flex items-center justify-between gap-2">
+                <span class="font-code text-[10px] font-semibold sm:text-xs">{t.page.total}</span>
+                <span class="rounded-md bg-[#d04509] px-[4%] py-[1.5%] text-[10px] font-semibold text-white sm:text-xs">{t.page.button}</span>
+              </span>
+            </div>
+            <svg class="absolute inset-0 h-full w-full cursor-crosshair" viewBox="0 0 400 250" data-svg aria-hidden="true"></svg>
+            <div class="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200" data-toast>
+              <span class="flex items-center gap-1.5 rounded-xl bg-[#111216]/95 px-3 py-2 font-display text-xs text-white shadow-2xl sm:text-sm"><span class="material-symbols-outlined text-[18px] text-[#22c55e]" data-toast-icon>check_circle</span><span data-toast-text></span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- The toolbar, as the app shows it under the capture. -->
+        <div class="relative z-10 mx-auto -mt-[7%] flex w-fit max-w-full flex-wrap items-center justify-center gap-x-1 gap-y-1 rounded-2xl border border-white/15 bg-[#111216]/95 px-2 py-1.5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
+          <div class="flex gap-0.5 rounded-[10px] bg-white/[0.06] p-0.5">
+            {t.tools.map(([id, icon, name, key]) => (
+              <button type="button" data-tool={id} title={`${name} (${key})`} aria-label={name} class="flex h-7 w-7 items-center justify-center rounded-[7px] text-white/60 transition-colors"><span class="material-symbols-outlined text-[17px]">{icon}</span></button>
+            ))}
+          </div>
+          <span class="hidden h-6 w-px bg-white/[0.12] xl:block"></span>
+          <div class="flex gap-0.5">
+            {colors.map((c) => (
+              <button type="button" data-color={c} aria-label={c} class="flex h-5 w-5 items-center justify-center rounded-full border-2 border-transparent"><span class="h-3 w-3 rounded-full border border-white/25" style={`background:${c}`}></span></button>
+            ))}
+          </div>
+          <span class="hidden h-6 w-px bg-white/[0.12] xl:block"></span>
+          <div class="flex items-center gap-0.5">
+            {t.sizes.map((name, i) => (
+              <button type="button" data-size={i} title={name} aria-label={name} class="flex h-7 w-7 items-center justify-center rounded-[7px]"><span class="rounded-full bg-white" style={`width:${4 + i * 4}px;height:${4 + i * 4}px`}></span></button>
+            ))}
+            <button type="button" data-undo title={t.undo} aria-label={t.undo} class="flex h-7 w-7 items-center justify-center rounded-[7px] text-white/70 disabled:opacity-30"><span class="material-symbols-outlined text-[17px]">undo</span></button>
+            <button type="button" data-redo title={t.redo} aria-label={t.redo} class="flex h-7 w-7 items-center justify-center rounded-[7px] text-white/70 disabled:opacity-30"><span class="material-symbols-outlined text-[17px]">redo</span></button>
+          </div>
+          <span class="hidden h-6 w-px bg-white/[0.12] xl:block"></span>
+          <div class="flex items-center gap-1">
+            <button type="button" data-discard title={t.discard} aria-label={t.discard} class="flex h-7 w-7 items-center justify-center rounded-[7px] text-white/70"><span class="material-symbols-outlined text-[17px]">close</span></button>
+            <button type="button" data-done class="flex items-center gap-1 rounded-lg bg-[#d04509] px-2 py-1 font-display text-xs font-semibold"><span class="material-symbols-outlined text-[15px]">check</span>{t.done}</button>
+          </div>
+        </div>
+      </div>
+      <p class="mt-space-sm text-center font-code text-[11px] text-on-surface-variant"><span class="pointer-coarse:hidden">{t.hint}</span><span class="hidden pointer-coarse:inline">{t.hintPhone}</span></p>
+    </div>
+  </div>
+</section>
+
+<style>
+  #shot-draw [data-tool][aria-pressed="true"] { background: #ff6b35; color: white; }
+  #shot-draw [data-color][aria-pressed="true"] { border-color: white; }
+  #shot-draw [data-size] > span { opacity: 0.55; }
+  #shot-draw [data-size][aria-pressed="true"] { background: rgb(255 255 255 / 0.14); }
+  #shot-draw [data-size][aria-pressed="true"] > span { opacity: 1; }
+  #shot-draw [data-toast].on { opacity: 1; }
+</style>
+
+<script define:vars={{ t, colors }}>
+  const root = document.getElementById("shot-draw");
+  const $ = (q) => root.querySelector(q);
+  const svg = $("[data-svg]"), canvas = $("[data-canvas]"), toast = $("[data-toast]");
+  const NS = "http://www.w3.org/2000/svg", sizes = [2.5, 5, 9];
+  // Two marks to start with, as someone might point at an order: an arrow at the button and a box around the total.
+  const initial = () => [
+    { tool: "arrow", color: colors[0], width: 5, points: [{ x: 180, y: 150 }, { x: 292, y: 210 }] },
+    { tool: "box", color: colors[4], width: 2.5, points: [{ x: 14, y: 196 }, { x: 150, y: 232 }] },
+  ];
+  let marks = initial(), undone = [], tool = "arrow", color = colors[0], size = 1, drawing = null, armed = false, toastTimer = 0;
+
+  // The arrow from the app: a shaft widening from a fine tail, and a sharp head with barbs swept back past the neck.
+  const arrow = (a, b, w) => {
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    if (len < 1) return "";
+    const ux = (b.x - a.x) / len, uy = (b.y - a.y) / len, px = -uy, py = ux;
+    const pt = (back, side) => `${(b.x - ux * back + px * side).toFixed(1)},${(b.y - uy * back + py * side).toFixed(1)}`;
+    const head = Math.min(Math.max(w * 6, 24), len * 0.55), barb = head * 0.48, neck = head * 0.7;
+    return [pt(len, w * 0.25), pt(neck, w * 0.75), pt(head, barb), pt(0, 0), pt(head, -barb), pt(neck, -w * 0.75), pt(len, -w * 0.25)].join(" ");
+  };
+  // Pen and highlighter: curves through the midpoints, so a hand-drawn line comes out smooth.
+  const smooth = (pts) => {
+    let d = `M${pts[0].x} ${pts[0].y}`;
+    for (let i = 1; i < pts.length; i++) d += ` Q${pts[i - 1].x} ${pts[i - 1].y} ${(pts[i - 1].x + pts[i].x) / 2} ${(pts[i - 1].y + pts[i].y) / 2}`;
+    const last = pts[pts.length - 1];
+    return `${d} L${last.x} ${last.y}`;
+  };
+  const el = (name, attrs) => { const e = document.createElementNS(NS, name); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+  const shape = (m) => {
+    const a = m.points[0], b = m.points[m.points.length - 1];
+    // A tight shadow keeps marks readable on light and dark captures, as in the app.
+    const style = "filter:drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.4))";
+    if (m.tool === "arrow") return el("polygon", { points: arrow(a, b, m.width), fill: m.color, style });
+    if (m.tool === "box") return el("rect", { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.abs(b.x - a.x), height: Math.abs(b.y - a.y), fill: "none", stroke: m.color, "stroke-width": m.width, "stroke-linejoin": "miter", style });
+    if (m.tool === "pen") return el("path", { d: smooth(m.points), fill: "none", stroke: m.color, "stroke-width": m.width, "stroke-linecap": "round", "stroke-linejoin": "round", style });
+    return el("path", { d: smooth(m.points), fill: "none", stroke: m.color, "stroke-opacity": 0.4, "stroke-width": m.width * 3.5, "stroke-linecap": "butt", "stroke-linejoin": "round", style: "mix-blend-mode:multiply" });
+  };
+  const render = () => {
+    svg.replaceChildren(...[...marks, ...(drawing ? [drawing] : [])].map(shape));
+    $("[data-undo]").disabled = !marks.length;
+    $("[data-redo]").disabled = !undone.length;
+  };
+  const select = () => {
+    root.querySelectorAll("[data-tool]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.tool === tool)));
+    root.querySelectorAll("[data-color]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.color === color)));
+    root.querySelectorAll("[data-size]").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.size) === size)));
+  };
+  const undo = () => { if (marks.length) { undone.push(marks.pop()); render(); } };
+  const redo = () => { if (undone.length) { marks.push(undone.pop()); render(); } };
+  // Done, Esc or ✕: say what happened, then hold a fresh capture with the starting marks.
+  const finish = (icon, tint, text) => {
+    $("[data-toast-icon]").textContent = icon;
+    $("[data-toast-icon]").style.color = tint;
+    $("[data-toast-text]").textContent = text;
+    toast.classList.add("on");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.classList.remove("on"); marks = initial(); undone = []; render(); }, 1600);
+  };
+
+  const local = (e) => { const r = svg.getBoundingClientRect(); return { x: Math.round(((e.clientX - r.left) / r.width) * 400), y: Math.round(((e.clientY - r.top) / r.height) * 250) }; };
+  svg.addEventListener("pointerdown", (e) => {
+    e.preventDefault(); armed = true;
+    svg.setPointerCapture(e.pointerId);
+    drawing = { tool, color, width: sizes[size], points: [local(e)] };
+  });
+  svg.addEventListener("pointermove", (e) => {
+    if (!drawing) return;
+    const p = local(e);
+    if (drawing.tool === "pen" || drawing.tool === "highlighter") drawing.points.push(p); else drawing.points[1] = p;
+    render();
+  });
+  const end = () => {
+    if (!drawing) return;
+    const a = drawing.points[0], b = drawing.points[drawing.points.length - 1];
+    // A tap leaves nothing behind, like the app ignores marks shorter than their own width.
+    if (drawing.points.length > 1 && Math.hypot(b.x - a.x, b.y - a.y) > drawing.width) { marks.push(drawing); undone = []; }
+    drawing = null; render();
+  };
+  svg.addEventListener("pointerup", end);
+  svg.addEventListener("pointercancel", end);
+
+  root.addEventListener("pointerdown", () => { armed = true; });
+  document.addEventListener("pointerdown", (e) => { if (!root.contains(e.target)) armed = false; });
+  root.querySelectorAll("[data-tool]").forEach((b) => b.addEventListener("click", () => { tool = b.dataset.tool; select(); }));
+  root.querySelectorAll("[data-color]").forEach((b) => b.addEventListener("click", () => { color = b.dataset.color; select(); }));
+  root.querySelectorAll("[data-size]").forEach((b) => b.addEventListener("click", () => { size = Number(b.dataset.size); select(); }));
+  $("[data-undo]").addEventListener("click", undo);
+  $("[data-redo]").addEventListener("click", redo);
+  $("[data-done]").addEventListener("click", () => finish("check_circle", "#22c55e", t.saved));
+  $("[data-discard]").addEventListener("click", () => finish("delete", "#ef4444", t.gone));
+  // The app's keys, once the demo has been clicked: A P R H, ⌘Z / ⇧⌘Z, ↩ or ⌘C, Esc.
+  window.addEventListener("keydown", (e) => {
+    if (!armed) return;
+    const cmd = e.metaKey || e.ctrlKey, k = e.key.toLowerCase();
+    if (cmd && k === "z") { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
+    if (cmd && k === "c") { e.preventDefault(); finish("check_circle", "#22c55e", t.saved); return; }
+    if (cmd || e.altKey) return;
+    const keyTool = { a: "arrow", p: "pen", r: "box", h: "highlighter" }[k];
+    if (keyTool) { tool = keyTool; select(); }
+    else if (e.key === "Enter") { e.preventDefault(); finish("check_circle", "#22c55e", t.saved); }
+    else if (e.key === "Escape") finish("content_paste", "#4cd7f6", t.copied);
+  });
+  select();
+  render();
+</script>

@@ -3,6 +3,9 @@ import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import ShotHero from "../components/shot/ShotHero.astro";
 import ShotModes from "../components/shot/ShotModes.astro";
+import ShotDraw from "../components/shot/ShotDraw.astro";
+import ShotRecord from "../components/shot/ShotRecord.astro";
+import ShotRecent from "../components/shot/ShotRecent.astro";
 import ShotText from "../components/shot/ShotText.astro";
 import ShotOutput from "../components/shot/ShotOutput.astro";
 import ShotShortcuts from "../components/shot/ShotShortcuts.astro";
@@ -19,11 +22,11 @@ const { lang } = Astro.props;
 const meta = pick(lang, {
   en: {
     title: "LongoShot · LongoKit",
-    description: "LongoShot: screenshots of an area, a window or the whole screen, and on-screen text copied with on-device OCR, from shortcuts you choose on macOS.",
+    description: "LongoShot: screenshots of an area, a window or the whole screen, screen recordings, drawing right on the capture, and on-screen text copied with on-device OCR, from shortcuts you choose on macOS.",
   },
   vi: {
     title: "LongoShot · LongoKit",
-    description: "LongoShot: chụp một vùng, một cửa sổ hoặc cả màn hình, và chép chữ trên màn hình bằng OCR ngay trên máy, từ phím tắt bạn tự chọn trên macOS.",
+    description: "LongoShot: chụp một vùng, một cửa sổ hoặc cả màn hình, quay màn hình, vẽ ngay lên ảnh vừa chụp, và chép chữ trên màn hình bằng OCR ngay trên máy, từ phím tắt bạn tự chọn trên macOS.",
   },
 });
 ---
@@ -33,8 +36,11 @@ const meta = pick(lang, {
   <main class="relative w-full overflow-x-hidden pt-20">
     <ShotHero lang={lang} />
     <ShotModes lang={lang} />
+    <ShotDraw lang={lang} />
+    <ShotRecord lang={lang} />
     <ShotText lang={lang} />
     <ShotOutput lang={lang} />
+    <ShotRecent lang={lang} />
     <ShotShortcuts lang={lang} />
     <ShotLight lang={lang} />
     <ShotDownloads lang={lang} />

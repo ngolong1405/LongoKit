@@ -8,19 +8,21 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    badge: "Feature 04 · Shortcuts", title: "Your Keys, Not Ours",
+    badge: "Feature 07 · Shortcuts", title: "Your Keys, Not Ours",
     lead: "Every action has a shortcut you can change in the Shortcuts tab. Click one, press the combination you want, done.",
     points: [
       "Any combination with ⌘ ⌥ ⌃ ⇧, or F1–F19 on their own.",
       "Warns you when macOS or another app already uses the shortcut, so it never silently does nothing.",
       "Works in every app, with no Accessibility permission.",
+      "Pause / Resume Recording has no shortcut to start with: it's on the recording bar, and you can give it one.",
     ],
     tab: "Shortcuts", capture: "Capture", quick: "Quick access",
     rows: [
-      ["screenshot_region", "Capture Area", "⌥⇧1"], ["select_window", "Capture Window", "⌥⇧2"],
-      ["fullscreen", "Capture Full Screen", "⌥⇧3"], ["document_scanner", "Copy Text (OCR)", "⌥⇧4"],
+      ["screenshot_region", "Capture Area or Window", "⌥⇧1"], ["fullscreen", "Capture Full Screen", "⌥⇧2"],
+      ["document_scanner", "Copy Text (OCR)", "⌥⇧3"], ["radio_button_checked", "Record Screen", "⌥⇧4"],
+      ["pause_circle", "Pause / Resume Recording", ""],
     ],
-    quickRows: [["content_paste", "Copy Last Capture", ""], ["folder_open", "Open Save Folder", ""], ["settings", "Open Settings", "⌥⇧0"]],
+    quickRows: [["edit", "Draw on Last Capture", ""], ["content_paste", "Copy Last Capture", ""], ["folder_open", "Open Save Folder", ""], ["settings", "Open Settings", "⌥⇧0"]],
     record: "Record Shortcut", pressing: "Press keys…", hint: "Click a shortcut, then press keys. Esc cancels, ⌫ removes it.",
     hintPhone: "On a Mac: click a shortcut, then press the keys you want.",
     needMod: "Add ⌘, ⌥, ⌃ or ⇧ to the key (F1–F19 work on their own).",
@@ -28,19 +30,21 @@ const t = pick(lang, {
     other: "is already used by", saved: "Saved:",
   },
   vi: {
-    badge: "Chức năng 04 · Phím tắt", title: "Phím Tắt Theo Ý Bạn",
+    badge: "Chức năng 07 · Phím tắt", title: "Phím Tắt Theo Ý Bạn",
     lead: "Mỗi thao tác có một phím tắt bạn đổi được trong tab Phím tắt. Bấm vào ô, nhấn tổ hợp phím muốn dùng, xong.",
     points: [
       "Tổ hợp bất kỳ với ⌘ ⌥ ⌃ ⇧, hoặc riêng F1–F19.",
       "Báo ngay khi macOS hay app khác đã dùng phím tắt đó, để không bao giờ bấm mà chẳng có gì xảy ra.",
       "Chạy trong mọi app, không cần quyền Trợ năng.",
+      "Tạm dừng / Tiếp tục quay chưa có phím tắt sẵn: nút này nằm trên thanh đang quay, và bạn có thể gán phím riêng.",
     ],
     tab: "Phím tắt", capture: "Chụp", quick: "Truy cập nhanh",
     rows: [
-      ["screenshot_region", "Chụp vùng", "⌥⇧1"], ["select_window", "Chụp cửa sổ", "⌥⇧2"],
-      ["fullscreen", "Chụp toàn màn hình", "⌥⇧3"], ["document_scanner", "Copy chữ (OCR)", "⌥⇧4"],
+      ["screenshot_region", "Chụp vùng / cửa sổ", "⌥⇧1"], ["fullscreen", "Chụp toàn màn hình", "⌥⇧2"],
+      ["document_scanner", "Copy chữ (OCR)", "⌥⇧3"], ["radio_button_checked", "Quay màn hình", "⌥⇧4"],
+      ["pause_circle", "Tạm dừng / Tiếp tục quay", ""],
     ],
-    quickRows: [["content_paste", "Copy ảnh vừa chụp", ""], ["folder_open", "Mở thư mục lưu", ""], ["settings", "Mở cài đặt", "⌥⇧0"]],
+    quickRows: [["edit", "Vẽ lên ảnh vừa chụp", ""], ["content_paste", "Copy ảnh vừa chụp", ""], ["folder_open", "Mở thư mục lưu", ""], ["settings", "Mở cài đặt", "⌥⇧0"]],
     record: "Ghi phím tắt", pressing: "Nhấn phím…", hint: "Bấm vào ô phím tắt rồi nhấn phím. Esc để huỷ, ⌫ để xoá.",
     hintPhone: "Trên Mac: bấm vào ô phím tắt rồi nhấn tổ hợp phím muốn dùng.",
     needMod: "Thêm ⌘, ⌥, ⌃ hoặc ⇧ vào phím (riêng F1–F19 dùng một mình được).",
@@ -62,7 +66,7 @@ const t = pick(lang, {
     </div>
 
     <!-- The Shortcuts tab from the app: click a shortcut and press keys to record a new one. -->
-    <div class="rounded-2xl bg-surface-container-low p-space-lg shadow-xl" id="shot-keys">
+    <div class="rounded-2xl bg-surface-container-low p-space-lg shadow-xl lg:order-first" id="shot-keys">
       {[[t.capture, t.rows], [t.quick, t.quickRows]].map(([group, rows]) => (
         <div class="mb-space-md">
           <span class="mb-space-xs block font-code text-[10px] uppercase tracking-wider text-on-surface-variant">{group}</span>

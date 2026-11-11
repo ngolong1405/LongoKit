@@ -26,8 +26,8 @@ const t = pick(lang, {
       points: ["CapsLock as Esc / Hyper", "Vim-style arrow keys", "Separate keys for each keyboard"],
     },
     shot: {
-      body: "Screenshots and on-screen text from one shortcut, saved as a PNG and on your clipboard.",
-      points: ["Area, window or full screen", "Copy text with on-device OCR", "Shortcuts you choose"],
+      body: "Screenshots, screen recordings and on-screen text, each from its own shortcut, saved and on your clipboard.",
+      points: ["Area, window or full screen, then draw on it", "Screen recording as MP4", "Copy text with on-device OCR"],
     },
   },
   vi: {
@@ -47,8 +47,8 @@ const t = pick(lang, {
       points: ["CapsLock thành Esc / Hyper", "Phím mũi tên kiểu Vim", "Phím riêng cho từng bàn phím"],
     },
     shot: {
-      body: "Chụp màn hình và copy chữ trên màn hình bằng một phím tắt, lưu thành PNG và có sẵn trong clipboard.",
-      points: ["Chụp vùng, cửa sổ hoặc toàn màn hình", "Copy chữ bằng OCR ngay trên máy", "Phím tắt tự chọn"],
+      body: "Chụp màn hình, quay màn hình và copy chữ trên màn hình, mỗi việc một phím tắt, lưu sẵn và có trong clipboard.",
+      points: ["Chụp vùng, cửa sổ hoặc toàn màn hình, rồi vẽ lên", "Quay màn hình thành MP4", "Copy chữ bằng OCR ngay trên máy"],
     },
   },
 });
@@ -72,7 +72,7 @@ const pillars = [
   {
     name: "LongoShot", product: "shot" as const, href: localize(lang, "/shot"), status: t.available,
     tint: "text-primary-container", glow: "bg-tertiary/10 group-hover:bg-tertiary/20", dot: "bg-primary-container",
-    tagline: "Capture & On-Device OCR", ...t.shot, tech: "ScreenCaptureKit + Vision",
+    tagline: "Capture, Record & On-Device OCR", ...t.shot, tech: "ScreenCaptureKit + Vision",
   },
 ];
 ---

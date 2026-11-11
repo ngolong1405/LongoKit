@@ -17,7 +17,7 @@ const t = pick(lang, {
     mouse: "Smooth scrolling and gestures for any mouse.",
     keys: "Remap keys and build shortcut layers.",
     display: "Brightness and volume for every display, with Sync to your MacBook.",
-    shot: "Screenshots and on-screen text from one shortcut.",
+    shot: "Screenshots, screen recordings and on-screen text from your shortcuts.",
     suiteTitle: "The Full LongoKit Suite",
     suiteBody: "All four tools in one app once they're ready. Follow on GitHub for updates.",
     getMouse: "Get LongoMouse for macOS", getDisplay: "Get LongoDisplay for macOS", follow: "Follow on GitHub",
@@ -30,7 +30,7 @@ const t = pick(lang, {
     mouse: "Cuộn mượt và cử chỉ cho mọi con chuột.",
     keys: "Đổi phím và tạo lớp phím tắt.",
     display: "Độ sáng và âm lượng cho mọi màn hình, đồng bộ theo MacBook.",
-    shot: "Chụp màn hình và copy chữ trên màn hình bằng một phím tắt.",
+    shot: "Chụp màn hình, quay màn hình và copy chữ trên màn hình bằng phím tắt.",
     suiteTitle: "Trọn Bộ LongoKit",
     suiteBody: "Cả bốn công cụ trong một app khi đã sẵn sàng. Theo dõi trên GitHub để cập nhật.",
     getMouse: "Tải LongoMouse cho macOS", getDisplay: "Tải LongoDisplay cho macOS", follow: "Theo dõi trên GitHub",
@@ -59,7 +59,7 @@ const kits = [
   {
     name: "LongoShot", product: "shot" as const, version: `v${shotVersion}`, available: true, download: shotDownload,
     tint: "text-primary-container", badgeBg: "bg-primary-container/15",
-    mac: "bg-primary-container/15 text-primary-container hover:bg-primary-container/30", tagline: "Capture & On-Device OCR", body: t.shot,
+    mac: "bg-primary-container/15 text-primary-container hover:bg-primary-container/30", tagline: "Capture, Record & On-Device OCR", body: t.shot,
   },
 ];
 ---

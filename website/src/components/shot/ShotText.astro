@@ -8,8 +8,8 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    badge: "Feature 02 · Copy Text", title: "Text You Can't Select? Copy It Anyway",
-    lead: "Press ⌥⇧4 and drag over text anywhere on screen: in a screenshot, a video, a scanned PDF or a slide someone is sharing. A moment later it's on your clipboard, ready to paste.",
+    badge: "Feature 04 · Copy Text", title: "Text You Can't Select? Copy It Anyway",
+    lead: "Press ⌥⇧3 and drag over text anywhere on screen: in a screenshot, a video, a scanned PDF or a slide someone is sharing. A moment later it's on your clipboard, ready to paste.",
     points: [
       "Read on your Mac with Apple's Vision framework: nothing is uploaded, and it works offline.",
       "English and Vietnamese, with every diacritic in place: ă â đ ê ô ơ ư and all five tones.",
@@ -20,8 +20,8 @@ const t = pick(lang, {
     note: "Works on any pixels on screen. Very small or low-contrast text may need a larger area.",
   },
   vi: {
-    badge: "Chức năng 02 · Copy chữ", title: "Chữ Không Bôi Đen Được? Vẫn Copy Được",
-    lead: "Bấm ⌥⇧4 rồi kéo qua chữ ở bất kỳ đâu trên màn hình: trong ảnh chụp, video, file PDF scan hay slide người khác đang chia sẻ. Chỉ một thoáng là chữ đã nằm trong clipboard, sẵn sàng để dán.",
+    badge: "Chức năng 04 · Copy chữ", title: "Chữ Không Bôi Đen Được? Vẫn Copy Được",
+    lead: "Bấm ⌥⇧3 rồi kéo qua chữ ở bất kỳ đâu trên màn hình: trong ảnh chụp, video, file PDF scan hay slide người khác đang chia sẻ. Chỉ một thoáng là chữ đã nằm trong clipboard, sẵn sàng để dán.",
     points: [
       "Đọc ngay trên máy Mac bằng Vision của Apple: không gửi gì lên mạng, không có mạng vẫn chạy.",
       "Tiếng Anh và tiếng Việt, giữ đủ dấu: ă â đ ê ô ơ ư và cả năm thanh điệu.",
@@ -55,7 +55,7 @@ const t = pick(lang, {
             <span class="text-body-md font-semibold sm:text-lg">{t.lines[0]}</span>
             <span class="text-body-sm opacity-90">{t.lines[1]}</span>
             <span class="text-body-sm opacity-90">{t.lines[2]}</span>
-            <span class="absolute -top-3 right-2 rounded bg-tertiary px-1.5 font-code text-[10px] font-bold text-on-tertiary">⌥⇧4</span>
+            <span class="absolute -top-3 right-2 rounded bg-tertiary px-1.5 font-code text-[10px] font-bold text-on-tertiary">⌥⇧3</span>
           </div>
         </div>
       </div>
