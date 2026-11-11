@@ -167,3 +167,74 @@ public extension Theme {
         min(max(content.rounded(), 260), contentHeight)
     }
 }
+
+/// Several on/off choices under one name: the name on top, the choices as checkbox chips in a row below.
+public struct ChipsRow<Content: View>: View {
+    public let title: String
+    public var help: String?
+    @ViewBuilder public let content: Content
+
+    public init(_ title: String, help: String? = nil, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.help = help
+        self.content = content()
+    }
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 12) {
+                Text(title).font(.ui(13, .medium)).foregroundStyle(Theme.text).lineLimit(1)
+                if let help { InfoTip(help) }
+            }
+            HStack(spacing: 8) { content }
+        }
+        .padding(.vertical, 12)
+        .settingsRow()
+    }
+}
+
+/// An on/off choice as a chip with a checkbox: tinted Solar Amber while on. The whole chip is the button.
+public struct CheckChip: View {
+    public let title: String
+    public let isOn: Bool
+    public var help: String?
+    public let action: () -> Void
+    @State private var hovering = false
+    @Environment(\.isEnabled) private var enabled
+
+    public init(_ title: String, isOn: Bool, help: String? = nil, action: @escaping () -> Void) {
+        self.title = title
+        self.isOn = isOn
+        self.help = help
+        self.action = action
+    }
+
+    public var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
+        let box = RoundedRectangle(cornerRadius: 4, style: .continuous)
+        Button(action: action) {
+            HStack(spacing: 7) {
+                ZStack {
+                    if isOn {
+                        box.fill(Theme.solar)
+                        Image(systemName: "checkmark").font(.system(size: 8, weight: .heavy)).foregroundStyle(.white)
+                    } else {
+                        box.strokeBorder(Theme.tint(0.25), lineWidth: 1.2)
+                    }
+                }
+                .frame(width: 14, height: 14)
+                Text(title).font(.ui(12, .medium)).foregroundStyle(isOn ? Theme.text : Theme.textSecondary).fixedSize()
+            }
+            .padding(.horizontal, 10)
+            .frame(height: 30)
+            .background(shape.fill(isOn ? Theme.solar.opacity(0.1) : Theme.tint(hovering ? 0.07 : 0.035)))
+            .overlay(shape.strokeBorder(isOn ? Theme.solar.opacity(0.35) : Theme.hairline))
+            .contentShape(shape)
+        }
+        .buttonStyle(.plain)
+        .opacity(enabled ? 1 : 0.45)
+        .onHover { hovering = $0 }
+        .help(help ?? "")
+        .animation(Motion.quick, value: isOn)
+    }
+}
