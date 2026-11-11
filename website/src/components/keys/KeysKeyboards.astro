@@ -48,7 +48,7 @@ const t = pick(lang, {
 
     <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container-low p-space-lg shadow-xl" id="keyboards-demo">
       <div class="flex items-center gap-space-sm rounded-xl bg-surface-container p-space-md">
-        <span class="material-symbols-outlined flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container-lowest text-[20px] text-secondary">layers</span>
+        <div class="flex shrink-0 h-10 w-10 items-center justify-center rounded-lg bg-surface-container-lowest"><span class="material-symbols-outlined text-[20px] text-secondary">layers</span></div>
         <div class="flex flex-1 flex-col"><span class="text-body-md font-semibold">{t.all}</span><span class="text-[11px] text-on-surface-variant">{t.allBody}</span></div>
         <span class="rounded-full bg-primary/10 px-2 py-0.5 font-code text-[10px] text-primary">Caps → Hyper</span>
       </div>
@@ -57,7 +57,7 @@ const t = pick(lang, {
         { id: "ext", icon: "keyboard", name: t.ext, body: t.extBody, chips: ["Caps → Hyper", t.remaps], own: true },
       ].map((k) => (
         <div class="flex items-center gap-space-sm rounded-xl bg-surface-container p-space-md transition-opacity" data-row={k.id}>
-          <span class="material-symbols-outlined flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container-lowest text-[20px] text-secondary" data-icon>{k.icon}</span>
+          <div class="flex shrink-0 h-10 w-10 items-center justify-center rounded-lg bg-surface-container-lowest"><span class="material-symbols-outlined text-[20px] text-secondary" data-icon>{k.icon}</span></div>
           <div class="flex flex-1 flex-col">
             <span class="flex items-center gap-space-xs text-body-md font-semibold">
               {k.name}

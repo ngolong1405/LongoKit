@@ -44,7 +44,7 @@ const t = pick(lang, {
   <div class="grid grid-cols-1 gap-gutter sm:grid-cols-2 lg:grid-cols-4">
     {t.cards.map(([icon, keys, title, body]) => (
       <div class="flex flex-col gap-space-xs rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
-        <span class="material-symbols-outlined flex h-11 w-11 items-center justify-center rounded-xl bg-tertiary/15 text-[24px] text-tertiary">{icon}</span>
+        <div class="flex shrink-0 h-11 w-11 items-center justify-center rounded-xl bg-tertiary/15"><span class="material-symbols-outlined text-[24px] text-tertiary">{icon}</span></div>
         <span class="mt-space-xs font-display text-headline-sm text-on-surface">{keys}</span>
         <span class="font-code text-xs text-primary">{title}</span>
         <p class="text-body-md text-on-surface-variant">{body}</p>
