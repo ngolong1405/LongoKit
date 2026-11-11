@@ -28,11 +28,15 @@ enum Snapshot {
         dellSettings.brightness = 0.62
         dellSettings.minimum = 0.2
         dellSettings.maximum = 0.9
+        // Above 80%, to show the volume slider's warning colors.
+        dellSettings.volume = 0.92
         var builtinSettings = DisplaySettings()
         builtinSettings.brightness = 0
         builtinSettings.extraDim = 0.3
         model.simulate(displays: [builtin, dell, tv], settings: ["builtin": builtinSettings, "dell": dellSettings, "tv": DisplaySettings()],
-                       powerOff: ["tv": .disabled], silentDDC: ["dell"], systemVolume: 0.4)
+                       powerOff: ["tv": .disabled], silentDDC: ["dell"], systemVolume: 0.4,
+                       outputs: [.init(id: 1, name: "MacBook Pro Speakers", isBuiltIn: true), .init(id: 2, name: "DELL U2723QE", isBuiltIn: false)],
+                       playing: 1)
 
         let shots: [(String, MainTab, String?)] = [("1-general", .general, nil), ("2-displays", .displays, nil), ("3-display", .displays, "dell"), ("4-builtin", .displays, "builtin")]
         for (scheme, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", .aqua)] {

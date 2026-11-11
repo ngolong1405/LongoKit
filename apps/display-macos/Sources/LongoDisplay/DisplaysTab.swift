@@ -164,9 +164,11 @@ struct DisplayLevels: View {
                 .opacity(locked ? 0.5 : 1)
                 .help(locked ? L("Follows the built-in display in Sync mode") : L("Brightness"))
             if display.method == .ddc {
-                VolumeSlider(value: model.volume(for: display), help: L("Speaker volume")) { model.setVolume($0, for: display) }
+                VolumeSlider(value: model.volume(for: display), help: L("Speaker volume"), playing: model.isPlaying(display),
+                             playHere: { model.playThrough(display) }) { model.setVolume($0, for: display) }
             } else if display.isBuiltin, let volume = model.systemVolume {
-                VolumeSlider(value: volume, help: L("Mac volume")) { model.setSystemVolume($0) }
+                VolumeSlider(value: volume, help: L("MacBook speakers"), playing: model.isPlaying(display),
+                             playHere: { model.playThrough(display) }) { model.setSystemVolume($0) }
             }
         }
     }
@@ -256,13 +258,19 @@ struct BrightnessLevel: View {
 }
 
 /// Speaker volume, set apart from brightness: a thin cyan slider with the percentage after it. The speaker icon
-/// mutes, and unmutes back to where it was.
+/// mutes, and unmutes back to where it was. Past 80% the fill turns amber to red, and dragging up stops there for a
+/// moment first: monitor speakers distort near their top, and listening that loud for long isn't kind to ears.
 struct VolumeSlider: View {
     let value: Double
     let help: String
+    /// Whether the Mac's sound plays through this display (macOS uses one device at a time); nil when it has no
+    /// sound device. Not playing, the slider dims and offers to play here instead.
+    var playing: Bool?
+    var playHere: () -> Void = {}
     let set: (Double) -> Void
     /// The level before muting, to come back to.
     @State private var beforeMute: Double?
+    @State private var detent = VolumeDetent()
 
     var body: some View {
         HStack(spacing: 8) {
@@ -277,20 +285,61 @@ struct VolumeSlider: View {
             } label: {
                 Image(systemName: value > 0 ? "speaker.wave.2.fill" : "speaker.slash.fill")
                     .font(.system(size: 11))
-                    .foregroundStyle(value > 0 ? Theme.info : Theme.textMuted)
+                    .foregroundStyle(value == 0 ? Theme.textMuted : playing == true ? Theme.emerald : Theme.info)
                     .frame(width: 16)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .help(value > 0 ? L("Mute") : L("Unmute"))
-            DSSlider(value: Binding(get: { value }, set: set), range: 0...1, step: 0.01, accent: Theme.info)
+            DSSlider(value: Binding(get: { value }, set: { set(detent.next(from: value, to: $0)) }), range: 0...1, step: 0.01,
+                     accent: Theme.info, caution: VolumeDetent.mark)
                 .padding(.leading, StepButton.size + 8)
+                .opacity(playing == false ? 0.45 : 1)
             Text("\(Int((value * 100).rounded()))%")
                 .font(.mono(10, .semibold))
-                .foregroundStyle(Theme.info)
+                .foregroundStyle(value > VolumeDetent.mark ? Theme.danger : Theme.info)
                 .frame(width: StepButton.size + 8, alignment: .trailing)
+                .opacity(playing == false ? 0.45 : 1)
+            // Which display the sound comes from: macOS plays through one at a time.
+            if playing == true {
+                Chip(L("Playing"), tone: .emerald, dot: true)
+                    .help(L("The Mac's sound plays through this display now"))
+            } else if playing == false {
+                Button(action: playHere) { Label(L("Play here"), systemImage: "speaker.wave.2") }
+                    .buttonStyle(GhostButtonStyle(compact: true))
+                    .help(L("Send the Mac's sound to this display instead"))
+            }
         }
-        .help(help)
+        .help(helpText)
+    }
+
+    private var helpText: String {
+        var text = help
+        if playing == false { text += " · " + L("Not playing: the Mac's sound goes to another device") }
+        if value > VolumeDetent.mark { text += " · " + L("Above 80%: speakers may distort, and it's loud for long listening") }
+        return text
+    }
+}
+
+/// The pause at 80% on the way up: the first time a drag (or the scroll wheel) goes past it, the volume holds there
+/// for half a second, with a tap on the trackpad; keep going and it carries on to 100%.
+struct VolumeDetent {
+    static let mark = 0.8
+    static let hold: TimeInterval = 0.5
+    /// When the volume was stopped at the mark; a while later, a new attempt stops again.
+    private var stoppedAt: Date?
+
+    mutating func next(from current: Double, to proposed: Double, now: Date = Date()) -> Double {
+        guard proposed > Self.mark, current <= Self.mark else {
+            if proposed <= Self.mark { stoppedAt = nil }
+            return proposed
+        }
+        if let stoppedAt, now.timeIntervalSince(stoppedAt) < 2 {
+            return now.timeIntervalSince(stoppedAt) < Self.hold ? Self.mark : proposed
+        }
+        stoppedAt = now
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+        return Self.mark
     }
 }
 
@@ -531,9 +580,11 @@ private struct ScreenCard: View {
                     .opacity(model.followsBuiltin(display) ? 0.5 : 1)
                     .help(model.followsBuiltin(display) ? L("Follows the built-in display in Sync mode") : "")
                 if display.method == .ddc {
-                    VolumeSlider(value: model.volume(for: display), help: L("Speaker volume")) { model.setVolume($0, for: display) }
+                    VolumeSlider(value: model.volume(for: display), help: L("Speaker volume"), playing: model.isPlaying(display),
+                                 playHere: { model.playThrough(display) }) { model.setVolume($0, for: display) }
                 } else if display.isBuiltin, let volume = model.systemVolume {
-                    VolumeSlider(value: volume, help: L("Mac volume")) { model.setSystemVolume($0) }
+                    VolumeSlider(value: volume, help: L("MacBook speakers"), playing: model.isPlaying(display),
+                                 playHere: { model.playThrough(display) }) { model.setSystemVolume($0) }
                 }
             }
             .padding(.horizontal, 20)

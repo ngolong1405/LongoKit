@@ -76,6 +76,28 @@ enum SelfTest {
         check("The last display on can't be turned off", !model.canTurnOff(screens[0]))
         let reloaded = AppModel(live: false, defaults: UserDefaults(suiteName: suite)!)
         check("Turned-off displays are saved, to turn them back on after a crash", reloaded.powerOff == ["b": .disabled, "c": .blackout])
+
+        // Sound outputs: macOS plays through one device at a time; each display is matched to its own.
+        let lg = Display(id: 10, key: "lg", name: "LG ULTRAGEAR", isBuiltin: false, method: .ddc, pixelSize: .zero, hasDDC: true)
+        let usbC = Display(id: 11, key: "typec", name: "TYPEC", isBuiltin: false, method: .ddc, pixelSize: .zero, hasDDC: true)
+        model.simulate(displays: [screens[0], lg, usbC], settings: [:],
+                       outputs: [.init(id: 41, name: "MacBook Pro Speakers", isBuiltIn: true), .init(id: 42, name: "LG ULTRAGEAR", isBuiltIn: false)],
+                       playing: 41)
+        check("The built-in display's sound is the built-in speakers", model.audioOutput(for: screens[0])?.id == 41)
+        check("A monitor's sound is the device named after it", model.audioOutput(for: lg)?.id == 42)
+        check("Only the device that plays says so", model.isPlaying(screens[0]) == true && model.isPlaying(lg) == false)
+        check("A monitor without a sound device shows neither", model.isPlaying(usbC) == nil)
+
+        // Volume: a pause at 80% on the way up, then on to 100%.
+        var detent = VolumeDetent()
+        let start = Date()
+        check("Up to 80% the volume follows the drag", detent.next(from: 0.5, to: 0.75, now: start) == 0.75)
+        check("Going past 80% stops there first", detent.next(from: 0.75, to: 0.9, now: start) == 0.8)
+        check("…for half a second", detent.next(from: 0.8, to: 0.95, now: start.addingTimeInterval(0.3)) == 0.8)
+        check("…then it carries on to 100%", detent.next(from: 0.8, to: 1, now: start.addingTimeInterval(0.6)) == 1)
+        check("Above 80%, moving within it isn't held", detent.next(from: 0.9, to: 0.95, now: start.addingTimeInterval(0.7)) == 0.95)
+        _ = detent.next(from: 0.9, to: 0.6, now: start.addingTimeInterval(1))
+        check("Back below 80%, the next time up stops again", detent.next(from: 0.6, to: 0.9, now: start.addingTimeInterval(1.1)) == 0.8)
         UserDefaults().removePersistentDomain(forName: suite)
 
         print(failures == 0 ? "\nALL PASSED" : "\n\(failures) FAILED")

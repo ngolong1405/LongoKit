@@ -1,6 +1,7 @@
 import AppKit
 import ApplicationServices
 import Carbon.HIToolbox
+import CoreAudio
 import LongoKitUI
 import ServiceManagement
 
@@ -84,8 +85,11 @@ final class AppModel: ObservableObject {
     /// DDC displays that gave no valid answer: their port may not pass DDC on (e.g. a MacBook's HDMI port).
     @Published private(set) var silentDDC: Set<String> = []
 
-    /// The Mac's output volume, for the built-in display's speaker slider; nil when the output has no volume.
+    /// The built-in speakers' volume, for the built-in display's speaker slider; nil without built-in speakers.
     @Published private(set) var systemVolume: Double? = nil
+    /// The devices sound can play through, and the one it plays through now: macOS uses one at a time.
+    @Published private(set) var audioOutputs: [SystemVolume.Output] = []
+    @Published private(set) var playingOutput: AudioDeviceID?
 
     @Published var tab: MainTab = .general {
         // Coming back to Displays from another tab starts at the list, not the display open before.
@@ -335,14 +339,38 @@ final class AppModel: ObservableObject {
     }
 
     func setSystemVolume(_ value: Double) {
-        SystemVolume.set(value)
-        systemVolume = SystemVolume.get()
+        guard let speakers = audioOutputs.first(where: \.isBuiltIn) else { return }
+        SystemVolume.set(value, on: speakers.id)
+        systemVolume = SystemVolume.get(speakers.id)
     }
 
-    /// The volume keys and other apps change it too.
+    /// The volume keys, other apps and Control Center change these too.
     private func refreshSystemVolume() {
-        let volume = SystemVolume.get()
+        let outputs = SystemVolume.outputs()
+        if outputs != audioOutputs { audioOutputs = outputs }
+        let playing = SystemVolume.playing()
+        if playing != playingOutput { playingOutput = playing }
+        let volume = outputs.first(where: \.isBuiltIn).flatMap { SystemVolume.get($0.id) }
         if volume != systemVolume { systemVolume = volume }
+    }
+
+    /// The sound device belonging to a display: the built-in speakers for the built-in display, a monitor's HDMI or
+    /// DisplayPort audio (named after the monitor) for the others.
+    func audioOutput(for display: Display) -> SystemVolume.Output? {
+        if display.isBuiltin { return audioOutputs.first(where: \.isBuiltIn) }
+        return audioOutputs.first { !$0.isBuiltIn && $0.name.caseInsensitiveCompare(display.name) == .orderedSame }
+    }
+
+    /// Whether sound plays through this display now; nil when it has no sound device.
+    func isPlaying(_ display: Display) -> Bool? {
+        audioOutput(for: display).map { $0.id == playingOutput }
+    }
+
+    /// Sends the Mac's sound to this display.
+    func playThrough(_ display: Display) {
+        guard let output = audioOutput(for: display) else { return }
+        SystemVolume.play(through: output.id)
+        refreshSystemVolume()
     }
 
     /// Hardware (DDC) or software dimming for a monitor that has DDC.
@@ -579,8 +607,11 @@ final class AppModel: ObservableObject {
     // MARK: - Snapshot / self-test support
 
     func simulate(displays: [Display], settings: [String: DisplaySettings], powerOff: [String: PowerOff] = [:],
-                  silentDDC: Set<String> = [], systemVolume: Double? = nil) {
+                  silentDDC: Set<String> = [], systemVolume: Double? = nil, outputs: [SystemVolume.Output] = [],
+                  playing: AudioDeviceID? = nil) {
         self.systemVolume = systemVolume
+        audioOutputs = outputs
+        playingOutput = playing
         self.displays = displays
         self.silentDDC = silentDDC
         self.settings = settings

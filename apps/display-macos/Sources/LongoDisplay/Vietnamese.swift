@@ -177,5 +177,14 @@ enum Vietnamese {
         "Accessibility": "Trợ năng",
         "App": "Ứng dụng",
         "Permissions": "Quyền",
+
+        // Volume above 80%
+        "Above 80%: speakers may distort, and it's loud for long listening": "Trên 80%: loa có thể rè, và nghe lâu ở mức này là to",
+        "MacBook speakers": "Loa MacBook",
+        "Playing": "Đang phát",
+        "The Mac's sound plays through this display now": "Âm thanh của máy đang phát qua màn hình này",
+        "Play here": "Phát ở đây",
+        "Send the Mac's sound to this display instead": "Chuyển âm thanh của máy sang phát qua màn hình này",
+        "Not playing: the Mac's sound goes to another device": "Không phát: âm thanh của máy đang ra thiết bị khác",
     ]
 }
