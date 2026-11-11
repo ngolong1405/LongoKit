@@ -1,0 +1,52 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Coming from the separate apps", title: "Switch Without Starting Over",
+    steps: [
+      { icon: "download_done", title: "Your modules and settings come along", body: "The first time, LongoKit turns on the modules whose apps you've used, each with its settings: buttons, displays, keys, shortcuts." },
+      { icon: "swap_horiz", title: "Never both at once", body: "While a separate app is open, its module waits, so nothing acts twice. Run Here quits that app and takes over." },
+      { icon: "verified_user", title: "Allow permissions once more", body: "To macOS, LongoKit is a new app: grant Accessibility, Input Monitoring and Screen Recording again for the modules that need them." },
+    ],
+    note: "The separate apps stay available, and still run on macOS 13 (LongoKit needs macOS 14, for LongoShot).",
+  },
+  vi: {
+    badge: "Chuyển từ các app riêng", title: "Chuyển Sang Mà Không Phải Cài Lại Từ Đầu",
+    steps: [
+      { icon: "download_done", title: "Module và cài đặt đi theo", body: "Lần đầu mở, LongoKit tự bật những module mà bạn đã dùng app riêng, kèm cài đặt của chúng: nút chuột, màn hình, phím, phím tắt." },
+      { icon: "swap_horiz", title: "Không bao giờ chạy cả hai", body: "Khi app riêng đang mở, module tương ứng sẽ chờ, nên không gì bị xử lý hai lần. Nút Chạy ở đây sẽ thoát app riêng và chạy thay." },
+      { icon: "verified_user", title: "Cấp quyền thêm một lần", body: "Với macOS, LongoKit là app mới: cấp lại Trợ năng, Theo dõi đầu vào và Ghi màn hình cho các module cần chúng." },
+    ],
+    note: "Các app riêng vẫn được phát hành, và vẫn chạy trên macOS 13 (LongoKit cần macOS 14, vì LongoShot).",
+  },
+});
+---
+
+<section class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto mb-space-xl max-w-2xl text-center">
+    <span class="inline-flex items-center gap-space-xs rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-tertiary">
+      <span class="material-symbols-outlined text-[16px]">move_up</span>{t.badge}
+    </span>
+    <h2 class="mt-space-sm text-headline-xl tracking-tight">{t.title}</h2>
+  </div>
+
+  <div class="mx-auto grid max-w-5xl grid-cols-1 gap-gutter md:grid-cols-3">
+    {t.steps.map((step, i) => (
+      <div class="flex flex-col gap-space-sm rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+        <div class="flex items-center gap-space-sm">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-tertiary/15"><span class="material-symbols-outlined text-[22px] text-tertiary">{step.icon}</span></div>
+          <span class="font-code text-xs text-on-surface-variant">0{i + 1}</span>
+        </div>
+        <h3 class="text-base font-semibold">{step.title}</h3>
+        <p class="text-body-sm text-on-surface-variant">{step.body}</p>
+      </div>
+    ))}
+  </div>
+  <p class="mx-auto mt-space-lg max-w-3xl text-center font-code text-[11px] text-on-surface-variant">{t.note}</p>
+</section>

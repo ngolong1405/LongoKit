@@ -1,6 +1,6 @@
 ---
 import Logo from "./Logo.astro";
-import { repo, mouseVersion, displayVersion, keysVersion, shotVersion, coffeeURL, licenseURL } from "../data/site";
+import { repo, mouseVersion, displayVersion, keysVersion, shotVersion, kitVersion, coffeeURL, licenseURL } from "../data/site";
 import { localize, pick, type Lang } from "../i18n";
 
 interface Props {
@@ -12,7 +12,7 @@ const year = new Date().getFullYear();
 const t = pick(lang, {
   en: {
     blurb: "Small, fast tools for mice, keyboards, displays and screenshots on macOS and Windows.",
-    products: "Products", mouseNote: "Buttons, gestures & smooth scrolling", soon: "Coming soon",
+    products: "Products", mouseNote: "Buttons, gestures & smooth scrolling", soon: "Coming soon", kitNote: "All four, in one app",
     displayNote: "Brightness & volume for every display", keysNote: "Key remapping & the Hyper layer", shotNote: "Screenshots, recording & copying text on screen",
     compat: "Compatibility", compatList: ["macOS 13 Ventura or later (Longo Shot: macOS 14+)", "Apple Silicon & Intel", "Windows: coming soon"],
     community: "Community", source: "Source on GitHub", issues: "Report a bug or idea", history: "Changelog",
@@ -20,7 +20,7 @@ const t = pick(lang, {
   },
   vi: {
     blurb: "Bộ công cụ nhỏ, nhanh cho chuột, bàn phím, màn hình và chụp màn hình trên macOS và Windows.",
-    products: "Sản phẩm", mouseNote: "Nút, cử chỉ & cuộn mượt", soon: "Sắp có",
+    products: "Sản phẩm", mouseNote: "Nút, cử chỉ & cuộn mượt", soon: "Sắp có", kitNote: "Cả bốn, trong một app",
     displayNote: "Độ sáng & âm lượng cho mọi màn hình", keysNote: "Đổi phím & lớp phím Hyper", shotNote: "Chụp, quay màn hình & copy chữ trên màn hình",
     compat: "Tương thích", compatList: ["macOS 13 Ventura trở lên (Longo Shot: macOS 14+)", "Apple Silicon & Intel", "Windows: sắp có"],
     community: "Cộng đồng", source: "Mã nguồn trên GitHub", issues: "Báo lỗi & góp ý", history: "Lịch sử thay đổi",
@@ -40,12 +40,13 @@ const t = pick(lang, {
         <p class="max-w-sm text-body-sm text-on-surface-variant">{t.blurb}</p>
         <div class="flex items-center gap-space-xs">
           <span class="h-2 w-2 animate-pulse rounded-full bg-tertiary"></span>
-          <span class="font-code text-label-code text-tertiary">LongoMouse v{mouseVersion} · LongoDisplay v{displayVersion}{keysVersion && ` · LongoKeys v${keysVersion}`} · LongoShot v{shotVersion} beta</span>
+          <span class="font-code text-label-code text-tertiary">LongoKit v{kitVersion} · LongoMouse v{mouseVersion} · LongoDisplay v{displayVersion}{keysVersion && ` · LongoKeys v${keysVersion}`} · LongoShot v{shotVersion} beta</span>
         </div>
       </div>
       <div class="flex flex-col gap-space-sm">
         <h4 class="text-[15px] font-semibold">{t.products}</h4>
         <ul class="flex flex-col gap-space-xs text-body-sm">
+          <li class="flex flex-col"><a class="font-medium text-secondary hover:underline" href={localize(lang, "/kit")}>LongoKit</a><span class="font-code text-[11px] text-on-surface-variant">{t.kitNote}</span></li>
           <li class="flex flex-col"><a class="font-medium text-primary hover:underline" href={localize(lang, "/mouse")}>LongoMouse</a><span class="font-code text-[11px] text-on-surface-variant">{t.mouseNote}</span></li>
           <li class="flex flex-col"><a class="hover:text-secondary" href={localize(lang, "/keys")}>LongoKeys</a><span class="font-code text-[11px] text-on-surface-variant">{keysVersion ? t.keysNote : t.soon}</span></li>
           <li class="flex flex-col"><a class="hover:text-tertiary" href={localize(lang, "/display")}>LongoDisplay</a><span class="font-code text-[11px] text-on-surface-variant">{t.displayNote}</span></li>

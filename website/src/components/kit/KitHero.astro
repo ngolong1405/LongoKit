@@ -1,0 +1,236 @@
+---
+import ProductIcon from "../ProductIcon.astro";
+import { kitDownload, kitVersion } from "../../data/site";
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Four apps · One menu bar app",
+    title: ["Everything LongoKit,", "In One App"],
+    lead: "LongoMouse, LongoDisplay, LongoKeys and LongoShot as modules of one app. Turn on the ones you need: one window, one menu bar icon, one process instead of four. A module that's off isn't even loaded.",
+    download: "Download LongoKit (.dmg)", more: "Why one app",
+    facts: [["4", "Modules, each on or off"], ["~47 MB", "All four running, measured"], ["1", "Menu bar icon"]],
+    general: "General", modules: "Modules", about: "About", count: "{n} of {total} on",
+    running: "Running", off: "Off", turnOn: "Turn On",
+    offNote: "This module is off: it takes no memory and asks for no permissions.",
+    generalTitle: "Modules", generalNote: "Language, appearance, start at login and the menu bar icon are set once, here.",
+    note: "Demo: pick a module in the sidebar, or switch modules on and off on General.",
+    mods: [
+      { id: "mouse", title: "Mouse", blurb: "Buttons, gestures & smooth scrolling", tabs: ["General", "Devices"], rows: ["Smooth scrolling", "Back & forward on side buttons", "Double-Click Fix"] },
+      { id: "display", title: "Display", blurb: "Brightness & volume for every display", tabs: ["General", "Displays (2)"], rows: ["Brightness keys for every display", "Sync with the MacBook", "Volume pauses at 80%"] },
+      { id: "keys", title: "Keys", blurb: "Key remapping & the Hyper layer", tabs: ["General", "Keyboards", "Hyper"], rows: ["Caps Lock → Esc", "Hyper layer on Caps Lock", "Each keyboard its own keys"] },
+      { id: "shot", title: "Shot", blurb: "Screenshots, recording & copying text on screen", tabs: ["General", "Shortcuts"], rows: ["⌥⇧1 Area or window", "⌥⇧4 Record the screen", "Draw right after capturing"] },
+    ],
+  },
+  vi: {
+    badge: "Bốn app · Một app trên thanh menu",
+    title: ["Trọn Bộ LongoKit,", "Trong Một App"],
+    lead: "LongoMouse, LongoDisplay, LongoKeys và LongoShot là các module của một app. Bật module bạn cần: một cửa sổ, một icon trên thanh menu, một tiến trình thay vì bốn. Module đang tắt thì không được nạp.",
+    download: "Tải LongoKit (.dmg)", more: "Vì sao một app",
+    facts: [["4", "Module, bật/tắt tuỳ ý"], ["~47 MB", "Chạy đủ bốn, đã đo"], ["1", "Icon trên thanh menu"]],
+    general: "Chung", modules: "Module", about: "Giới thiệu", count: "Bật {n}/{total}",
+    running: "Đang chạy", off: "Đang tắt", turnOn: "Bật",
+    offNote: "Module này đang tắt: không tốn RAM và không xin quyền gì.",
+    generalTitle: "Module", generalNote: "Ngôn ngữ, giao diện, mở cùng máy và icon thanh menu chỉ cài một lần, ở đây.",
+    note: "Minh hoạ: chọn module ở thanh bên, hoặc bật/tắt module trong trang Chung.",
+    mods: [
+      { id: "mouse", title: "Mouse", blurb: "Nút, cử chỉ & cuộn mượt", tabs: ["Chung", "Thiết bị"], rows: ["Cuộn mượt", "Lùi & tiến trang bằng nút phụ", "Sửa lỗi nhấp đúp"] },
+      { id: "display", title: "Display", blurb: "Độ sáng & âm lượng cho mọi màn hình", tabs: ["Chung", "Màn hình (2)"], rows: ["Phím độ sáng cho mọi màn hình", "Đồng bộ theo MacBook", "Âm lượng khựng ở 80%"] },
+      { id: "keys", title: "Keys", blurb: "Đổi phím & lớp phím Hyper", tabs: ["Chung", "Bàn phím", "Hyper"], rows: ["Caps Lock → Esc", "Lớp Hyper trên Caps Lock", "Mỗi bàn phím một kiểu phím"] },
+      { id: "shot", title: "Shot", blurb: "Chụp, quay màn hình & copy chữ trên màn hình", tabs: ["Chung", "Phím tắt"], rows: ["⌥⇧1 Vùng hoặc cửa sổ", "⌥⇧4 Quay màn hình", "Vẽ ngay sau khi chụp"] },
+    ],
+  },
+});
+---
+
+<section id="top" class="relative w-full overflow-hidden px-margin-mobile pt-space-xl pb-space-3xl md:px-margin-desktop">
+  <div class="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-gradient-to-b from-secondary/20 via-primary-container/10 to-transparent blur-[130px]"></div>
+
+  <div class="relative mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-gutter-lg lg:grid-cols-12">
+    <div class="relative z-10 flex flex-col gap-space-lg lg:col-span-5">
+      <div class="inline-flex w-fit items-center gap-space-xs rounded-full bg-surface-container-low px-3 py-1.5 shadow-sm">
+        <ProductIcon product="kit" class="h-5 w-5" />
+        <span class="font-code text-label-badge uppercase tracking-wider text-secondary">{t.badge}</span>
+      </div>
+      <h1 class="text-display-hero tracking-tight">
+        {t.title[0]}{" "}
+        <span class="bg-gradient-to-r from-primary-container via-secondary to-tertiary bg-clip-text text-transparent">{t.title[1]}</span>
+      </h1>
+      <p class="max-w-xl text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-wrap items-center gap-space-sm">
+        <a href={kitDownload} class="flex items-center gap-space-xs rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-6 py-3.5 font-display text-sm font-semibold text-white shadow-[0_8px_28px_rgba(255,107,53,0.35)] transition-all hover:opacity-95">
+          <span class="material-symbols-outlined text-[20px]">laptop_mac</span>{t.download}
+          <span class="rounded bg-white/20 px-1.5 font-code text-[11px]">v{kitVersion}</span>
+        </a>
+        <a href="#why" class="flex items-center gap-space-xs rounded-xl bg-surface-container-low px-5 py-3.5 text-sm text-on-surface transition-colors hover:text-primary">
+          <span class="material-symbols-outlined text-[20px] text-secondary">memory</span>{t.more}
+        </a>
+      </div>
+      <div class="flex flex-wrap gap-gutter pt-space-sm">
+        {t.facts.map(([value, label]) => (
+          <div class="flex flex-col">
+            <span class="font-display text-headline-sm text-on-surface">{value}</span>
+            <span class="font-code text-[11px] text-on-surface-variant">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Interactive window: the sidebar opens a module, General turns modules on and off, as in the app. -->
+    <div class="relative min-w-0 lg:col-span-7" id="hero-kit">
+      <div class="absolute -inset-4 -z-10 rounded-3xl bg-gradient-to-r from-primary-container/20 via-secondary/15 to-tertiary/20 blur-2xl"></div>
+      <div class="overflow-hidden rounded-2xl bg-surface-container-low shadow-[0_12px_40px_var(--c-shadow)]">
+        <div class="relative flex h-11 items-center justify-between border-b border-outline-variant/20 px-4">
+          <div class="flex items-center gap-1.5">
+            <span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span><span class="h-3 w-3 rounded-full bg-[#febc2e]"></span><span class="h-3 w-3 rounded-full bg-[#28c840]"></span>
+          </div>
+          <div class="absolute left-1/2 flex -translate-x-1/2 items-center gap-1.5">
+            <ProductIcon product="kit" class="h-5 w-5" />
+            <span class="font-display text-sm font-semibold">LongoKit</span>
+          </div>
+          <span class="flex items-center gap-1.5 rounded-full bg-[#10b981]/12 px-2.5 py-0.5 font-code text-[10px] text-on-surface-variant">
+            <span class="h-1.5 w-1.5 rounded-full bg-[#10b981]"></span><span data-count></span>
+          </span>
+        </div>
+
+        <div class="grid grid-cols-[minmax(0,34%)_minmax(0,1fr)] sm:grid-cols-[200px_minmax(0,1fr)]">
+          <!-- Sidebar -->
+          <div class="flex flex-col gap-0.5 border-r border-outline-variant/20 bg-surface-container-lowest/50 p-2 sm:p-2.5">
+            <button type="button" data-page="general" class="kit-row">
+              <span class="material-symbols-outlined text-[18px] text-on-surface-variant">settings</span><span class="truncate">{t.general}</span>
+            </button>
+            <span class="px-2 pt-3 pb-1 font-code text-[9px] tracking-widest text-on-surface-variant/70 uppercase">{t.modules}</span>
+            {t.mods.map((m) => (
+              <button type="button" data-page={m.id} class="kit-row">
+                <span class="kit-icon shrink-0" data-icon={m.id}><ProductIcon product={m.id as "mouse"} class="h-[22px] w-[22px]" /></span>
+                <span class="min-w-0 flex-1 truncate text-left">{m.title}</span>
+                <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-[#10b981] shadow-[0_0_6px_#10b981]" data-dot={m.id}></span>
+              </button>
+            ))}
+            <div class="min-h-6 flex-1"></div>
+            <button type="button" data-page="about" class="kit-row">
+              <span class="material-symbols-outlined text-[18px] text-on-surface-variant">info</span><span class="truncate">{t.about}</span>
+            </button>
+          </div>
+
+          <!-- Pages -->
+          <div class="min-h-[300px] min-w-0 p-3 sm:min-h-[340px] sm:p-5">
+            <div data-view="general" class="flex flex-col gap-3">
+              <span class="text-sm font-semibold">{t.generalTitle}</span>
+              <div class="flex flex-col overflow-hidden rounded-xl bg-surface-container">
+                {t.mods.map((m, i) => (
+                  <div class:list={["flex items-center gap-2.5 px-3 py-2.5", i > 0 && "border-t border-outline-variant/15"]}>
+                    <span class="kit-icon shrink-0" data-icon={m.id}><ProductIcon product={m.id as "mouse"} class="h-7 w-7" /></span>
+                    <span class="flex min-w-0 flex-1 flex-col">
+                      <span class="truncate text-xs font-semibold sm:text-sm">Longo {m.title}</span>
+                      <span class="hidden truncate text-[11px] text-on-surface-variant sm:block">{m.blurb}</span>
+                    </span>
+                    <button type="button" role="switch" aria-checked="true" aria-label={`Longo ${m.title}`} data-switch={m.id} class="kit-switch"><span></span></button>
+                  </div>
+                ))}
+              </div>
+              <span class="font-code text-[10px] text-on-surface-variant sm:text-[11px]">{t.generalNote}</span>
+            </div>
+
+            {t.mods.map((m) => (
+              <div data-view={m.id} class="hidden flex-col gap-3">
+                <div class="flex flex-wrap justify-center gap-1 border-b border-outline-variant/20 pb-2.5" data-tabs>
+                  {m.tabs.map((tab, i) => (
+                    <span class:list={["rounded-lg px-2.5 py-1 text-[11px]", i === 0 ? "bg-surface-container-high font-semibold text-primary" : "text-on-surface-variant"]}>{tab}</span>
+                  ))}
+                </div>
+                <div class="flex flex-col overflow-hidden rounded-xl bg-surface-container" data-on>
+                  {m.rows.map((row, i) => (
+                    <div class:list={["flex items-center justify-between gap-2 px-3 py-2.5 text-xs sm:text-sm", i > 0 && "border-t border-outline-variant/15"]}>
+                      <span class="min-w-0 truncate">{row}</span>
+                      <span class="kit-switch on pointer-events-none shrink-0"><span></span></span>
+                    </div>
+                  ))}
+                </div>
+                <div class="hidden flex-col items-center gap-2 py-6 text-center" data-off>
+                  <span class="grayscale opacity-50"><ProductIcon product={m.id as "mouse"} class="h-14 w-14" /></span>
+                  <span class="font-display text-base font-semibold">Longo {m.title}</span>
+                  <span class="max-w-xs text-xs text-on-surface-variant">{t.offNote}</span>
+                  <button type="button" data-turn-on={m.id} class="mt-1 rounded-lg bg-gradient-to-r from-primary-container to-secondary-container px-3 py-1.5 text-xs font-semibold text-white">{t.turnOn}</button>
+                </div>
+              </div>
+            ))}
+
+            <div data-view="about" class="hidden flex-col items-center gap-2 py-6 text-center">
+              <ProductIcon product="kit" class="h-16 w-16" />
+              <span class="font-display text-lg font-semibold">LongoKit</span>
+              <span class="rounded bg-primary-container/15 px-2 py-0.5 font-code text-[10px] text-primary">v{kitVersion} beta</span>
+              <div class="mt-1 flex gap-2">
+                {t.mods.map((m) => <ProductIcon product={m.id as "mouse"} class="h-7 w-7" />)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="mt-space-sm text-center font-code text-[11px] text-on-surface-variant">{t.note}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  #hero-kit .kit-row {
+    display: flex; align-items: center; gap: 0.55rem; width: 100%; min-width: 0; border-radius: 0.6rem;
+    padding: 0.45rem 0.5rem; font-size: 0.8rem; font-weight: 500; color: var(--c-on-surface-variant, inherit);
+    transition: background-color 0.15s;
+  }
+  #hero-kit .kit-row:hover { background: rgb(127 127 127 / 0.08); }
+  #hero-kit .kit-row.active { background: var(--c-surface-container-high, rgb(127 127 127 / 0.16)); font-weight: 600; box-shadow: 0 1px 2px rgb(0 0 0 / 0.12); }
+  #hero-kit .kit-icon.off { filter: grayscale(1); opacity: 0.5; }
+  #hero-kit .kit-switch {
+    position: relative; width: 34px; height: 20px; flex-shrink: 0; border-radius: 999px; background: rgb(127 127 127 / 0.3);
+    transition: background-color 0.2s;
+  }
+  #hero-kit .kit-switch > span {
+    position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 999px; background: white;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.3); transition: transform 0.2s;
+  }
+  #hero-kit .kit-switch.on { background: linear-gradient(90deg, #ff6b35, #ff8a50); }
+  #hero-kit .kit-switch.on > span { transform: translateX(14px); }
+</style>
+
+<script define:vars={{ t }}>
+  const root = document.getElementById("hero-kit");
+  const $$ = (q) => [...root.querySelectorAll(q)];
+  const on = new Set(t.mods.map((m) => m.id));
+  let page = "general";
+
+  const render = () => {
+    $$("[data-page]").forEach((b) => b.classList.toggle("active", b.dataset.page === page));
+    $$("[data-view]").forEach((v) => {
+      const shown = v.dataset.view === page;
+      v.classList.toggle("hidden", !shown);
+      v.classList.toggle("flex", shown);
+    });
+    for (const m of t.mods) {
+      const running = on.has(m.id);
+      $$(`[data-icon="${m.id}"]`).forEach((i) => i.classList.toggle("off", !running));
+      $$(`[data-dot="${m.id}"]`).forEach((d) => d.classList.toggle("hidden", !running));
+      $$(`[data-switch="${m.id}"]`).forEach((s) => { s.classList.toggle("on", running); s.setAttribute("aria-checked", String(running)); });
+      const view = root.querySelector(`[data-view="${m.id}"]`);
+      view.querySelector("[data-on]").classList.toggle("hidden", !running);
+      view.querySelector("[data-tabs]").classList.toggle("hidden", !running);
+      view.querySelector("[data-off]").classList.toggle("hidden", running);
+      view.querySelector("[data-off]").classList.toggle("flex", !running);
+    }
+    root.querySelector("[data-count]").textContent = t.count.replace("{n}", on.size).replace("{total}", t.mods.length);
+  };
+
+  $$("[data-page]").forEach((b) => b.addEventListener("click", () => { page = b.dataset.page; render(); }));
+  $$("[data-switch]").forEach((s) => s.addEventListener("click", () => {
+    const id = s.dataset.switch;
+    on.has(id) ? on.delete(id) : on.add(id);
+    render();
+  }));
+  $$("[data-turn-on]").forEach((b) => b.addEventListener("click", () => { on.add(b.dataset.turnOn); render(); }));
+  render();
+</script>

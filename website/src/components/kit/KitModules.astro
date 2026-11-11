@@ -1,0 +1,59 @@
+---
+import ProductIcon from "../ProductIcon.astro";
+import { localize, pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Modules", title: "Four Modules, Each the Whole App",
+    lead: "A module is the app itself, with every tab and setting it has on its own. Only the app-wide settings move to LongoKit.",
+    more: "See what it does",
+    mods: [
+      { id: "mouse", name: "LongoMouse", body: "Smooth scrolling and gestures for every mouse button, set up per mouse." },
+      { id: "display", name: "LongoDisplay", body: "Brightness and volume for every display over DDC/CI, in step with your MacBook." },
+      { id: "keys", name: "LongoKeys", body: "Remap keys per keyboard, and a Hyper layer on Caps Lock." },
+      { id: "shot", name: "LongoShot", body: "Screenshots, recordings and on-screen text, each from its own shortcut." },
+    ],
+  },
+  vi: {
+    badge: "Module", title: "Bốn Module, Mỗi Module Là Trọn Một App",
+    lead: "Mỗi module chính là app đó, đủ mọi tab và cài đặt như khi chạy riêng. Chỉ các cài đặt chung của app được chuyển về LongoKit.",
+    more: "Xem chi tiết",
+    mods: [
+      { id: "mouse", name: "LongoMouse", body: "Cuộn mượt và cử chỉ cho mọi nút chuột, cài riêng cho từng con chuột." },
+      { id: "display", name: "LongoDisplay", body: "Độ sáng và âm lượng cho mọi màn hình qua DDC/CI, đồng bộ theo MacBook." },
+      { id: "keys", name: "LongoKeys", body: "Đổi phím cho từng bàn phím, và lớp Hyper trên Caps Lock." },
+      { id: "shot", name: "LongoShot", body: "Chụp, quay màn hình và copy chữ trên màn hình, mỗi việc một phím tắt." },
+    ],
+  },
+});
+---
+
+<section class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto mb-space-xl max-w-2xl text-center">
+    <span class="inline-flex items-center gap-space-xs rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-primary">
+      <span class="material-symbols-outlined text-[16px]">widgets</span>{t.badge}
+    </span>
+    <h2 class="mt-space-sm text-headline-xl tracking-tight">{t.title}</h2>
+    <p class="mt-space-xs text-body-lg text-on-surface-variant">{t.lead}</p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-gutter sm:grid-cols-2 xl:grid-cols-4">
+    {t.mods.map((m) => (
+      <a href={localize(lang, `/${m.id}`)} class="group flex flex-col gap-space-md rounded-2xl bg-surface-container-low p-space-lg shadow-xl transition-colors hover:bg-surface-container">
+        <ProductIcon product={m.id as "mouse"} class="-m-1 h-14 w-14" />
+        <div class="flex flex-col gap-1">
+          <h3 class="text-headline-sm">{m.name}</h3>
+          <p class="text-body-sm text-on-surface-variant">{m.body}</p>
+        </div>
+        <span class="mt-auto flex items-center gap-1 font-code text-xs text-primary">
+          {t.more}<span class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
+        </span>
+      </a>
+    ))}
+  </div>
+</section>

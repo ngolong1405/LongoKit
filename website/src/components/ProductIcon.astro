@@ -8,9 +8,11 @@ import keysDark from "../../../brand/icons/keys-dark.png";
 import keysLight from "../../../brand/icons/keys-light.png";
 import shotDark from "../../../brand/icons/shot-dark.png";
 import shotLight from "../../../brand/icons/shot-light.png";
+import kitDark from "../../../brand/icons/kit-dark.png";
+import kitLight from "../../../brand/icons/kit-light.png";
 
 interface Props {
-  product: "mouse" | "display" | "keys" | "shot";
+  product: "mouse" | "display" | "keys" | "shot" | "kit";
   class?: string;
 }
 
@@ -19,6 +21,7 @@ const icons = {
   display: [displayLight, displayDark],
   keys: [keysLight, keysDark],
   shot: [shotLight, shotDark],
+  kit: [kitLight, kitDark],
 };
 const { product, class: className = "" } = Astro.props;
 const [light, dark] = icons[product];

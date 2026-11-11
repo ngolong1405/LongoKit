@@ -1,0 +1,97 @@
+---
+import ProductIcon from "../ProductIcon.astro";
+import { kitDownload, kitReleaseNotes, kitVersion, kitBuildFromSource } from "../../data/site";
+import { localize, pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Free", title: "Get LongoKit",
+    lead: "No ads, no account, no data collection.",
+    macTitle: "macOS", macBody: "Apple Silicon & Intel · macOS 14 or later",
+    download: "Download the installer (.dmg)", notes: "Release notes",
+    source: "Or build it yourself (needs Xcode's command line tools):",
+    copy: "Copy", copied: "Copied",
+    notarize: "Not notarized yet. If macOS blocks it: System Settings › Privacy & Security › Open Anyway.",
+    separateTitle: "Just one tool?", separateBody: "Each module is also its own app.",
+  },
+  vi: {
+    badge: "Miễn phí", title: "Tải LongoKit",
+    lead: "Không quảng cáo, không tài khoản, không thu thập dữ liệu.",
+    macTitle: "macOS", macBody: "Apple Silicon & Intel · macOS 14 trở lên",
+    download: "Tải bản cài đặt (.dmg)", notes: "Ghi chú phát hành",
+    source: "Hoặc tự build (cần Command Line Tools của Xcode):",
+    copy: "Chép", copied: "Đã chép",
+    notarize: "Chưa notarize. Nếu macOS chặn: Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Vẫn mở.",
+    separateTitle: "Chỉ cần một công cụ?", separateBody: "Mỗi module cũng có app riêng.",
+  },
+});
+const apps = [
+  { id: "mouse", name: "LongoMouse" },
+  { id: "display", name: "LongoDisplay" },
+  { id: "keys", name: "LongoKeys" },
+  { id: "shot", name: "LongoShot" },
+] as const;
+---
+
+<section id="downloads" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto mb-space-xl max-w-2xl text-center">
+    <span class="inline-flex items-center gap-space-xs rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-primary">
+      <span class="material-symbols-outlined text-[16px]">download</span>{t.badge} · v{kitVersion}
+    </span>
+    <h2 class="mt-space-sm text-headline-xl tracking-tight">{t.title}</h2>
+    <p class="mt-space-xs text-body-lg text-on-surface-variant">{t.lead}</p>
+  </div>
+
+  <div class="mx-auto grid max-w-4xl grid-cols-1 gap-gutter md:grid-cols-2">
+    <div class="flex min-w-0 flex-col gap-space-md rounded-2xl border-2 border-primary/40 bg-surface-container-low p-space-lg shadow-xl">
+      <div class="flex items-center gap-space-sm">
+        <ProductIcon product="kit" class="h-12 w-12" />
+        <div>
+          <h3 class="text-headline-sm">{t.macTitle}</h3>
+          <span class="font-code text-xs text-primary">{t.macBody}</span>
+        </div>
+      </div>
+      <a href={kitDownload} class="flex items-center justify-center gap-space-xs rounded-xl bg-gradient-to-r from-primary-container to-secondary-container py-3 font-display text-sm font-semibold text-white shadow-md transition-all hover:opacity-95">
+        <span class="material-symbols-outlined text-[18px]">download</span>{t.download}
+      </a>
+      <a href={kitReleaseNotes} class="text-center font-code text-xs text-on-surface-variant hover:text-primary">{t.notes} · v{kitVersion}</a>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.notarize}</p>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.source}</p>
+      <div class="flex items-center justify-between gap-2 rounded-lg bg-surface-container px-3 py-2 font-code text-[11px]">
+        <span class="truncate text-primary-container select-all">$ {kitBuildFromSource}</span>
+        <button type="button" class="kit-copy shrink-0 rounded bg-surface-container-high px-2 py-0.5 text-tertiary hover:bg-surface-bright" data-copy={kitBuildFromSource} data-copied={t.copied}>{t.copy}</button>
+      </div>
+    </div>
+    <div class="flex flex-col gap-space-md rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+      <div>
+        <h3 class="text-headline-sm">{t.separateTitle}</h3>
+        <span class="font-code text-xs text-on-surface-variant">{t.separateBody}</span>
+      </div>
+      <div class="flex flex-col gap-space-xs">
+        {apps.map((app) => (
+          <a href={localize(lang, `/${app.id}`)} class="flex items-center gap-space-sm rounded-xl bg-surface-container px-3 py-2.5 text-sm transition-colors hover:bg-surface-container-high">
+            <ProductIcon product={app.id} class="h-8 w-8" />
+            <span class="flex-1 font-medium">{app.name}</span>
+            <span class="material-symbols-outlined text-[18px] text-on-surface-variant">arrow_forward</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>("button.kit-copy").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(button.dataset.copy ?? "");
+      const label = button.textContent;
+      button.textContent = button.dataset.copied ?? label;
+      setTimeout(() => (button.textContent = label), 1500);
+    });
+  });
+</script>

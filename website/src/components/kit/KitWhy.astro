@@ -1,0 +1,85 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "One app instead of four", title: "Same Tools, A Quarter of the Memory",
+    lead: "Every SwiftUI app pays for its frameworks just to run. Four apps pay it four times; LongoKit pays it once.",
+    apps: "Four separate apps", kit: "LongoKit",
+    memory: "Memory, all four running", measured: "Measured idle on an Apple Silicon Mac. Your numbers will differ a little.",
+    rows: [
+      { label: "Menu bar icons", apps: "4", kit: "1, with a strip for every module" },
+      { label: "Settings windows", apps: "4", kit: "1, modules down a sidebar" },
+      { label: "Language, appearance, login", apps: "Set in each app", kit: "Set once" },
+      { label: "A tool you don't use", apps: "Not installed", kit: "Off: not even loaded" },
+    ],
+  },
+  vi: {
+    badge: "Một app thay cho bốn", title: "Vẫn Đủ Công Cụ, RAM Chỉ Còn Một Phần Tư",
+    lead: "App SwiftUI nào cũng phải trả phần RAM cho framework chỉ để chạy. Bốn app trả bốn lần; LongoKit trả một lần.",
+    apps: "Bốn app riêng", kit: "LongoKit",
+    memory: "RAM khi chạy đủ bốn", measured: "Đo lúc rảnh trên máy Mac Apple Silicon. Máy bạn có thể chênh một chút.",
+    rows: [
+      { label: "Icon trên thanh menu", apps: "4", kit: "1, có dải chọn từng module" },
+      { label: "Cửa sổ cài đặt", apps: "4", kit: "1, các module xếp ở thanh bên" },
+      { label: "Ngôn ngữ, giao diện, mở cùng máy", apps: "Cài trong từng app", kit: "Cài một lần" },
+      { label: "Công cụ bạn không dùng", apps: "Không cài", kit: "Tắt: không được nạp" },
+    ],
+  },
+});
+---
+
+<section id="why" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto mb-space-xl max-w-2xl text-center">
+    <span class="inline-flex items-center gap-space-xs rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-secondary">
+      <span class="material-symbols-outlined text-[16px]">memory</span>{t.badge}
+    </span>
+    <h2 class="mt-space-sm text-headline-xl tracking-tight">{t.title}</h2>
+    <p class="mt-space-xs text-body-lg text-on-surface-variant">{t.lead}</p>
+  </div>
+
+  <div class="mx-auto flex max-w-4xl flex-col gap-gutter">
+    <div class="rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+      <span class="font-code text-xs text-on-surface-variant">{t.memory}</span>
+      <div class="mt-space-md flex flex-col gap-space-md">
+        <div class="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] items-center gap-space-sm sm:grid-cols-[11rem_minmax(0,1fr)]">
+          <span class="text-sm text-on-surface-variant">{t.apps}</span>
+          <div class="flex h-9 items-center overflow-hidden rounded-lg bg-surface-container">
+            <!-- Mouse 46, Display 49, Keys 49, Shot 51 MB, measured after the 0.2.9 / 0.1.3 / 0.1.2 / 0.2.1 releases. -->
+            <span class="flex h-full items-center justify-center bg-[#ff6b35]/70 font-code text-[10px] text-white" style="width: 23.6%">46</span>
+            <span class="flex h-full items-center justify-center bg-[#38bdf8]/70 font-code text-[10px] text-white" style="width: 25.1%">49</span>
+            <span class="flex h-full items-center justify-center bg-[#a855f7]/70 font-code text-[10px] text-white" style="width: 25.1%">49</span>
+            <span class="flex h-full items-center justify-center bg-[#2dd4bf]/70 font-code text-[10px] text-white" style="width: 26.2%">51</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] items-center gap-space-sm sm:grid-cols-[11rem_minmax(0,1fr)]">
+          <span class="text-sm font-semibold">{t.kit}</span>
+          <div class="flex h-9 items-center gap-space-sm">
+            <span class="flex h-full items-center justify-center rounded-lg bg-gradient-to-r from-primary-container to-secondary-container font-code text-[11px] font-semibold text-white" style="width: 24.1%">47</span>
+            <span class="font-code text-xs text-on-surface-variant">MB</span>
+          </div>
+        </div>
+        <div class="flex justify-end font-code text-[11px] text-on-surface-variant"><span>≈ 195 MB → 47 MB</span></div>
+      </div>
+      <p class="mt-space-sm font-code text-[11px] text-on-surface-variant">{t.measured}</p>
+    </div>
+
+    <div class="overflow-hidden rounded-2xl bg-surface-container-low shadow-xl">
+      <div class="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1.3fr)] gap-space-sm border-b border-outline-variant/20 px-space-lg py-space-sm font-code text-[11px] text-on-surface-variant">
+        <span></span><span>{t.apps}</span><span class="text-secondary">{t.kit}</span>
+      </div>
+      {t.rows.map((row, i) => (
+        <div class:list={["grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1.3fr)] items-center gap-space-sm px-space-lg py-space-md text-sm", i > 0 && "border-t border-outline-variant/15"]}>
+          <span class="font-medium">{row.label}</span>
+          <span class="text-on-surface-variant">{row.apps}</span>
+          <span class="flex items-start gap-1.5"><span class="material-symbols-outlined text-[16px] text-[#10b981]">check_circle</span><span>{row.kit}</span></span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

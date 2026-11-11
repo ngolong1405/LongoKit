@@ -1,0 +1,39 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import KitHero from "../components/kit/KitHero.astro";
+import KitWhy from "../components/kit/KitWhy.astro";
+import KitModules from "../components/kit/KitModules.astro";
+import KitSwitch from "../components/kit/KitSwitch.astro";
+import KitDownloads from "../components/kit/KitDownloads.astro";
+import Footer from "../components/Footer.astro";
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const meta = pick(lang, {
+  en: {
+    title: "LongoKit · Mouse, Display, Keys & Shot in one app",
+    description: "LongoKit: LongoMouse, LongoDisplay, LongoKeys and LongoShot as modules of one macOS menu bar app. Turn on the ones you need; one window, one menu bar icon, a fraction of the memory.",
+  },
+  vi: {
+    title: "LongoKit · Mouse, Display, Keys & Shot trong một app",
+    description: "LongoKit: LongoMouse, LongoDisplay, LongoKeys và LongoShot là các module của một app trên thanh menu macOS. Bật module bạn cần; một cửa sổ, một icon trên thanh menu, tốn ít RAM hơn hẳn.",
+  },
+});
+---
+
+<Base lang={lang} title={meta.title} description={meta.description}>
+  <Header lang={lang} active="kit" />
+  <main class="relative w-full overflow-x-hidden pt-20">
+    <KitHero lang={lang} />
+    <KitWhy lang={lang} />
+    <KitModules lang={lang} />
+    <KitSwitch lang={lang} />
+    <KitDownloads lang={lang} />
+  </main>
+  <Footer lang={lang} />
+</Base>
