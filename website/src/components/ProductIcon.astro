@@ -1,14 +1,16 @@
 ---
-// A LongoKit Trinity app icon in the current theme (brand/icons).
+// A LongoKit app icon in the current theme (brand/icons).
 import mouseDark from "../../../brand/icons/mouse-dark.png";
 import mouseLight from "../../../brand/icons/mouse-light.png";
 import displayDark from "../../../brand/icons/display-dark.png";
 import displayLight from "../../../brand/icons/display-light.png";
 import keysDark from "../../../brand/icons/keys-dark.png";
 import keysLight from "../../../brand/icons/keys-light.png";
+import shotDark from "../../../brand/icons/shot-dark.png";
+import shotLight from "../../../brand/icons/shot-light.png";
 
 interface Props {
-  product: "mouse" | "display" | "keys";
+  product: "mouse" | "display" | "keys" | "shot";
   class?: string;
 }
 
@@ -16,6 +18,7 @@ const icons = {
   mouse: [mouseLight, mouseDark],
   display: [displayLight, displayDark],
   keys: [keysLight, keysDark],
+  shot: [shotLight, shotDark],
 };
 const { product, class: className = "" } = Astro.props;
 const [light, dark] = icons[product];

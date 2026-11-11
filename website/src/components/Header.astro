@@ -6,7 +6,7 @@ import { keysVersion } from "../data/site";
 interface Props {
   lang: Lang;
   /** Which product page is open, to highlight it in the nav. */
-  active?: "mouse" | "display" | "keys";
+  active?: "mouse" | "display" | "keys" | "shot";
 }
 
 const { lang, active } = Astro.props;
@@ -20,6 +20,7 @@ const products = [
   { id: "mouse", href: localize(lang, "/mouse"), icon: "mouse", tint: "text-primary", name: "LongoMouse", soon: false },
   { id: "keys", href: localize(lang, "/keys"), icon: "keyboard", tint: "text-secondary", name: "LongoKeys", soon: !keysVersion },
   { id: "display", href: localize(lang, "/display"), icon: "desktop_windows", tint: "text-tertiary", name: "LongoDisplay", soon: false },
+  { id: "shot", href: localize(lang, "/shot"), icon: "screenshot_region", tint: "text-primary-container", name: "LongoShot", soon: false },
 ];
 ---
 
@@ -43,7 +44,8 @@ const products = [
             ]}
           >
             <span class:list={["material-symbols-outlined text-[16px]", p.tint]}>{p.icon}</span>
-            {p.name}
+            <!-- Four apps don't fit at lg with the full names: "Longo" shows from xl up. -->
+            <span><span class="hidden xl:inline">Longo</span>{p.name.replace("Longo", "")}</span>
             {p.soon && <span class="rounded bg-surface-container-high px-1 font-code text-[9px] uppercase text-on-surface-variant">{t.soon}</span>}
           </a>
         ))
@@ -74,8 +76,8 @@ const products = [
         <span class="hidden dark:inline"><span class="material-symbols-outlined text-[18px] text-primary">light_mode</span></span>
       </button>
       <a
-        href={active === "display" || active === "keys" ? "#downloads" : localize(lang, "/#downloads")}
-        class="flex items-center gap-space-xs rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-4 py-2 text-body-sm font-semibold text-white shadow-[0_4px_20px_rgba(255,107,53,0.3)] transition-all hover:opacity-95"
+        href={active === "display" || active === "keys" || active === "shot" ? "#downloads" : localize(lang, "/#downloads")}
+        class="flex items-center gap-space-xs whitespace-nowrap rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-4 py-2 text-body-sm font-semibold text-white shadow-[0_4px_20px_rgba(255,107,53,0.3)] transition-all hover:opacity-95"
       >
         <span class="material-symbols-outlined text-[18px]">download</span>
         <span class="hidden sm:inline">{t.download}</span>

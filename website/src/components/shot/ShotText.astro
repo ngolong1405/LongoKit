@@ -1,0 +1,77 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Feature 02 · Copy Text", title: "Text You Can't Select? Copy It Anyway",
+    lead: "Press ⌥⇧4 and drag over text anywhere on screen: in a screenshot, a video, a scanned PDF or a slide someone is sharing. A moment later it's on your clipboard, ready to paste.",
+    points: [
+      "Read on your Mac with Apple's Vision framework: nothing is uploaded, and it works offline.",
+      "English and Vietnamese, with every diacritic in place: ă â đ ê ô ơ ư and all five tones.",
+      "Each line on screen comes out as its own line, as plain text that pastes anywhere.",
+    ],
+    source: "On screen", clipboard: "Clipboard", toast: "Copied 3 lines of text",
+    lines: ["Phở Hàng Bè · Mở cửa 6:00–22:00", "Phở bò tái lăn: 65.000đ", "Đặt bàn: 024 3826 1234"],
+    note: "Works on any pixels on screen. Very small or low-contrast text may need a larger area.",
+  },
+  vi: {
+    badge: "Chức năng 02 · Copy chữ", title: "Chữ Không Bôi Đen Được? Vẫn Copy Được",
+    lead: "Bấm ⌥⇧4 rồi kéo qua chữ ở bất kỳ đâu trên màn hình: trong ảnh chụp, video, file PDF scan hay slide người khác đang chia sẻ. Chỉ một thoáng là chữ đã nằm trong clipboard, sẵn sàng để dán.",
+    points: [
+      "Đọc ngay trên máy Mac bằng Vision của Apple: không gửi gì lên mạng, không có mạng vẫn chạy.",
+      "Tiếng Anh và tiếng Việt, giữ đủ dấu: ă â đ ê ô ơ ư và cả năm thanh điệu.",
+      "Mỗi dòng trên màn hình thành một dòng chữ thường, dán vào đâu cũng được.",
+    ],
+    source: "Trên màn hình", clipboard: "Clipboard", toast: "Đã copy 3 dòng chữ",
+    lines: ["Phở Hàng Bè · Mở cửa 6:00–22:00", "Phở bò tái lăn: 65.000đ", "Đặt bàn: 024 3826 1234"],
+    note: "Chạy với mọi điểm ảnh trên màn hình. Chữ quá nhỏ hoặc mờ thì nên chọn vùng rộng hơn.",
+  },
+});
+---
+
+<section id="text" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <div class="flex flex-col gap-space-md">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-tertiary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-tertiary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.note}</p>
+    </div>
+
+    <!-- A photo of a menu board with text that can't be selected, and what lands on the clipboard. -->
+    <div class="flex flex-col gap-gutter">
+      <div class="rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+        <span class="mb-space-sm block font-code text-[10px] uppercase tracking-wider text-on-surface-variant">{t.source}</span>
+        <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#3a2a1f] via-[#5b3a29] to-[#1f2a33] p-space-md">
+          <div class="relative flex flex-col gap-1.5 rounded-lg border-2 border-dashed border-white/90 bg-white/5 p-3 font-display text-white shadow-[0_0_0_9999px_rgba(0,0,0,0.25)]">
+            <span class="text-body-md font-semibold sm:text-lg">{t.lines[0]}</span>
+            <span class="text-body-sm opacity-90">{t.lines[1]}</span>
+            <span class="text-body-sm opacity-90">{t.lines[2]}</span>
+            <span class="absolute -top-3 right-2 rounded bg-tertiary px-1.5 font-code text-[10px] font-bold text-on-tertiary">⌥⇧4</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+        <div class="mb-space-sm flex items-center justify-between gap-space-sm">
+          <span class="flex items-center gap-1.5">
+            <span class="h-1.5 w-1.5 rounded-full bg-tertiary shadow-[0_0_6px_var(--c-tertiary)]"></span>
+            <span class="font-code text-[10px] uppercase tracking-wider text-on-surface-variant">{t.clipboard}</span>
+          </span>
+          <span class="flex items-center gap-1 rounded bg-tertiary/15 px-2 py-0.5 font-code text-[11px] text-tertiary"><span class="material-symbols-outlined text-[14px]">check</span>{t.toast}</span>
+        </div>
+        <div class="flex flex-col gap-0.5 rounded-xl bg-surface-container px-3 py-2 font-code text-xs text-on-surface">
+          {t.lines.map((line) => <span class="break-words">{line}</span>)}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

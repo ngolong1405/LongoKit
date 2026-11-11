@@ -1,5 +1,5 @@
 ---
-import { mouseVersion, mouseDownload, buildFromSource, keysVersion } from "../../data/site";
+import { mouseVersion, mouseDownload, buildFromSource, keysVersion, shotVersion } from "../../data/site";
 import { pick, type Lang } from "../../i18n";
 
 interface Props {
@@ -31,6 +31,12 @@ const t = pick(lang, {
     hyperHint: "Hold HYPER (mouse or finger), then press H J K L", tapEsc: "Tapped: Esc", typed: "Typed",
     keysTitle: "CapsLock → Hyper & Vim layer",
     keysNote: "✨ Tap CapsLock for Esc, hold it for Hyper; H J K L become arrow keys while Hyper is held.",
+    shotTitle: "Screenshots & text from the screen",
+    shotBody: "One shortcut captures an area, a window or the whole screen: saved as a PNG and copied, ready to paste. ⌥⇧4 copies the text in any area instead.",
+    shotArea: "Capture Area", shotText: "Copy Text", shotHint: "Drag across the screen", shotHintText: "Drag over the note's text",
+    shotSaved: "Saved & copied to the clipboard", shotCopied: "Text copied", shotNone: "No text there",
+    shotLines: ["Meeting notes", "Ship v0.1 on Friday", "Phở at 12:30, Hàng Bè"],
+    shotNote: "✨ Text is recognized on your Mac, English and Vietnamese with diacritics. Nothing leaves the Mac.",
   },
   vi: {
     title: "Một Bộ Công Cụ Làm Chủ Mọi Thiết Bị.",
@@ -55,6 +61,12 @@ const t = pick(lang, {
     hyperHint: "Giữ phím HYPER (bằng chuột hoặc ngón tay), rồi bấm H J K L", tapEsc: "Nhấn nhanh: Esc", typed: "Đã gõ",
     keysTitle: "CapsLock → Hyper & lớp phím Vim",
     keysNote: "✨ Nhấn CapsLock là Esc, giữ là Hyper; H J K L thành phím mũi tên khi giữ Hyper.",
+    shotTitle: "Chụp màn hình & lấy chữ trên màn hình",
+    shotBody: "Một phím tắt chụp một vùng, một cửa sổ hoặc cả màn hình: lưu thành PNG và copy sẵn để dán. ⌥⇧4 thì copy chữ trong vùng bạn chọn.",
+    shotArea: "Chụp vùng", shotText: "Copy chữ", shotHint: "Kéo trên màn hình", shotHintText: "Kéo qua chữ trong ghi chú",
+    shotSaved: "Đã lưu & copy vào clipboard", shotCopied: "Đã copy chữ", shotNone: "Không có chữ ở đó",
+    shotLines: ["Ghi chú cuộc họp", "Phát hành v0.1 thứ Sáu", "Phở lúc 12:30, Hàng Bè"],
+    shotNote: "✨ Chữ được nhận dạng ngay trên máy Mac, cả tiếng Anh lẫn tiếng Việt có dấu. Không gì rời khỏi máy.",
   },
 });
 
@@ -110,7 +122,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
             <span class="material-symbols-outlined text-[24px] text-tertiary">widgets</span>
             <span class="flex flex-col text-left">
               <span class="font-display text-sm leading-tight">{t.select}</span>
-              <span class="font-code text-[11px] text-on-surface-variant">Mouse · Keys · Display</span>
+              <span class="font-code text-[11px] text-on-surface-variant">Mouse · Keys · Display · Shot</span>
             </span>
           </span>
           <span class="material-symbols-outlined text-[20px] text-on-surface-variant transition-transform group-hover:translate-x-1">arrow_forward</span>
@@ -147,6 +159,9 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
           </button>
           <button type="button" class="hub-tab" data-tab="keyboard" role="tab">
             <span class="material-symbols-outlined text-[15px]">keyboard</span><span class="hidden sm:inline">LongoKeys</span>
+          </button>
+          <button type="button" class="hub-tab" data-tab="shot" role="tab">
+            <span class="material-symbols-outlined text-[15px]">screenshot_region</span><span class="hidden sm:inline">LongoShot</span>
           </button>
         </div>
         <span class="hidden rounded-full bg-tertiary/10 px-2.5 py-0.5 font-code text-[11px] text-tertiary sm:inline">macOS 13+</span>
@@ -359,6 +374,45 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
         </div>
         <span class="font-code text-xs text-on-surface-variant">{t.keysNote}</span>
       </div>
+      <!-- LongoShot -->
+      <div class="hub-panel hidden grid-cols-1 items-center gap-8 bg-gradient-to-b from-surface-container-low/70 to-surface-container-lowest p-6 md:p-10 lg:grid-cols-12" data-panel="shot">
+        <div class="flex flex-col gap-5 lg:col-span-5">
+          <div class="flex items-center gap-2">
+            <span class="font-code text-label-badge tracking-widest text-tertiary uppercase">Capture + OCR</span>
+            <span class="rounded bg-surface-container-high px-1.5 font-code text-[10px] text-on-surface-variant">v{shotVersion}</span>
+          </div>
+          <h3 class="text-headline-md">{t.shotTitle}</h3>
+          <p class="text-body-sm text-on-surface-variant">{t.shotBody}</p>
+          <div class="flex items-center justify-between rounded-xl bg-surface-container/70 p-4">
+            <span class="font-code text-xs text-on-surface-variant" id="shot-hint" data-area={t.shotHint} data-text={t.shotHintText}>{t.shotHint}</span>
+            <div class="flex shrink-0 rounded-lg bg-surface-container-lowest p-1 font-code text-xs" role="radiogroup">
+              <button type="button" class="shot-mode rounded-md px-3 py-1" data-mode="area" aria-checked="true">⌥⇧1</button>
+              <button type="button" class="shot-mode rounded-md px-3 py-1" data-mode="text" aria-checked="false">⌥⇧4</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 font-code text-[11px]">
+            <span class="flex items-center gap-2 rounded-lg bg-surface-container-low p-3"><span class="material-symbols-outlined text-[18px] text-primary">screenshot_region</span>{t.shotArea}</span>
+            <span class="flex items-center gap-2 rounded-lg bg-surface-container-low p-3"><span class="material-symbols-outlined text-[18px] text-tertiary">document_scanner</span>{t.shotText}</span>
+          </div>
+          <span class="font-code text-xs text-on-surface-variant">{t.shotNote}</span>
+        </div>
+        <div class="flex min-w-0 flex-col items-center justify-center lg:col-span-7">
+          <!-- A small screen: drag on it to capture, or to copy the note's text. -->
+          <div id="shot-screen" class="relative aspect-[16/10] w-full max-w-xl touch-none overflow-hidden rounded-xl bg-gradient-to-br from-[#ff8a50] via-[#8b5cf6] to-[#06b6d4] shadow-2xl select-none">
+            <div class="absolute top-[14%] left-[7%] flex w-[56%] flex-col gap-1.5 rounded-lg bg-white/90 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.35)] dark:bg-[#1c2028]/90">
+              {t.shotLines.map((line, i) => <span class:list={["shot-line truncate font-code text-[10px] sm:text-xs", i === 0 ? "font-bold text-[#141b2b] dark:text-white" : "text-[#5a4139] dark:text-[#e1bfb5]"]}>{line}</span>)}
+            </div>
+            <div class="absolute right-[7%] bottom-[12%] flex h-[38%] w-[26%] items-end gap-[8%] rounded-lg bg-white/90 p-[3%] shadow-[0_10px_30px_rgba(0,0,0,0.35)] dark:bg-[#1c2028]/90">
+              {[40, 70, 55, 90].map((h) => <span class="flex-1 rounded-sm bg-gradient-to-t from-[#06b6d4] to-[#8b5cf6]" style={`height: ${h}%`}></span>)}
+            </div>
+            <div id="shot-sel" class="pointer-events-none absolute hidden rounded-[3px] border-[1.5px] border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]"></div>
+            <div id="shot-toast" class="pointer-events-none absolute inset-x-3 bottom-3 z-20 mx-auto flex w-fit scale-90 items-center gap-2 rounded-xl bg-surface-container-lowest/95 px-3 py-2 font-display text-xs opacity-0 shadow-2xl transition-all duration-200 sm:text-sm" data-saved={t.shotSaved} data-copied={t.shotCopied} data-none={t.shotNone}>
+              <span id="shot-toast-icon" class="material-symbols-outlined text-[18px] text-primary">check_circle</span>
+              <span id="shot-toast-text" class="line-clamp-2"></span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </div>
@@ -383,8 +437,8 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
     box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
   }
   .lum { appearance: none; background: var(--c-surface-container-lowest); }
-  .demo-dir { color: var(--c-on-surface-variant); }
-  .demo-dir[aria-checked="true"] { background: var(--c-surface-container-high); color: var(--c-on-surface); font-weight: 600; }
+  .demo-dir, .shot-mode { color: var(--c-on-surface-variant); }
+  .demo-dir[aria-checked="true"], .shot-mode[aria-checked="true"] { background: var(--c-surface-container-high); color: var(--c-on-surface); font-weight: 600; }
   .demo-side.pressed, .demo-press.pressed { filter: brightness(1.4); }
   #demo-hyper.held { transform: translateY(2px) scale(0.94); box-shadow: 0 0 28px #ff6b35, inset 0 2px 4px rgb(0 0 0 / 0.3); }
   [data-panel="keyboard"].hyper .demo-vim { background: var(--c-secondary-container); color: white; }
@@ -397,6 +451,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
     color: white;
     box-shadow: 0 0 14px var(--c-secondary), inset 0 2px 4px rgb(0 0 0 / 0.25);
   }
+  #shot-screen { cursor: crosshair; }
   #demo-grid .cursor { background: var(--c-secondary); box-shadow: 0 0 8px var(--c-secondary); }
 </style>
 
@@ -605,6 +660,62 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
     e.preventDefault();
     press(key);
   });
+  // Shot demo: drag on the little screen; Capture Area "saves and copies", Copy Text "reads" the lines it crosses.
+  const shotScreen = document.getElementById("shot-screen");
+  const shotSel = document.getElementById("shot-sel");
+  const shotToast = document.getElementById("shot-toast");
+  const shotHint = document.getElementById("shot-hint");
+  let shotMode = "area", shotStart: { x: number; y: number } | null = null, shotTimer = 0;
+  document.querySelectorAll<HTMLButtonElement>(".shot-mode").forEach((button) => {
+    button.addEventListener("click", () => {
+      shotMode = button.dataset.mode ?? "area";
+      document.querySelectorAll(".shot-mode").forEach((b) => b.setAttribute("aria-checked", String(b === button)));
+      if (shotHint) shotHint.textContent = shotHint.dataset[shotMode] ?? "";
+    });
+  });
+  const shotPoint = (e: PointerEvent) => {
+    const r = shotScreen!.getBoundingClientRect();
+    return { x: Math.min(r.width, Math.max(0, e.clientX - r.left)), y: Math.min(r.height, Math.max(0, e.clientY - r.top)) };
+  };
+  const drawSel = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+    if (!shotSel) return;
+    shotSel.classList.remove("hidden");
+    Object.assign(shotSel.style, { left: `${Math.min(a.x, b.x)}px`, top: `${Math.min(a.y, b.y)}px`, width: `${Math.abs(b.x - a.x)}px`, height: `${Math.abs(b.y - a.y)}px` });
+  };
+  function shotSay(icon: string, text: string) {
+    if (!shotToast) return;
+    document.getElementById("shot-toast-icon")!.textContent = icon;
+    document.getElementById("shot-toast-text")!.textContent = text;
+    shotToast.classList.remove("opacity-0", "scale-90");
+    clearTimeout(shotTimer);
+    shotTimer = window.setTimeout(() => shotToast.classList.add("opacity-0", "scale-90"), 2200);
+  }
+  shotScreen?.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    shotStart = shotPoint(e);
+    shotScreen.setPointerCapture(e.pointerId);
+    drawSel(shotStart, shotStart);
+  });
+  shotScreen?.addEventListener("pointermove", (e) => { if (shotStart) drawSel(shotStart, shotPoint(e)); });
+  shotScreen?.addEventListener("pointerup", (e) => {
+    if (!shotStart || !shotScreen || !shotToast) return;
+    const end = shotPoint(e), start = shotStart;
+    shotStart = null;
+    shotSel?.classList.add("hidden");
+    if (Math.abs(end.x - start.x) < 6 || Math.abs(end.y - start.y) < 6) return;
+    if (shotMode === "area") { shotSay("check_circle", shotToast.dataset.saved ?? ""); return; }
+    const r = shotScreen.getBoundingClientRect();
+    const top = Math.min(start.y, end.y) + r.top, bottom = Math.max(start.y, end.y) + r.top;
+    const left = Math.min(start.x, end.x) + r.left, right = Math.max(start.x, end.x) + r.left;
+    const lines = [...shotScreen.querySelectorAll<HTMLElement>(".shot-line")].filter((line) => {
+      const b = line.getBoundingClientRect(), mid = (b.top + b.bottom) / 2;
+      return mid >= top && mid <= bottom && b.left < right && b.right > left;
+    });
+    if (lines.length) shotSay("content_paste", `${shotToast.dataset.copied}: ${lines.map((l) => l.textContent).join(" · ")}`);
+    else shotSay("search_off", shotToast.dataset.none ?? "");
+  });
+  shotScreen?.addEventListener("pointercancel", () => { shotStart = null; shotSel?.classList.add("hidden"); });
+
   document.querySelectorAll<HTMLButtonElement>("button.copy").forEach((button) => {
     button.addEventListener("click", () => {
       navigator.clipboard.writeText(button.dataset.copy ?? "");

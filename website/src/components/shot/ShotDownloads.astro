@@ -1,0 +1,97 @@
+---
+import ProductIcon from "../ProductIcon.astro";
+import { repo, shotDownload, shotReleaseNotes, shotVersion, shotBuildFromSource } from "../../data/site";
+import { localize, pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Free", title: "Get Longo Shot",
+    lead: "No ads, no account, no data collection.",
+    macTitle: "macOS", macBody: "Apple Silicon & Intel · macOS 14 or later",
+    download: "Download the installer (.dmg)", notes: "Release notes",
+    source: "Or build it yourself (needs Xcode's command line tools):",
+    copy: "Copy", copied: "Copied",
+    notarize: "Not notarized yet. If macOS blocks it: System Settings › Privacy & Security › Open Anyway.",
+    winTitle: "Windows", winBody: "Not planned for now", follow: "Follow on GitHub",
+    more: "More from LongoKit:",
+  },
+  vi: {
+    badge: "Miễn phí", title: "Tải Longo Shot",
+    lead: "Không quảng cáo, không tài khoản, không thu thập dữ liệu.",
+    macTitle: "macOS", macBody: "Apple Silicon & Intel · macOS 14 trở lên",
+    download: "Tải bản cài đặt (.dmg)", notes: "Ghi chú phát hành",
+    source: "Hoặc tự build (cần Command Line Tools của Xcode):",
+    copy: "Chép", copied: "Đã chép",
+    notarize: "Chưa notarize. Nếu macOS chặn: Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Vẫn mở.",
+    winTitle: "Windows", winBody: "Hiện chưa có kế hoạch", follow: "Theo dõi trên GitHub",
+    more: "Khám phá thêm trong LongoKit:",
+  },
+});
+---
+
+<section id="downloads" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto mb-space-xl max-w-2xl text-center">
+    <span class="inline-flex items-center gap-space-xs rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-primary">
+      <span class="material-symbols-outlined text-[16px]">download</span>{t.badge} · v{shotVersion}
+    </span>
+    <h2 class="mt-space-sm text-headline-xl tracking-tight">{t.title}</h2>
+    <p class="mt-space-xs text-body-lg text-on-surface-variant">{t.lead}</p>
+  </div>
+
+  <div class="mx-auto grid max-w-4xl grid-cols-1 gap-gutter md:grid-cols-2">
+    <div class="flex min-w-0 flex-col gap-space-md rounded-2xl border-2 border-primary/40 bg-surface-container-low p-space-lg shadow-xl">
+      <div class="flex items-center gap-space-sm">
+        <ProductIcon product="shot" class="h-12 w-12" />
+        <div>
+          <h3 class="text-headline-sm">{t.macTitle}</h3>
+          <span class="font-code text-xs text-primary">{t.macBody}</span>
+        </div>
+      </div>
+      <a href={shotDownload} class="flex items-center justify-center gap-space-xs rounded-xl bg-gradient-to-r from-primary-container to-secondary-container py-3 font-display text-sm font-semibold text-white shadow-md transition-all hover:opacity-95">
+        <span class="material-symbols-outlined text-[18px]">download</span>{t.download}
+      </a>
+      <a href={shotReleaseNotes} class="text-center font-code text-xs text-on-surface-variant hover:text-primary">{t.notes} · v{shotVersion}</a>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.notarize}</p>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.source}</p>
+      <div class="flex items-center justify-between gap-2 rounded-lg bg-surface-container px-3 py-2 font-code text-[11px]">
+        <span class="truncate text-primary-container select-all">$ {shotBuildFromSource}</span>
+        <button type="button" class="shot-copy shrink-0 rounded bg-surface-container-high px-2 py-0.5 text-tertiary hover:bg-surface-bright" data-copy={shotBuildFromSource} data-copied={t.copied}>{t.copy}</button>
+      </div>
+    </div>
+    <div class="flex flex-col gap-space-md rounded-2xl bg-surface-container-low p-space-lg opacity-80 shadow-xl">
+      <div class="flex items-center gap-space-sm">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-tertiary/15"><span class="material-symbols-outlined text-[28px] text-tertiary">desktop_windows</span></div>
+        <div>
+          <h3 class="text-headline-sm">{t.winTitle}</h3>
+          <span class="font-code text-xs text-tertiary">{t.winBody}</span>
+        </div>
+      </div>
+      <a href={repo} class="flex items-center justify-center gap-space-xs rounded-xl bg-surface-container-high py-3 text-sm text-on-surface-variant hover:text-tertiary">{t.follow}</a>
+    </div>
+  </div>
+
+  <div class="mx-auto mt-space-xl flex max-w-4xl flex-wrap items-center justify-between gap-space-sm rounded-xl bg-surface-container-lowest p-space-md">
+    <span class="flex items-center gap-space-xs font-code text-xs text-on-surface-variant"><span class="material-symbols-outlined text-[18px] text-primary">apps</span>{t.more}</span>
+    <div class="flex flex-wrap gap-space-xs">
+      <a href={localize(lang, "/mouse")} class="rounded-lg bg-surface-container px-3 py-1.5 text-xs hover:text-primary">LongoMouse</a>
+      <a href={localize(lang, "/keys")} class="rounded-lg bg-surface-container px-3 py-1.5 text-xs hover:text-secondary">LongoKeys</a>
+      <a href={localize(lang, "/display")} class="rounded-lg bg-surface-container px-3 py-1.5 text-xs hover:text-tertiary">LongoDisplay</a>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>("button.shot-copy").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(button.dataset.copy ?? "");
+      const label = button.textContent;
+      button.textContent = button.dataset.copied ?? label;
+      setTimeout(() => (button.textContent = label), 1500);
+    });
+  });
+</script>

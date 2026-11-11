@@ -10,7 +10,7 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    title: "Three Tools, One Kit",
+    title: "Four Tools, One Kit",
     lead: "Small, native apps instead of heavy vendor software.",
     available: "Available", soon: "Coming soon",
     mouse: {
@@ -25,9 +25,13 @@ const t = pick(lang, {
       body: "Remap keys and build shortcut layers — no firmware needed.",
       points: ["CapsLock as Esc / Hyper", "Vim-style arrow keys", "Separate keys for each keyboard"],
     },
+    shot: {
+      body: "Screenshots and on-screen text from one shortcut, saved as a PNG and on your clipboard.",
+      points: ["Area, window or full screen", "Copy text with on-device OCR", "Shortcuts you choose"],
+    },
   },
   vi: {
-    title: "Ba Công Cụ, Một Bộ",
+    title: "Bốn Công Cụ, Một Bộ",
     lead: "Các app nhỏ, native, thay cho phần mềm nặng của từng hãng.",
     available: "Có thể tải", soon: "Sắp có",
     mouse: {
@@ -41,6 +45,10 @@ const t = pick(lang, {
     keys: {
       body: "Đổi phím và tạo lớp phím tắt — không cần nạp firmware.",
       points: ["CapsLock thành Esc / Hyper", "Phím mũi tên kiểu Vim", "Phím riêng cho từng bàn phím"],
+    },
+    shot: {
+      body: "Chụp màn hình và copy chữ trên màn hình bằng một phím tắt, lưu thành PNG và có sẵn trong clipboard.",
+      points: ["Chụp vùng, cửa sổ hoặc toàn màn hình", "Copy chữ bằng OCR ngay trên máy", "Phím tắt tự chọn"],
     },
   },
 });
@@ -61,6 +69,11 @@ const pillars = [
     tint: "text-secondary", glow: "bg-secondary-container/20 group-hover:bg-secondary-container/30", dot: "bg-secondary",
     tagline: "Driverless Layer Remapping", ...t.keys, tech: "UserKeyMapping + CGEventTap",
   },
+  {
+    name: "LongoShot", product: "shot" as const, href: localize(lang, "/shot"), status: t.available,
+    tint: "text-primary-container", glow: "bg-tertiary/10 group-hover:bg-tertiary/20", dot: "bg-primary-container",
+    tagline: "Capture & On-Device OCR", ...t.shot, tech: "ScreenCaptureKit + Vision",
+  },
 ];
 ---
 
@@ -71,7 +84,7 @@ const pillars = [
     <p class="max-w-2xl text-body-lg text-on-surface-variant">{t.lead}</p>
   </div>
 
-  <div class="grid grid-cols-1 gap-gutter-lg md:grid-cols-3">
+  <div class="grid grid-cols-1 gap-gutter-lg md:grid-cols-2 xl:grid-cols-4">
     {
       pillars.map((p) => (
         <a href={p.href} class="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-surface-container-low p-8 shadow-lg transition-all hover:bg-surface-container">
@@ -88,7 +101,7 @@ const pillars = [
             </div>
             <ul class="flex flex-col gap-2.5 font-code text-label-code text-on-surface-variant">
               {p.points.map((point) => (
-                <li class="flex items-center gap-2"><span class:list={["h-1.5 w-1.5 shrink-0 rounded-full", p.dot]} />{point}</li>
+                <li class="flex items-start gap-2"><span class:list={["mt-[0.45em] h-1.5 w-1.5 shrink-0 rounded-full", p.dot]} />{point}</li>
               ))}
             </ul>
           </div>

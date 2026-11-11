@@ -1,7 +1,7 @@
 ---
 import ProductIcon from "../ProductIcon.astro";
 import Logo from "../Logo.astro";
-import { repo, mouseDownload, mouseVersion, displayDownload, displayVersion, licenseURL, keysVersion, keysDownload } from "../../data/site";
+import { repo, mouseDownload, mouseVersion, displayDownload, displayVersion, licenseURL, keysVersion, keysDownload, shotDownload, shotVersion } from "../../data/site";
 import { pick, type Lang } from "../../i18n";
 
 interface Props {
@@ -17,8 +17,9 @@ const t = pick(lang, {
     mouse: "Smooth scrolling and gestures for any mouse.",
     keys: "Remap keys and build shortcut layers.",
     display: "Brightness and volume for every display, with Sync to your MacBook.",
+    shot: "Screenshots and on-screen text from one shortcut.",
     suiteTitle: "The Full LongoKit Suite",
-    suiteBody: "All three tools in one app once they're ready. Follow on GitHub for updates.",
+    suiteBody: "All four tools in one app once they're ready. Follow on GitHub for updates.",
     getMouse: "Get LongoMouse for macOS", getDisplay: "Get LongoDisplay for macOS", follow: "Follow on GitHub",
     noTelemetry: "No telemetry", notarize: "Beta isn't notarized yet: if blocked, System Settings › Privacy & Security › Open Anyway",
   },
@@ -29,8 +30,9 @@ const t = pick(lang, {
     mouse: "Cuộn mượt và cử chỉ cho mọi con chuột.",
     keys: "Đổi phím và tạo lớp phím tắt.",
     display: "Độ sáng và âm lượng cho mọi màn hình, đồng bộ theo MacBook.",
+    shot: "Chụp màn hình và copy chữ trên màn hình bằng một phím tắt.",
     suiteTitle: "Trọn Bộ LongoKit",
-    suiteBody: "Cả ba công cụ trong một app khi đã sẵn sàng. Theo dõi trên GitHub để cập nhật.",
+    suiteBody: "Cả bốn công cụ trong một app khi đã sẵn sàng. Theo dõi trên GitHub để cập nhật.",
     getMouse: "Tải LongoMouse cho macOS", getDisplay: "Tải LongoDisplay cho macOS", follow: "Theo dõi trên GitHub",
     noTelemetry: "Không telemetry", notarize: "Bản beta chưa notarize: nếu bị chặn, Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Vẫn mở",
   },
@@ -54,6 +56,11 @@ const kits = [
     tint: "text-tertiary", badgeBg: "bg-tertiary/20",
     mac: "bg-tertiary/15 text-tertiary hover:bg-tertiary/30", tagline: "DDC/CI Hardware Luminance", body: t.display,
   },
+  {
+    name: "LongoShot", product: "shot" as const, version: `v${shotVersion}`, available: true, download: shotDownload,
+    tint: "text-primary-container", badgeBg: "bg-primary-container/15",
+    mac: "bg-primary-container/15 text-primary-container hover:bg-primary-container/30", tagline: "Capture & On-Device OCR", body: t.shot,
+  },
 ];
 ---
 
@@ -67,7 +74,7 @@ const kits = [
     <p class="mt-4 max-w-2xl text-body-lg text-on-surface-variant">{t.lead}</p>
   </div>
 
-  <div class="mb-12 grid grid-cols-1 gap-gutter-lg lg:grid-cols-3">
+  <div class="mb-12 grid grid-cols-1 gap-gutter-lg md:grid-cols-2 xl:grid-cols-4">
     {
       kits.map((k) => (
         <div class="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-surface-container-low p-8 shadow-xl transition-all hover:bg-surface-container">
@@ -84,9 +91,9 @@ const kits = [
           </div>
           <div class="mt-8 flex flex-col gap-2.5 pt-4">
             {k.available ? (
-              <a href={k.download} class:list={["flex w-full items-center justify-between rounded-xl px-4 py-3 text-xs font-semibold shadow-sm transition-colors", k.mac]}>
-                <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">desktop_mac</span>macOS Universal (.dmg)</span>
-                <span class="font-code text-[11px] opacity-80">Apple Silicon / Intel</span>
+              <a href={k.download} class:list={["flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-0.5 rounded-xl px-4 py-3 text-xs font-semibold shadow-sm transition-colors", k.mac]}>
+                <span class="flex items-center gap-2 whitespace-nowrap"><span class="material-symbols-outlined text-[18px]">desktop_mac</span>macOS Universal (.dmg)</span>
+                <span class="font-code text-[11px] whitespace-nowrap opacity-80">Apple Silicon / Intel</span>
               </a>
             ) : (
               <span class="flex w-full cursor-not-allowed items-center justify-between rounded-xl bg-surface-container-high px-4 py-3 text-xs font-medium opacity-70">

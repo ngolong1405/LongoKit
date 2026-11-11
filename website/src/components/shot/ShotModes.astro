@@ -1,0 +1,62 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Feature 01 · Capture", title: "Four Shortcuts, Everything on Screen",
+    lead: "One key combo for each way you capture, all from the left hand. Nothing to open first: Longo Shot waits in the background.",
+    cards: [
+      ["screenshot_region", "⌥⇧1", "Capture Area", "Drag over what you want. Space switches to picking a window, Esc cancels."],
+      ["select_window", "⌥⇧2", "Capture Window", "Click a window: it's captured whole, with its shadow, even if something covers it."],
+      ["fullscreen", "⌥⇧3", "Capture Full Screen", "The screen under the pointer, so with two displays you get the one you're on."],
+      ["document_scanner", "⌥⇧4", "Copy Text (OCR)", "Drag over text in an image, a video or a PDF: it's recognized and copied, ready to paste."],
+    ],
+    more: "Also: ⌥⇧0 opens Settings. Copy Last Capture and Open Save Folder can get their own shortcuts too.",
+    recording: "Screen recording", recordingBody: "is coming in the next version.", soon: "Coming soon",
+  },
+  vi: {
+    badge: "Chức năng 01 · Chụp", title: "Bốn Phím Tắt, Chụp Mọi Thứ Trên Màn Hình",
+    lead: "Mỗi kiểu chụp một tổ hợp phím, bấm được bằng tay trái. Không cần mở app trước: Longo Shot luôn chờ sẵn ở chế độ nền.",
+    cards: [
+      ["screenshot_region", "⌥⇧1", "Chụp vùng", "Kéo chọn phần màn hình cần chụp. Space để chuyển sang chọn cửa sổ, Esc để huỷ."],
+      ["select_window", "⌥⇧2", "Chụp cửa sổ", "Bấm vào một cửa sổ: chụp trọn cửa sổ kèm bóng đổ, kể cả khi bị thứ khác che."],
+      ["fullscreen", "⌥⇧3", "Chụp toàn màn hình", "Màn hình đang có con trỏ, nên dùng hai màn hình thì chụp đúng màn hình bạn đang làm việc."],
+      ["document_scanner", "⌥⇧4", "Copy chữ (OCR)", "Kéo chọn chữ trong ảnh, video hay PDF: chữ được nhận dạng và copy sẵn để dán."],
+    ],
+    more: "Ngoài ra: ⌥⇧0 mở cài đặt. Copy ảnh vừa chụp và Mở thư mục lưu cũng có thể gán phím tắt riêng.",
+    recording: "Quay màn hình", recordingBody: "sẽ có trong bản tiếp theo.", soon: "Sắp có",
+  },
+});
+---
+
+<section id="capture" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto mb-space-xl max-w-2xl text-center">
+    <span class="inline-flex rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-primary">{t.badge}</span>
+    <h2 class="mt-space-sm text-headline-xl tracking-tight">{t.title}</h2>
+    <p class="mt-space-xs text-body-lg text-on-surface-variant">{t.lead}</p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-gutter sm:grid-cols-2 lg:grid-cols-4">
+    {t.cards.map(([icon, keys, title, body]) => (
+      <div class="flex flex-col gap-space-xs rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+        <span class="material-symbols-outlined flex h-11 w-11 items-center justify-center rounded-xl bg-tertiary/15 text-[24px] text-tertiary">{icon}</span>
+        <span class="mt-space-xs font-display text-headline-sm text-on-surface">{keys}</span>
+        <span class="font-code text-xs text-primary">{title}</span>
+        <p class="text-body-md text-on-surface-variant">{body}</p>
+      </div>
+    ))}
+  </div>
+
+  <div class="mt-gutter flex flex-col gap-space-sm rounded-xl bg-surface-container-lowest p-space-md sm:flex-row sm:items-center sm:justify-between">
+    <span class="flex items-start gap-space-xs font-code text-xs text-on-surface-variant"><span class="material-symbols-outlined text-[18px] text-primary">keyboard_command_key</span>{t.more}</span>
+    <span class="flex shrink-0 items-center gap-space-xs text-body-md">
+      <span class="material-symbols-outlined text-[18px] text-secondary">videocam</span>{t.recording}
+      <span class="rounded bg-secondary/15 px-2 py-0.5 font-code text-[11px] text-secondary">{t.soon}</span>
+    </span>
+  </div>
+</section>

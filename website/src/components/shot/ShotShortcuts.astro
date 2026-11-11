@@ -1,0 +1,115 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Feature 04 · Shortcuts", title: "Your Keys, Not Ours",
+    lead: "Every action has a shortcut you can change in the Shortcuts tab. Click one, press the combination you want, done.",
+    points: [
+      "Any combination with ⌘ ⌥ ⌃ ⇧, or F1–F19 on their own.",
+      "Warns you when macOS or another app already uses the shortcut, so it never silently does nothing.",
+      "Works in every app, with no Accessibility permission.",
+    ],
+    tab: "Shortcuts", capture: "Capture", quick: "Quick access",
+    rows: [
+      ["screenshot_region", "Capture Area", "⌥⇧1"], ["select_window", "Capture Window", "⌥⇧2"],
+      ["fullscreen", "Capture Full Screen", "⌥⇧3"], ["document_scanner", "Copy Text (OCR)", "⌥⇧4"],
+    ],
+    quickRows: [["content_paste", "Copy Last Capture", ""], ["folder_open", "Open Save Folder", ""], ["settings", "Open Settings", "⌥⇧0"]],
+    record: "Record Shortcut", pressing: "Press keys…", hint: "Click a shortcut, then press keys. Esc cancels, ⌫ removes it.",
+    hintPhone: "On a Mac: click a shortcut, then press the keys you want.",
+    needMod: "Add ⌘, ⌥, ⌃ or ⇧ to the key (F1–F19 work on their own).",
+    macos: "macOS uses this shortcut too. Turn it off in System Settings › Keyboard › Keyboard Shortcuts, or pick another one.",
+    other: "is already used by", saved: "Saved:",
+  },
+  vi: {
+    badge: "Chức năng 04 · Phím tắt", title: "Phím Tắt Theo Ý Bạn",
+    lead: "Mỗi thao tác có một phím tắt bạn đổi được trong tab Phím tắt. Bấm vào ô, nhấn tổ hợp phím muốn dùng, xong.",
+    points: [
+      "Tổ hợp bất kỳ với ⌘ ⌥ ⌃ ⇧, hoặc riêng F1–F19.",
+      "Báo ngay khi macOS hay app khác đã dùng phím tắt đó, để không bao giờ bấm mà chẳng có gì xảy ra.",
+      "Chạy trong mọi app, không cần quyền Trợ năng.",
+    ],
+    tab: "Phím tắt", capture: "Chụp", quick: "Truy cập nhanh",
+    rows: [
+      ["screenshot_region", "Chụp vùng", "⌥⇧1"], ["select_window", "Chụp cửa sổ", "⌥⇧2"],
+      ["fullscreen", "Chụp toàn màn hình", "⌥⇧3"], ["document_scanner", "Copy chữ (OCR)", "⌥⇧4"],
+    ],
+    quickRows: [["content_paste", "Copy ảnh vừa chụp", ""], ["folder_open", "Mở thư mục lưu", ""], ["settings", "Mở cài đặt", "⌥⇧0"]],
+    record: "Ghi phím tắt", pressing: "Nhấn phím…", hint: "Bấm vào ô phím tắt rồi nhấn phím. Esc để huỷ, ⌫ để xoá.",
+    hintPhone: "Trên Mac: bấm vào ô phím tắt rồi nhấn tổ hợp phím muốn dùng.",
+    needMod: "Thêm ⌘, ⌥, ⌃ hoặc ⇧ vào phím (riêng F1–F19 dùng một mình được).",
+    macos: "macOS cũng dùng phím tắt này. Tắt nó trong Cài đặt hệ thống › Bàn phím › Phím tắt, hoặc chọn phím khác.",
+    other: "đã được dùng bởi", saved: "Đã lưu:",
+  },
+});
+---
+
+<section id="shortcuts" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <div class="flex flex-col gap-space-md">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-secondary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-secondary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+    </div>
+
+    <!-- The Shortcuts tab from the app: click a shortcut and press keys to record a new one. -->
+    <div class="rounded-2xl bg-surface-container-low p-space-lg shadow-xl" id="shot-keys">
+      {[[t.capture, t.rows], [t.quick, t.quickRows]].map(([group, rows]) => (
+        <div class="mb-space-md">
+          <span class="mb-space-xs block font-code text-[10px] uppercase tracking-wider text-on-surface-variant">{group}</span>
+          <div class="flex flex-col divide-y divide-outline-variant/20 rounded-xl bg-surface-container px-3">
+            {(rows as string[][]).map(([icon, name, keys]) => (
+              <div class="flex items-center justify-between gap-space-sm py-2">
+                <span class="flex min-w-0 items-center gap-space-xs text-body-md"><span class="material-symbols-outlined text-[18px] text-secondary">{icon}</span><span class="truncate">{name}</span></span>
+                <button type="button" data-rec data-name={name} class="min-w-[84px] shrink-0 rounded-md bg-surface-container-high px-2 py-1 font-code text-xs text-on-surface transition-all hover:bg-surface-container-highest">{keys || t.record}</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <div class="min-h-[44px] rounded-lg bg-surface-container-lowest px-3 py-2 font-code text-[11px] text-on-surface-variant" data-log>
+        <span class="pointer-coarse:hidden">{t.hint}</span><span class="hidden pointer-coarse:inline">{t.hintPhone}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ t }}>
+  const root = document.getElementById("shot-keys");
+  const log = root.querySelector("[data-log]");
+  const buttons = [...root.querySelectorAll("[data-rec]")];
+  // Shortcuts macOS keeps for itself, as the app warns about them.
+  const system = new Set(["⇧⌘3", "⇧⌘4", "⇧⌘5", "⌘Space", "⌃Space", "⌘Tab"]);
+  let recording = null, before = "";
+  const stop = (text) => { if (!recording) return; recording.textContent = text; recording.classList.remove("ring-2", "ring-secondary"); recording = null; };
+  buttons.forEach((b) => b.addEventListener("click", () => {
+    if (recording === b) { stop(before); return; }
+    stop(before);
+    recording = b; before = b.textContent;
+    b.textContent = t.pressing;
+    b.classList.add("ring-2", "ring-secondary");
+  }));
+  window.addEventListener("keydown", (e) => {
+    if (!recording || ["Shift", "Control", "Alt", "Meta", "CapsLock"].includes(e.key)) return;
+    e.preventDefault();
+    if (e.key === "Escape") { stop(before); return; }
+    if (e.key === "Backspace") { stop(t.record); return; }
+    const key = e.code === "Space" ? "Space" : e.code.startsWith("Key") || e.code.startsWith("Digit") ? e.code.slice(-1) : e.code.startsWith("F") ? e.code : e.key.toUpperCase();
+    const combo = `${e.ctrlKey ? "⌃" : ""}${e.altKey ? "⌥" : ""}${e.shiftKey ? "⇧" : ""}${e.metaKey ? "⌘" : ""}${key}`;
+    if (combo === key && !/^F\d+$/.test(key)) { log.innerHTML = `<span class="text-secondary">●</span> ${t.needMod}`; return; }
+    if (system.has(combo)) { log.innerHTML = `<span class="text-primary">●</span> <b class="text-on-surface">${combo}</b>: ${t.macos}`; return; }
+    const taken = buttons.find((b) => b !== recording && b.textContent === combo);
+    if (taken) { log.innerHTML = `<span class="text-primary">●</span> <b class="text-on-surface">${combo}</b> ${t.other} ${taken.dataset.name}.`; return; }
+    log.innerHTML = `<span class="text-tertiary">●</span> ${t.saved} ${recording.dataset.name} → <b class="text-on-surface">${combo}</b>`;
+    stop(combo);
+  });
+</script>

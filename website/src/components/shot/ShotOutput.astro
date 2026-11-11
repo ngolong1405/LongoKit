@@ -1,0 +1,116 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Feature 03 · After a capture", title: "Saved, Copied, Ready to Paste",
+    lead: "Every capture lands in two places at once: a PNG in your folder and an image on the clipboard. Paste it into a chat, a document or Finder without opening anything.",
+    points: [
+      "Named by date and time, like macOS does it, in the folder you choose (Downloads to start).",
+      "Retina-correct: saved at 144 dpi, so it opens at the size you saw, not twice as big.",
+      "Turn off Save to folder and captures only go to the clipboard: nothing piles up on disk.",
+    ],
+    save: "Save to folder", saveOn: "On: saved as a PNG and copied", saveOff: "Off: clipboard only, nothing saved",
+    folder: "~/Downloads", clipboard: "Clipboard", clipBody: "Image + file · pastes into chats, docs and Finder",
+    nothing: "Nothing saved",
+    preview: "Preview", previewBody: "A thumbnail in the corner of the screen: drag it into another app, or use its buttons.",
+    copy: "Copy", finder: "Show in Finder", drag: "Drag into another app",
+    sound: "Capture sound optional: the same shutter as macOS screenshots.",
+  },
+  vi: {
+    badge: "Chức năng 03 · Sau khi chụp", title: "Đã Lưu, Đã Copy, Dán Được Ngay",
+    lead: "Mỗi ảnh chụp có mặt ở hai nơi cùng lúc: một file PNG trong thư mục của bạn và một ảnh trong clipboard. Dán thẳng vào khung chat, tài liệu hay Finder, không cần mở gì thêm.",
+    points: [
+      "Đặt tên theo ngày giờ như macOS vẫn làm, lưu trong thư mục bạn chọn (mặc định là Downloads).",
+      "Đúng chuẩn Retina: lưu ở 144 dpi, mở ra đúng kích thước bạn thấy chứ không to gấp đôi.",
+      "Tắt Lưu vào thư mục thì ảnh chỉ nằm trong clipboard: không có file nào chất đống trên ổ đĩa.",
+    ],
+    save: "Lưu vào thư mục", saveOn: "Bật: lưu file PNG và copy", saveOff: "Tắt: chỉ copy vào clipboard, không lưu file",
+    folder: "~/Downloads", clipboard: "Clipboard", clipBody: "Ảnh + file · dán vào chat, tài liệu và Finder",
+    nothing: "Không lưu file",
+    preview: "Xem nhanh", previewBody: "Ảnh nhỏ ở góc màn hình: kéo thả sang app khác, hoặc dùng các nút trên đó.",
+    copy: "Copy", finder: "Mở trong Finder", drag: "Kéo thả sang app khác",
+    sound: "Tiếng chụp tuỳ chọn: giống tiếng chụp màn hình của macOS.",
+  },
+});
+---
+
+<section id="output" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="grid grid-cols-1 items-center gap-gutter-lg lg:grid-cols-2">
+    <div class="flex flex-col gap-gutter" id="shot-output">
+      <div class="rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+        <div class="mb-space-md flex items-center justify-between gap-space-sm rounded-xl bg-surface-container p-space-sm">
+          <div class="flex flex-col">
+            <span class="text-body-md font-medium">{t.save}</span>
+            <span class="text-xs text-on-surface-variant" data-mode></span>
+          </div>
+          <label class="relative inline-flex shrink-0 cursor-pointer items-center">
+            <input type="checkbox" checked class="peer sr-only" aria-label={t.save} data-save />
+            <span class="h-6 w-11 rounded-full bg-surface-container-highest transition-colors peer-checked:bg-primary-container after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full"></span>
+          </label>
+        </div>
+        <!-- Where the capture went, following the switch. -->
+        <div class="flex flex-col gap-space-xs">
+          <div class="flex items-center gap-space-sm rounded-lg px-2 py-2 transition-opacity" data-file>
+            <span class="material-symbols-outlined text-[22px] text-tertiary">folder</span>
+            <div class="flex min-w-0 flex-col">
+              <span class="truncate font-code text-xs text-on-surface" data-name>Longo Shot 2026-11-11 at 09.41.07.png</span>
+              <span class="font-code text-[11px] text-on-surface-variant">{t.folder} · 144 dpi</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-space-sm rounded-lg px-2 py-2">
+            <span class="material-symbols-outlined text-[22px] text-primary">content_paste</span>
+            <div class="flex min-w-0 flex-col">
+              <span class="font-code text-xs text-on-surface">{t.clipboard}</span>
+              <span class="font-code text-[11px] text-on-surface-variant">{t.clipBody}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- The preview thumbnail, as it sits in the corner of the screen after a capture. -->
+      <div class="flex flex-col gap-space-md rounded-2xl bg-surface-container-low p-space-lg shadow-xl sm:flex-row sm:items-center">
+        <div class="relative w-40 shrink-0 self-center overflow-hidden rounded-lg border-2 border-white shadow-xl">
+          <div class="aspect-[16/10] bg-gradient-to-br from-[#ff8a50] via-[#8b5cf6] to-[#06b6d4]"></div>
+          <div class="absolute inset-x-0 bottom-0 flex justify-center gap-1 bg-black/40 p-1 backdrop-blur-sm">
+            <span class="rounded bg-white/90 px-1.5 font-code text-[9px] text-[#141b2b]">{t.copy}</span>
+            <span class="rounded bg-white/90 px-1.5 font-code text-[9px] text-[#141b2b]">Finder</span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="flex items-center gap-space-xs font-display text-headline-sm"><span class="material-symbols-outlined text-[22px] text-secondary">photo</span>{t.preview}</span>
+          <p class="text-body-md text-on-surface-variant">{t.previewBody}</p>
+          <span class="font-code text-[11px] text-on-surface-variant">{t.drag} · {t.copy} · {t.finder}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-space-md">
+      <span class="w-fit rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-primary">{t.badge}</span>
+      <h2 class="text-headline-xl tracking-tight">{t.title}</h2>
+      <p class="text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-col gap-space-xs border-l-2 border-primary pl-space-md text-body-md text-on-surface-variant">
+        {t.points.map((p) => <p>• {p}</p>)}
+      </div>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.sound}</p>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ t }}>
+  const demo = document.getElementById("shot-output");
+  const save = demo.querySelector("[data-save]"), file = demo.querySelector("[data-file]"), name = demo.querySelector("[data-name]");
+  const fileName = name.textContent;
+  const show = () => {
+    demo.querySelector("[data-mode]").textContent = save.checked ? t.saveOn : t.saveOff;
+    file.classList.toggle("opacity-40", !save.checked);
+    name.textContent = save.checked ? fileName : t.nothing;
+  };
+  save.addEventListener("change", show);
+  show();
+</script>
