@@ -204,7 +204,7 @@ enum SelfTest {
                 // the countdown, the recording bar and the menu bar timer on screen. The video should last ~2 s, not ~4.
                 let recorder = try await Recorder.start(.area(display: screen.displayID, rect: .null, scale: screen.backingScaleFactor),
                                                         options: .init(systemAudio: true), to: url, paused: true)
-                let model = AppDelegate.model
+                let model = ShotAppDelegate.model
                 let area = CGRect(x: 100, y: 100, width: 400, height: 300)
                 let countdown = CountdownPanel()
                 countdown.show(on: screen, area: area, model: model)

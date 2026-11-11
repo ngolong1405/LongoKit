@@ -143,8 +143,12 @@ public extension Font {
 }
 
 public enum Fonts {
-    /// Registers the bundled OFL fonts for this process. Missing files fall back to the system font.
+    private static var isRegistered = false
+
+    /// Registers the bundled OFL fonts for this process, once. Missing files fall back to the system font.
     public static func register() {
+        guard !isRegistered else { return }
+        isRegistered = true
         for name in ["SpaceGrotesk", "Geist", "JetBrainsMono"] {
             if let url = Resource.url(for: "Fonts/\(name).ttf") {
                 CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)

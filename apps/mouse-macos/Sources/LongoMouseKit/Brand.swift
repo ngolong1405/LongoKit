@@ -6,9 +6,9 @@ enum Brand {
     static let orchid = Color(hex: 0xE879F9)
 
     /// The "Solar Sunset Violet" app icon, also used as the in-app logo.
-    static var logo: NSImage? { Resource.image("Logo.png") }
+    static var logo: NSImage? { MouseModule.image("Logo.png") }
     /// The same mark on a white tile, for the light appearance.
-    static var lightLogo: NSImage? { Resource.image("LogoLight.png") }
+    static var lightLogo: NSImage? { MouseModule.image("LogoLight.png") }
 
     static func logo(dark: Bool) -> NSImage? { dark ? logo : (lightLogo ?? logo) }
 

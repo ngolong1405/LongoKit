@@ -28,7 +28,8 @@ Security and click **Open Anyway** (once), or run `xattr -dr com.apple.quarantin
 
 ## Layout
 
-- `Sources/LongoMouse/`: the app (SwiftUI + AppKit). `MouseEngine` holds the event tap and gesture logic, and `AppModel` holds the settings.
+- `Sources/LongoMouseKit/`: the app (SwiftUI + AppKit), as a module the LongoKit app can host too. `MouseEngine` holds the event tap and gesture logic, and `AppModel` holds the settings.
+- `Sources/LongoMouse/`: just `@main`, starting the module as its own app.
 - `Support/`: Info.plist, icons, and bundled fonts (Space Grotesk, Geist, JetBrains Mono; SIL Open Font License).
 - `scripts/`: build and signing helpers.
 

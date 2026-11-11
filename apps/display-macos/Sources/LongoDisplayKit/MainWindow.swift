@@ -137,7 +137,7 @@ struct AppLogo: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        if let logo = Resource.image(scheme == .dark ? "Logo.png" : "LogoLight.png") ?? Resource.image("Logo.png") {
+        if let logo = DisplayModule.image(scheme == .dark ? "Logo.png" : "LogoLight.png") ?? DisplayModule.image("Logo.png") {
             Image(nsImage: logo).resizable().interpolation(.high).frame(width: size, height: size)
         } else {
             RoundedRectangle(cornerRadius: size * 0.22, style: .continuous)

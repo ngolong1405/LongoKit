@@ -7,4 +7,4 @@
 - `tokens.css`: color, font, and radius tokens as CSS variables (`--lk-*`), light and dark.
 
 The macOS app keeps its own copies in `apps/mouse-macos/Support` because the app bundle needs them. When a
-color changes, update `tokens.css` and `Theme` in `apps/mouse-macos/Sources/LongoMouse/Components.swift`.
+color changes, update `tokens.css` and `Theme` in `packages/ui-macos/Sources/LongoKitUI/Components.swift`.

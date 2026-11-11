@@ -1,6 +1,6 @@
 /*
  * LongoKit color tokens ("Solar Sunset & Cyber-Violet").
- * Same values as Theme in apps/mouse-macos/Sources/LongoMouse/Components.swift; change both together.
+ * Same values as Theme in packages/ui-macos/Sources/LongoKitUI/Components.swift; change both together.
  * Dark is the default; light applies with prefers-color-scheme or [data-theme="light"].
  */
 :root {

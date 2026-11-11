@@ -3,9 +3,11 @@
 The SwiftUI design system shared by the LongoKit macOS apps: color tokens (`Theme`), fonts, panels, switches,
 sliders, segmented controls, chips, buttons, rows, the slim scroll view, dropdowns, and the `L()` localization helper.
 
-Each app:
-- ships the fonts in its bundle (`Contents/Resources/Fonts`) and calls `Fonts.register()` at launch,
-- sets `Localizer.vietnamese` to its own string table,
-- sets `Resource.developmentSupport` to its `Support` folder so `swift run` finds resources.
+Each app is a module (`LongoModule`) in a `Longo<App>Kit` library, plus a small target holding `@main`. At launch it:
+- sets `Resource.developmentSupport` to its `Support` folder so `swift run` finds resources,
+- calls `prepare()` on its module, which shares the module's Vietnamese table with this package's controls and
+  registers the fonts it ships in `Contents/Resources/Fonts`.
+
+Inside a module, `L()` reads the module's own table first, so two modules in one app can word a string differently.
 
 Colors match `brand/tokens.css`; change both together.
