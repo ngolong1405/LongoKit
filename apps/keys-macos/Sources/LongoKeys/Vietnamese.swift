@@ -190,5 +190,10 @@ enum Vietnamese {
         "Input Monitoring (optional)": "Theo dõi đầu vào (tuỳ chọn)",
         "Shows which keyboard you're typing on in the Keyboards tab.": "Cho biết bạn đang gõ trên bàn phím nào, ở tab Bàn phím.",
         "Show keys": "Hiện bàn phím",
+
+        // Compact General tab
+        "Accessibility": "Trợ năng",
+        "App": "Ứng dụng",
+        "Status": "Trạng thái",
     ]
 }

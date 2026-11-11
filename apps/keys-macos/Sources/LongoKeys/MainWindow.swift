@@ -5,15 +5,17 @@ struct MainWindow: View {
     @EnvironmentObject private var model: AppModel
     /// Height of the hidden system title bar, which SwiftUI still reserves as a top safe area.
     @State private var titlebarInset: CGFloat = 0
+    /// The open page's height: the window fits it, up to the tallest page size.
+    @State private var pageHeight = Theme.contentHeight
 
     var body: some View {
         WindowFrame {
             TitleBar()
             TabBar()
-            SlimScrollView {
+            SlimScrollView(contentHeight: $pageHeight) {
                 TabContent(tab: model.tab)
             }
-            .frame(height: Theme.contentHeight)
+            .frame(height: Theme.pageHeight(pageHeight))
             .id(PageID(tab: model.tab, keyboard: model.openKeyboard))
             .transaction { $0.animation = nil }
             // Soft blur behind an open picker keeps attention on the popover.
@@ -51,17 +53,20 @@ struct TitleBar: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
-        HStack(spacing: 14) {
-            TrafficLights()
-            HStack(spacing: 8) {
-                AppLogo(size: 28).padding(-3)
-                Text(AppInfo.name).font(.display(15, .semibold)).tracking(-0.2).foregroundStyle(Theme.text)
+        // The name in the middle, like a macOS settings window; window controls left, status right.
+        ZStack {
+            HStack(spacing: 7) {
+                AppLogo(size: 22).padding(-2)
+                Text(AppInfo.name).font(.display(14, .semibold)).tracking(-0.2).foregroundStyle(Theme.text)
             }
-            Spacer()
-            StatusPill()
+            HStack {
+                TrafficLights()
+                Spacer()
+                StatusPill()
+            }
         }
         .padding(.horizontal, 16)
-        .frame(height: 50)
+        .frame(height: 44)
     }
 }
 
@@ -88,6 +93,13 @@ struct TabBar: View {
     var body: some View {
         PillTabBar(tabs: MainTab.allCases, selection: $model.tab) { tab in
             tab == .keyboards && !model.keyboards.isEmpty ? L("Keyboards") + " (\(model.keyboards.count))" : tab.title
+        } symbol: { tab in
+            switch tab {
+            case .general: return "gearshape"
+            case .keyboards: return "keyboard"
+            case .hyper: return "command.square"
+            case .about: return "info.circle"
+            }
         }
     }
 }

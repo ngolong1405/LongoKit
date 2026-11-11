@@ -50,14 +50,7 @@ struct MenuPopover: View {
             }
 
             Hairline()
-            HStack {
-                Button(L("Preferences…")) { if !MainWindowRef.show() { openWindow(id: "main") } }
-                Spacer()
-                Button(L("Quit")) { NSApp.terminate(nil) }
-            }
-            .buttonStyle(.plain)
-            .font(.ui(12))
-            .foregroundStyle(Theme.textSecondary)
+            MenuFooter { if !MainWindowRef.show() { openWindow(id: "main") } }
         }
         .padding(14)
         .frame(width: 360)

@@ -156,14 +156,7 @@ struct MenuPopover: View {
     }
 
     private var footer: some View {
-        HStack {
-            Button(L("Preferences…")) { openMain(nil) }
-            Spacer()
-            Button(L("Quit")) { NSApp.terminate(nil) }
-        }
-        .buttonStyle(.plain)
-        .font(.ui(12))
-        .foregroundStyle(Theme.textSecondary)
+        MenuFooter { openMain(nil) }
     }
 
     // MARK: Helpers

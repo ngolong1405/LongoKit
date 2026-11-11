@@ -85,7 +85,7 @@ private struct HyperKey: View {
                     .foregroundStyle(action == nil ? Theme.textFaint : Color.white.opacity(0.9))
             }
             .foregroundStyle(action == nil ? Theme.text : Color.white)
-            .frame(width: wide ? 300 : 66, height: 50)
+            .frame(width: wide ? 260 : 54, height: 48)
             .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
                 .fill(action == nil ? AnyShapeStyle(Theme.tint(0.06)) : AnyShapeStyle(Theme.accentGradient)))
             .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Theme.hairline))

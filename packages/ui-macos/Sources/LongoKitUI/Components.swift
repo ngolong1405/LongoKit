@@ -5,7 +5,7 @@ import SwiftUI
 // appearance, so the whole UI follows the Light/Dark setting (or macOS when set to System).
 
 public enum Theme {
-    public static let windowWidth: CGFloat = 900
+    public static let windowWidth: CGFloat = 700
     /// Height of the page area between the tab bar and the footer, the same on every tab.
     public static let contentHeight: CGFloat = 700
     public static let windowRadius: CGFloat = 16

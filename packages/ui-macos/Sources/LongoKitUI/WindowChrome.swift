@@ -123,52 +123,61 @@ public struct TrafficLights: View {
     }
 }
 
-/// Text-only segmented tab switcher; the active tab is a lifted pill.
+/// Toolbar-style tabs, like macOS settings windows: an icon over each name, the active one on a soft tile.
 public struct PillTabBar<Tab: Hashable>: View {
     public let tabs: [Tab]
     @Binding public var selection: Tab
     public let title: (Tab) -> String
+    public let symbol: (Tab) -> String
     @Namespace private var pill
 
-    public init(tabs: [Tab], selection: Binding<Tab>, title: @escaping (Tab) -> String) {
+    public init(tabs: [Tab], selection: Binding<Tab>, title: @escaping (Tab) -> String, symbol: @escaping (Tab) -> String) {
         self.tabs = tabs
         self._selection = selection
         self.title = title
+        self.symbol = symbol
     }
 
     public var body: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 4) {
             ForEach(tabs, id: \.self) { tab in
                 item(tab)
             }
         }
-        .padding(3)
-        .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Theme.segmentTrack))
-        .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Theme.hairline))
-        .padding(.bottom, 12)
+        .padding(.bottom, 10)
         .frame(maxWidth: .infinity)
         .overlay(alignment: .bottom) { Hairline() }
     }
 
     private func item(_ tab: Tab) -> some View {
         let active = tab == selection
-        let shape = RoundedRectangle(cornerRadius: 7, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: 10, style: .continuous)
         return Button {
             withAnimation(Motion.slide) { selection = tab }
         } label: {
-            Text(title(tab))
-                .font(.ui(12, active ? .semibold : .medium))
-                .foregroundStyle(active ? Theme.text : Theme.textMuted)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 5)
-                .background {
-                    if active {
-                        shape.fill(Theme.segmentSelected)
-                            .shadow(color: Color.black.opacity(0.12), radius: 1.5, y: 1)
-                            .matchedGeometryEffect(id: "pill", in: pill)
-                    }
+            VStack(spacing: 4) {
+                Image(systemName: symbol(tab))
+                    .font(.system(size: 19, weight: .regular))
+                    .symbolVariant(active ? .fill : .none)
+                    .foregroundStyle(active ? Theme.solar : Theme.textMuted)
+                    .frame(height: 22)
+                Text(title(tab))
+                    .font(.ui(11, active ? .semibold : .medium))
+                    .foregroundStyle(active ? Theme.solarLight : Theme.textMuted)
+                    .lineLimit(1)
+            }
+            .frame(minWidth: 64)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background {
+                if active {
+                    shape.fill(Theme.segmentSelected)
+                        .overlay(shape.strokeBorder(Theme.hairline))
+                        .shadow(color: Color.black.opacity(0.1), radius: 1.5, y: 1)
+                        .matchedGeometryEffect(id: "pill", in: pill)
                 }
-                .contentShape(Rectangle())
+            }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -281,14 +290,43 @@ public struct WindowConfigurator: NSViewRepresentable {
     /// Configures the window as soon as the view joins it, instead of hoping an async hop finds it attached.
     private final class HostView: NSView {
         var onTitlebarInset: (CGFloat) -> Void = { _ in }
+        /// Where the window's top edge is; it stays there when the window grows or shrinks to fit a page.
+        private var top: CGFloat?
+        private var observers: [NSObjectProtocol] = []
 
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
+            observers.forEach(NotificationCenter.default.removeObserver)
+            observers = []
             guard let window else { return }
             WindowConfigurator.configure(window)
             let inset = window.frame.height - window.contentLayoutRect.height
             // Report after this layout pass; changing SwiftUI state during it is not allowed.
             DispatchQueue.main.async { [onTitlebarInset] in onTitlebarInset(inset) }
+            keepTopEdge(of: window)
+        }
+
+        /// macOS keeps the bottom edge when a window changes height; pages that fit their content would make the
+        /// tab bar jump. Move the window back so its top edge stays put (and it stays on screen).
+        private func keepTopEdge(of window: NSWindow) {
+            top = window.frame.maxY
+            let center = NotificationCenter.default
+            observers.append(center.addObserver(forName: NSWindow.didMoveNotification, object: window, queue: .main) { [weak self] _ in
+                self?.top = window.frame.maxY
+            })
+            observers.append(center.addObserver(forName: NSWindow.didResizeNotification, object: window, queue: .main) { [weak self] _ in
+                guard let self, let top = self.top else { return }
+                var origin = window.frame.origin
+                origin.y = top - window.frame.height
+                if let visible = window.screen?.visibleFrame, origin.y < visible.minY {
+                    origin.y = min(visible.minY, visible.maxY - window.frame.height)
+                }
+                if abs(origin.y - window.frame.minY) > 0.5 { window.setFrameOrigin(origin) }
+            })
+        }
+
+        deinit {
+            observers.forEach(NotificationCenter.default.removeObserver)
         }
     }
 

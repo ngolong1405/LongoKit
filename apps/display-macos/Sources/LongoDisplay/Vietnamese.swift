@@ -171,5 +171,11 @@ enum Vietnamese {
             "Độ sáng cho mọi màn hình: màn ngoài qua DDC/CI, làm tối bằng phần mềm cho các màn còn lại, và đồng bộ với MacBook.",
         "License": "Giấy phép",
         "Part of LongoKit · Crafted by %@": "Thuộc bộ LongoKit · Thực hiện bởi %@",
+
+        // Compact General tab
+        "Granted": "Đã cấp",
+        "Accessibility": "Trợ năng",
+        "App": "Ứng dụng",
+        "Permissions": "Quyền",
     ]
 }

@@ -340,7 +340,7 @@ enum Vietnamese {
         "Per-Device Profile": "Hồ sơ riêng",
         "Configure buttons for this mouse": "Cấu hình nút cho chuột này",
         "Natural Scroll": "Cuộn tự nhiên",
-        "Preferences…": "Cài đặt…",
+        "Preferences…": "Mở cài đặt…",
 
         // Alerts & menus
         "Restore %@ defaults?": "Khôi phục mặc định tab %@?",
@@ -400,5 +400,11 @@ enum Vietnamese {
         "Press and hold": "Nhấn và giữ",
         "Hold and turn the wheel": "Giữ nút và lăn bánh xe",
         "Hold and move the mouse": "Giữ nút và di chuột",
+
+        // Compact General tab
+        "Granted": "Đã cấp",
+        "App": "Ứng dụng",
+        "Permissions": "Quyền",
+        "Mouse": "Chuột",
     ]
 }

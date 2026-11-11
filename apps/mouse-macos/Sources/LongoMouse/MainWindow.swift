@@ -29,17 +29,19 @@ struct MainWindow: View {
     @EnvironmentObject private var model: AppModel
     /// Height of the hidden system title bar, which SwiftUI still reserves as a top safe area.
     @State private var titlebarInset: CGFloat = 0
+    /// The open page's height: the window fits it, up to the tallest page size.
+    @State private var pageHeight = Theme.contentHeight
 
     var body: some View {
         WindowFrame {
             TitleBar()
             TabBar(selection: $model.tab)
-            // One fixed height for every page: the window never resizes when switching tabs or pages,
-            // and each page starts at the top.
-            SlimScrollView(scrollTarget: model.highlighted, resetID: model.deviceSection) {
+            // Each page gets the height it needs (taller ones scroll); the window's top edge stays put, and
+            // each page starts at the top.
+            SlimScrollView(contentHeight: $pageHeight, scrollTarget: model.highlighted, resetID: model.deviceSection) {
                 TabContent(tab: model.tab)
             }
-            .frame(height: Theme.contentHeight)
+            .frame(height: Theme.pageHeight(pageHeight))
             // A new page gets a fresh scroll view; Buttons ↔ Scrolling keeps it (so the header and its
             // switcher stay put) and just scrolls back to the top.
             .id(PageID(tab: model.tab, detail: model.showingDeviceDetail))
@@ -90,20 +92,20 @@ struct TitleBar: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
-        HStack(spacing: 14) {
-            TrafficLights()
-            HStack(spacing: 8) {
-                AppLogo(size: 28).padding(-3)
-                Text(AppInfo.name)
-                    .font(.display(15, .semibold))
-                    .tracking(-0.2)
-                    .foregroundStyle(Theme.text)
+        // The name in the middle, like a macOS settings window; window controls left, status right.
+        ZStack {
+            HStack(spacing: 7) {
+                AppLogo(size: 22).padding(-2)
+                Text(AppInfo.name).font(.display(14, .semibold)).tracking(-0.2).foregroundStyle(Theme.text)
             }
-            Spacer()
-            StatusPill()
+            HStack {
+                TrafficLights()
+                Spacer()
+                StatusPill()
+            }
         }
         .padding(.horizontal, 16)
-        .frame(height: 50)
+        .frame(height: 44)
     }
 }
 
@@ -139,6 +141,12 @@ struct TabBar: View {
     var body: some View {
         PillTabBar(tabs: MainTab.allCases, selection: $selection) { tab in
             tab == .devices && !model.connectedDevices.isEmpty ? L("Devices") + " (\(model.connectedDevices.count))" : tab.title
+        } symbol: { tab in
+            switch tab {
+            case .general: return "gearshape"
+            case .devices: return "computermouse"
+            case .about: return "info.circle"
+            }
         }
     }
 }
