@@ -152,7 +152,6 @@ final class AppModel: ObservableObject {
     private let launchedWithInputMonitoring = AppModel.checkInputMonitoring()
     /// Shown on the General tab during the short pause before restarting.
     @Published private(set) var isRelaunching = false
-    private var appearanceObservation: NSKeyValueObservation?
     private let deviceMonitor = DeviceMonitor()
 
     private enum Keys {
@@ -335,22 +334,9 @@ final class AppModel: ObservableObject {
     /// NSApp may not exist yet during launch, so apply on the next turn of the run loop.
     private func applyAppearance() {
         let appearance = appearance.nsAppearance
-        DispatchQueue.main.async { [weak self] in
-            guard let app = NSApp else { return }
-            app.appearance = appearance
-            Self.updateDockIcon()
-            // "System" follows macOS switching light/dark on its own, so keep the Dock icon in step.
-            if self?.appearanceObservation == nil {
-                self?.appearanceObservation = app.observe(\.effectiveAppearance) { _, _ in
-                    DispatchQueue.main.async { Self.updateDockIcon() }
-                }
-            }
-        }
-    }
-
-    /// The Dock icon is the dark tile in every appearance, like the app icon and the other LongoKit apps.
-    private static func updateDockIcon() {
-        NSApp?.applicationIconImage = Brand.logo(dark: true)
+        // The Dock shows the bundle's icon, the dark tile in every appearance. Setting applicationIconImage too
+        // would keep a decoded copy of the logo (~8 MB) alive for the app's whole life.
+        DispatchQueue.main.async { NSApp?.appearance = appearance }
     }
 
     private func syncEngine() {

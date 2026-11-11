@@ -620,26 +620,12 @@ final class AppModel: ObservableObject {
 
     // MARK: - Helpers
 
-    private var appearanceObservation: NSKeyValueObservation?
-
     /// NSApp may not exist yet during launch, so apply on the next turn of the run loop.
     private func applyAppearance() {
         let appearance = appearance.nsAppearance
-        DispatchQueue.main.async { [weak self] in
-            guard let app = NSApp else { return }
-            app.appearance = appearance
-            Self.updateDockIcon()
-            if self?.appearanceObservation == nil {
-                self?.appearanceObservation = app.observe(\.effectiveAppearance) { _, _ in
-                    DispatchQueue.main.async { Self.updateDockIcon() }
-                }
-            }
-        }
-    }
-
-    /// The Dock icon is the dark tile in every appearance, like the app icon and the other LongoKit apps.
-    private static func updateDockIcon() {
-        NSApp?.applicationIconImage = Resource.image("Logo.png")
+        // The Dock shows the bundle's icon, the dark tile in every appearance. Setting applicationIconImage too
+        // would keep a decoded copy of the logo (~8 MB) alive for the app's whole life.
+        DispatchQueue.main.async { NSApp?.appearance = appearance }
     }
 
     private func save<T: Encodable>(_ value: T, forKey key: String) {
