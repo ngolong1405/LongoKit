@@ -1,7 +1,7 @@
 <!doctype html>
 <!--
   LongoKit Trinity icons (1024×1024): LongoMouse, LongoDisplay, LongoKeys as gradient line art on an obsidian
-  (dark) or porcelain (light) squircle. Pick one with ?icon=mouse|display|keys&theme=dark|light.
+  (dark) or porcelain (light) squircle, plus LongoShot. Pick one with ?icon=mouse|display|keys|shot&theme=dark|light.
   Render all of them with brand/icons/render.sh.
 -->
 <html>
@@ -57,6 +57,12 @@
           <stop offset="0.5" stop-color="#ec4899" />
           <stop offset="1" stop-color="#ff6b35" />
         </linearGradient>
+        <!-- Shot: teal to orange -->
+        <linearGradient id="shot" gradientUnits="userSpaceOnUse" x1="292" y1="292" x2="732" y2="732">
+          <stop offset="0" stop-color="#2dd4bf" />
+          <stop offset="0.55" stop-color="#38bdf8" />
+          <stop offset="1" stop-color="#ff6b35" />
+        </linearGradient>
         <linearGradient id="key" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stop-color="#a855f7" />
           <stop offset="1" stop-color="#ff5e7a" />
@@ -94,6 +100,18 @@
         <rect x="214" y="324" width="596" height="374" rx="56" stroke="url(#keys)" stroke-width="18" />
         <circle cx="742" cy="368" r="6" fill="#10b981" />
         <g id="key-rows" stroke-width="10"></g>
+      </g>
+
+      <g id="glyph-shot" filter="url(#glow)" style="display:none">
+        <g stroke="url(#shot)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M300 404 V352 Q300 300 352 300 H404" />
+          <path d="M620 300 H672 Q724 300 724 352 V404" />
+          <path d="M724 620 V672 Q724 724 672 724 H620" />
+          <path d="M404 724 H352 Q300 724 300 672 V620" />
+        </g>
+        <circle cx="512" cy="512" r="96" stroke="url(#shot)" stroke-width="26" />
+        <circle cx="512" cy="512" r="40" fill="#fde047" />
+        <circle cx="620" cy="404" r="16" fill="#ff6b35" />
       </g>
     </svg>
 

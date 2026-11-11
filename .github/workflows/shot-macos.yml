@@ -1,0 +1,27 @@
+name: shot-macos
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/shot-macos/**", "packages/ui-macos/**", ".github/workflows/shot-macos.yml"]
+  pull_request:
+    paths: ["apps/shot-macos/**", "packages/ui-macos/**", ".github/workflows/shot-macos.yml"]
+
+jobs:
+  build:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: apps/shot-macos
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build
+      - name: Self-test
+        run: .build/debug/LongoShot --selftest
+      - name: App bundle and disk image
+        run: ./scripts/build-app.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LongoShot
+          path: apps/shot-macos/build/LongoShot.dmg

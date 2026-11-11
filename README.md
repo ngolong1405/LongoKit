@@ -1,6 +1,6 @@
 # LongoKit
 
-Tools for customizing mice, keyboards, and displays on macOS and Windows, by Long Ngô.
+Tools for customizing mice, keyboards, and displays, and for taking screenshots, on macOS and Windows, by Long Ngô.
 
 | App | Folder | Platform | Status |
 |---|---|---|---|
@@ -10,6 +10,7 @@ Tools for customizing mice, keyboards, and displays on macOS and Windows, by Lon
 | Longo Keys | `apps/keys-windows` | Windows | Planned |
 | **Longo Display** | [`apps/display-macos`](apps/display-macos) | macOS 13+ | In progress |
 | Longo Display | `apps/display-windows` | Windows | Planned |
+| **Longo Shot** | [`apps/shot-macos`](apps/shot-macos) | macOS 14+ | In progress |
 | Website | [`website`](website) | Web (Astro) | Landing page |
 
 ## Repository layout
