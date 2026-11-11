@@ -5,17 +5,21 @@ import Carbon.HIToolbox
 public final class GlobalHotKey {
     private var hotKey: EventHotKeyRef?
     private var handler: EventHandlerRef?
-    private let id: UInt32
+    /// Unique in the process.
+    public let id: UInt32
     private let action: () -> Void
     private static let signature = OSType(0x4C4B4954) // "LKIT"
+    /// Ids are handed out here, so they're unique in the process even with several modules in one app.
+    private static var lastID: UInt32 = 0
 
     /// False when macOS refused the combination, usually because another app already took it.
     public var isRegistered: Bool { hotKey != nil }
 
-    /// `keyCode` is a `kVK_` code; `modifiers` are Carbon flags (`cmdKey | optionKey | controlKey`). Each hot key in
-    /// an app needs its own `id`: every handler sees every press and only acts on its own.
-    public init(keyCode: Int, modifiers: Int, id: UInt32, action: @escaping () -> Void) {
-        self.id = id
+    /// `keyCode` is a `kVK_` code; `modifiers` are Carbon flags (`cmdKey | optionKey | controlKey`). Every handler sees
+    /// every press and only acts on its own id.
+    public init(keyCode: Int, modifiers: Int, action: @escaping () -> Void) {
+        Self.lastID += 1
+        self.id = Self.lastID
         self.action = action
         var type = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
         InstallEventHandler(GetApplicationEventTarget(), { _, event, context in
@@ -34,8 +38,8 @@ public final class GlobalHotKey {
     }
 
     /// ⌃⌥⌘ plus a key.
-    public convenience init(controlOptionCommand keyCode: Int, id: UInt32, action: @escaping () -> Void) {
-        self.init(keyCode: keyCode, modifiers: cmdKey | optionKey | controlKey, id: id, action: action)
+    public convenience init(controlOptionCommand keyCode: Int, action: @escaping () -> Void) {
+        self.init(keyCode: keyCode, modifiers: cmdKey | optionKey | controlKey, action: action)
     }
 
     deinit {

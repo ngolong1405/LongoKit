@@ -10,7 +10,6 @@ enum Vietnamese {
         "About": "Giới thiệu",
         "Restore Defaults": "Khôi phục mặc định",
         "Copy Diagnostics": "Sao chép chẩn đoán",
-        "Crafted by ": "Thực hiện bởi ",
         "Crafted with care by ": "Thực hiện bởi ",
         "Running": "Đang chạy",
         "Paused": "Tạm dừng",

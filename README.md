@@ -11,12 +11,14 @@ Tools for customizing mice, keyboards, and displays, and for taking screenshots,
 | **Longo Display** | [`apps/display-macos`](apps/display-macos) | macOS 13+ | In progress |
 | Longo Display | `apps/display-windows` | Windows | Planned |
 | **Longo Shot** | [`apps/shot-macos`](apps/shot-macos) | macOS 14+ | In progress |
+| **LongoKit** (all four macOS apps in one) | [`apps/kit-macos`](apps/kit-macos) | macOS 14+ | In progress |
 | Website | [`website`](website) | Web (Astro) | Landing page |
 
 ## Repository layout
 
 ```
 apps/<product>-<platform>/   one app each, building on its own (its own README, scripts, and CI workflow)
+apps/kit-macos/              LongoKit: the macOS apps as modules of one app (each app's code is its Longo<App>Kit library)
 packages/ui-macos/           LongoKitUI, the SwiftUI design system shared by the macOS apps
 brand/                       logos, fonts, and color tokens shared by the apps and the website
 website/                     the LongoKit landing page

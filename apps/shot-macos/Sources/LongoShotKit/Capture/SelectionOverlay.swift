@@ -183,11 +183,13 @@ final class SelectionOverlay {
         let options: CGWindowListOption = [.optionOnScreenOnly, .excludeDesktopElements]
         guard let list = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]] else { return [] }
         let me = getpid()
+        // The app's own real windows (its settings) can be picked too; its panels can't.
+        let mine = Capturer.ownWindows
         return list.compactMap { info in
             guard (info[kCGWindowLayer as String] as? Int) == 0,
-                  (info[kCGWindowOwnerPID as String] as? pid_t) != me,
                   ((info[kCGWindowAlpha as String] as? Double) ?? 1) > 0,
                   let id = info[kCGWindowNumber as String] as? CGWindowID,
+                  (info[kCGWindowOwnerPID as String] as? pid_t) != me || mine.contains(id),
                   let bounds = info[kCGWindowBounds as String] as? NSDictionary,
                   let frame = CGRect(dictionaryRepresentation: bounds),
                   frame.width > 40, frame.height > 40 else { return nil }

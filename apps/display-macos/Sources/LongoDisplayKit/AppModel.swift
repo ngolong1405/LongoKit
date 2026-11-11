@@ -163,7 +163,7 @@ final class AppModel: ObservableObject {
         // Displays left off by a previous run come back on first; each is forgotten once it shows a picture.
         engine.turnedOff = Set(powerOff.keys)
         if !powerOff.isEmpty { turnAllOn() }
-        emergencyKey = GlobalHotKey(controlOptionCommand: kVK_ANSI_B, id: 1) { [weak self] in
+        emergencyKey = GlobalHotKey(controlOptionCommand: kVK_ANSI_B) { [weak self] in
             MainActor.assumeIsolated { self?.turnAllOn() }
         }
 

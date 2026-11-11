@@ -142,7 +142,14 @@ public struct AppBehaviorRows: View {
         self.menuBarHelp = menuBarHelp
     }
 
+    @Environment(\.isHosted) private var isHosted
+
     public var body: some View {
+        // In the LongoKit app these belong to the app, on its own General page.
+        if !isHosted { rows }
+    }
+
+    private var rows: some View {
         SettingsGroup(L("App")) {
             CompactRow(L("Language")) {
                 Segmented(options: AppLanguage.allCases, selection: $language, title: { $0.title })

@@ -50,8 +50,7 @@ final class Recorder: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Sen
         switch selection {
         case let .area(displayID, rect, scale):
             guard let display = content.displays.first(where: { $0.displayID == displayID }) else { throw Failure.notFound }
-            let mine = content.applications.filter { $0.processID == getpid() }
-            filter = SCContentFilter(display: display, excludingApplications: mine, exceptingWindows: [])
+            filter = await Capturer.filter(display, content)
             let area = rect.isNull ? CGRect(x: 0, y: 0, width: display.width, height: display.height) : rect
             if !rect.isNull { config.sourceRect = area }
             size = CGSize(width: area.width * scale, height: area.height * scale)

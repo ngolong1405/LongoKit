@@ -8,6 +8,9 @@ public enum Theme {
     public static let windowWidth: CGFloat = 700
     /// Height of the page area between the tab bar and the footer, the same on every tab.
     public static let contentHeight: CGFloat = 700
+    /// The height of the page shown last. A new page starts there instead of at `contentHeight`, so the window changes
+    /// size once, to fit it, rather than growing to the tallest size first.
+    public static var lastPageHeight: CGFloat = contentHeight
     public static let windowRadius: CGFloat = 16
 
     // Accents
@@ -820,7 +823,20 @@ public struct SlimScrollView<Content: View>: View {
     private let space = "slim-scroll"
     private static var topAnchor: String { "slim-scroll-top" }
 
+    /// Snapshots: ImageRenderer can't draw a ScrollView's content, so it's laid out in place.
+    @Environment(\.rendersFlat) private var rendersFlat
+
     public var body: some View {
+        if rendersFlat {
+            VStack(spacing: 0) { content }
+                .padding(.trailing, gutter)
+                .frame(maxHeight: .infinity, alignment: .top)
+        } else {
+            scrollView
+        }
+    }
+
+    private var scrollView: some View {
         ScrollViewReader { proxy in
             ScrollView(.vertical) {
                 VStack(spacing: 0) {
@@ -845,7 +861,10 @@ public struct SlimScrollView<Content: View>: View {
         .onPreferenceChange(ScrollMetricsKey.self) { new in
             let moved = abs(new.offset - metrics.offset) > 0.5
             metrics = new
-            contentHeight?.wrappedValue = new.height
+            if let contentHeight {
+                contentHeight.wrappedValue = new.height
+                Theme.lastPageHeight = new.height
+            }
             if moved { flash() }
         }
         .background(GeometryReader { geometry in

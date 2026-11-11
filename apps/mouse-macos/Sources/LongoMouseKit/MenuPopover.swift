@@ -17,10 +17,7 @@ struct MenuPopover: View {
             footer
         }
         .padding(14)
-        .frame(width: 320)
-        .background(
-            LinearGradient(colors: [Theme.popoverTop, Theme.popoverBottom], startPoint: .top, endPoint: .bottom)
-        )
+        .popoverFrame(width: 320)
         .id(model.language)
     }
 
@@ -173,7 +170,7 @@ struct MenuPopover: View {
     /// Brings up the main window, optionally on a mouse's button configuration.
     private func openMain(_ deviceID: String?) {
         if let deviceID { model.configure(deviceID) }
-        if !MainWindowRef.show() { openWindow(id: "main") }
+        if !MainWindowRef.show(module: MouseModule.id) { openWindow(id: "main") }
     }
 }
 

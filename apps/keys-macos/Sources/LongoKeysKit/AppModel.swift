@@ -139,7 +139,7 @@ final class AppModel: ObservableObject {
         monitor.onActivity = { [weak self] in self?.typingKeyboard = $0 }
         monitor.start()
 
-        pauseKey = GlobalHotKey(controlOptionCommand: kVK_ANSI_K, id: 3) { [weak self] in
+        pauseKey = GlobalHotKey(controlOptionCommand: kVK_ANSI_K) { [weak self] in
             MainActor.assumeIsolated { self?.isEnabled.toggle() }
         }
         startTapIfPossible()

@@ -82,11 +82,10 @@ struct MenuPopover: View {
             .opacity(model.isEnabled ? 1 : 0.45)
 
             Hairline()
-            MenuFooter { if !MainWindowRef.show() { openWindow(id: "main") } }
+            MenuFooter { if !MainWindowRef.show(module: DisplayModule.id) { openWindow(id: "main") } }
         }
         .padding(14)
-        .frame(width: 380)
-        .background(LinearGradient(colors: [Theme.popoverTop, Theme.popoverBottom], startPoint: .top, endPoint: .bottom))
+        .popoverFrame(width: 380)
         .id(model.language)
     }
 }

@@ -24,7 +24,6 @@ enum SelfTest {
         let defaults = ShotAction.defaultShortcuts
         check("Default shortcuts are all different", Set(defaults.values).count == defaults.count)
         check("Default shortcuts are allowed", defaults.values.allSatisfy(\.isAllowed))
-        check("Hot key ids are all different", Set(ShotAction.allCases.map(\.hotKeyID)).count == ShotAction.allCases.count)
         check("Capture Area is ⌥⇧1 by default", defaults[.captureArea] == Shortcut(keyCode: kVK_ANSI_1, modifiers: optionShift))
 
         // Settings, in a throwaway suite.
@@ -50,9 +49,11 @@ enum SelfTest {
         UserDefaults().removePersistentDomain(forName: suite)
 
         // Hot keys: two at once each register (an unusual combination, released right away).
-        let first = GlobalHotKey(keyCode: kVK_F19, modifiers: controlKey | optionKey | shiftKey | cmdKey, id: 901) {}
-        let second = GlobalHotKey(keyCode: kVK_F18, modifiers: controlKey | optionKey | shiftKey | cmdKey, id: 902) {}
+        let first = GlobalHotKey(keyCode: kVK_F19, modifiers: controlKey | optionKey | shiftKey | cmdKey) {}
+        let second = GlobalHotKey(keyCode: kVK_F18, modifiers: controlKey | optionKey | shiftKey | cmdKey) {}
         check("Two hot keys register side by side", first.isRegistered && second.isRegistered)
+        // In LongoKit every module makes hot keys in one process; a press must only reach its own.
+        check("Hot keys get ids of their own", first.id != second.id)
 
         // Files.
         var parts = DateComponents()
@@ -272,9 +273,15 @@ enum SelfTest {
             let fills = abs(whole.width - screen.frame.width) < 1 && abs(whole.height - screen.frame.height) < 1
             print("\(fills ? "PASS" : "FAIL")  a whole-screen capture is drawn on full screen, toolbar inside (\(Int(whole.width))×\(Int(whole.height)))")
             InPlaceEditor.cancel()
-            // A window to draw on in place: found on its screen, inside it.
+            // A window to draw on in place: found on its screen, inside it. The first sizable window that sits on one
+            // screen (thin strips and windows across two screens have no place to draw in, by design).
             let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
-            let id = windows.first { ($0[kCGWindowLayer as String] as? Int) == 0 }?[kCGWindowNumber as String] as? CGWindowID
+            let id = windows.first { info in
+                guard (info[kCGWindowLayer as String] as? Int) == 0, let bounds = info[kCGWindowBounds as String] as? NSDictionary,
+                      let frame = CGRect(dictionaryRepresentation: bounds), frame.width > 200, frame.height > 200 else { return false }
+                let flipped = NSScreen.screens.first.map { CGRect(x: frame.minX, y: $0.frame.maxY - frame.maxY, width: frame.width, height: frame.height) }
+                return NSScreen.screens.contains { flipped.map($0.frame.contains) ?? false }
+            }?[kCGWindowNumber as String] as? CGWindowID
             let placed = id.flatMap { Capturer.place(of: $0) }
             let inside = placed.map { CGRect(origin: .zero, size: $0.0.frame.size).contains($0.1) } ?? (id == nil)
             print("\(inside ? "PASS" : "FAIL")  a window is found where it is on its screen\(placed.map { " (\(Int($0.1.width))×\(Int($0.1.height)))" } ?? "")")

@@ -79,7 +79,8 @@ final class DeviceMonitor {
             monitor.activity(device)
             monitor.keyboardValue(value, from: device)
         }, context)
-        IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
+        // Common modes, so devices keep reporting while any alert or panel in the app runs its modal loop.
+        IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.commonModes.rawValue)
         IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
     }
 

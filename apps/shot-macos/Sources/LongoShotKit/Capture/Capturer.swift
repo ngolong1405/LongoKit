@@ -1,8 +1,8 @@
 import AppKit
 import ScreenCaptureKit
 
-/// Takes the pictures, through ScreenCaptureKit. The app's own windows (the selection overlay, the preview, the
-/// menu) are left out of every capture, so nothing has to be hidden first.
+/// Takes the pictures, through ScreenCaptureKit. The app's own panels (the selection overlay, the preview, the
+/// toolbars, the menu) are left out of every capture, so nothing has to be hidden first.
 enum Capturer {
     enum Failure: LocalizedError {
         case notFound
@@ -23,12 +23,26 @@ enum Capturer {
         NSWorkspace.shared.open(url)
     }
 
+    /// The app's real windows: its settings (in LongoKit, every module's) and the drawing window. They're captured like
+    /// any app's; everything else the app shows on screen is a panel or the menu bar, and stays out.
+    @MainActor static var ownWindows: Set<CGWindowID> {
+        Set(NSApp.windows.filter { !($0 is NSPanel) && $0.level == .normal && $0.isVisible && $0.windowNumber > 0 }
+            .map { CGWindowID($0.windowNumber) })
+    }
+
+    /// Leaves the app out, but for its real windows. Panels made later, like the recording bar, stay out too.
+    static func filter(_ display: SCDisplay, _ content: SCShareableContent) async -> SCContentFilter {
+        let mine = content.applications.filter { $0.processID == getpid() }
+        let keep = await ownWindows
+        return SCContentFilter(display: display, excludingApplications: mine,
+                               exceptingWindows: content.windows.filter { keep.contains($0.windowID) })
+    }
+
     /// Part of a display, at its full pixel density. `rect` is in points from the display's top-left; nil for all of it.
     static func image(display displayID: CGDirectDisplayID, rect: CGRect?, scale: CGFloat) async throws -> CGImage {
         let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
         guard let display = content.displays.first(where: { $0.displayID == displayID }) else { throw Failure.notFound }
-        let mine = content.applications.filter { $0.processID == getpid() }
-        let filter = SCContentFilter(display: display, excludingApplications: mine, exceptingWindows: [])
+        let filter = await filter(display, content)
         let area = rect ?? CGRect(x: 0, y: 0, width: display.width, height: display.height)
         let config = SCStreamConfiguration()
         config.sourceRect = area

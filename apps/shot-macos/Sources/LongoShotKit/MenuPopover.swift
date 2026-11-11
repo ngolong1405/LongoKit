@@ -65,8 +65,7 @@ struct MenuPopover: View {
             MenuFooter { close(); model.showWindow() }
         }
         .padding(14)
-        .frame(width: 320)
-        .background(LinearGradient(colors: [Theme.popoverTop, Theme.popoverBottom], startPoint: .top, endPoint: .bottom))
+        .popoverFrame(width: 320)
         .background(WindowReader(window: $window))
         .id(model.language)
         .onAppear {

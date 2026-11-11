@@ -10,7 +10,6 @@ enum Vietnamese {
         "Brightness, limits and dimming go back to the defaults for every display.":
             "Độ sáng, giới hạn và làm tối của mọi màn hình sẽ về mặc định.",
         "Cancel": "Huỷ",
-        "Crafted by ": "Thực hiện bởi ",
         "Quit": "Thoát",
         "Close window (keeps running in the menu bar)": "Đóng cửa sổ (app vẫn chạy trên menu bar)",
         "Minimize": "Thu nhỏ",

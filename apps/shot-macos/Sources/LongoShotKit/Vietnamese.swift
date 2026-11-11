@@ -14,7 +14,6 @@ enum Vietnamese {
         "The save folder, what happens after a capture, and every shortcut go back to the defaults.":
             "Thư mục lưu, việc làm sau mỗi lần chụp và mọi phím tắt sẽ về mặc định.",
         "Cancel": "Huỷ",
-        "Crafted by ": "Thực hiện bởi ",
         "Quit": "Thoát",
         "Quit %@: its shortcuts stop until it's opened again": "Thoát %@: phím tắt ngừng chạy cho tới khi mở lại app",
         "Close window (keeps running in the menu bar)": "Đóng cửa sổ (app vẫn chạy nền)",

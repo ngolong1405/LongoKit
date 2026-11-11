@@ -29,12 +29,38 @@ struct MainWindow: View {
     @EnvironmentObject private var model: AppModel
     /// Height of the hidden system title bar, which SwiftUI still reserves as a top safe area.
     @State private var titlebarInset: CGFloat = 0
-    /// The open page's height: the window fits it, up to the tallest page size.
-    @State private var pageHeight = Theme.contentHeight
 
     var body: some View {
         WindowFrame {
             TitleBar()
+            ModulePanel()
+        }
+        // Rebuild every view when the language changes so all L() strings update.
+        .id(model.language)
+        // Pull the content up into the hidden title bar's area. ignoresSafeArea() alone draws there but the
+        // window still adds the inset to its height, leaving a transparent strip at the bottom.
+        .padding(.top, -titlebarInset)
+        .onAppear {
+            // `--tab devices` opens on a given tab (handy for screenshots).
+            let args = CommandLine.arguments
+            if let index = args.firstIndex(of: "--tab"), index + 1 < args.count,
+               let tab = MainTab.allCases.first(where: { $0.title.lowercased() == args[index + 1].lowercased() }) {
+                model.tab = tab
+            }
+        }
+        .background(WindowConfigurator { titlebarInset = $0 })
+    }
+}
+
+/// Everything in the window but its frame and title bar: the tabs, the open page and the footer. The LongoKit app
+/// shows it beside its sidebar.
+struct ModulePanel: View {
+    @EnvironmentObject private var model: AppModel
+    /// The open page's height: the window fits it, up to the tallest page size.
+    @State private var pageHeight = Theme.lastPageHeight
+
+    var body: some View {
+        VStack(spacing: 0) {
             TabBar(selection: $model.tab)
             // Each page gets the height it needs (taller ones scroll); the window's top edge stays put, and
             // each page starts at the top.
@@ -53,20 +79,6 @@ struct MainWindow: View {
             .animation(.easeOut(duration: 0.2), value: model.isPickingAction)
             WindowFooter(tab: model.tab)
         }
-        // Rebuild every view when the language changes so all L() strings update.
-        .id(model.language)
-        // Pull the content up into the hidden title bar's area. ignoresSafeArea() alone draws there but the
-        // window still adds the inset to its height, leaving a transparent strip at the bottom.
-        .padding(.top, -titlebarInset)
-        .onAppear {
-            // `--tab devices` opens on a given tab (handy for screenshots).
-            let args = CommandLine.arguments
-            if let index = args.firstIndex(of: "--tab"), index + 1 < args.count,
-               let tab = MainTab.allCases.first(where: { $0.title.lowercased() == args[index + 1].lowercased() }) {
-                model.tab = tab
-            }
-        }
-        .background(WindowConfigurator { titlebarInset = $0 })
     }
 }
 
@@ -136,10 +148,12 @@ private struct StatusPill: View {
 /// The main tab bar; Devices shows how many mice are connected.
 struct TabBar: View {
     @EnvironmentObject private var model: AppModel
+    /// In the LongoKit app, About is the app's own page.
+    @Environment(\.isHosted) private var isHosted
     @Binding var selection: MainTab
 
     var body: some View {
-        PillTabBar(tabs: MainTab.allCases, selection: $selection) { tab in
+        PillTabBar(tabs: isHosted ? MainTab.allCases.filter { $0 != .about } : MainTab.allCases, selection: $selection) { tab in
             tab == .devices && !model.connectedDevices.isEmpty ? L("Devices") + " (\(model.connectedDevices.count))" : tab.title
         } symbol: { tab in
             switch tab {
@@ -153,6 +167,7 @@ struct TabBar: View {
 
 struct WindowFooter: View {
     @EnvironmentObject private var model: AppModel
+    @Environment(\.isHosted) private var isHosted
     let tab: MainTab
 
     var body: some View {
@@ -164,11 +179,12 @@ struct WindowFooter: View {
             } else {
                 Button { model.restoreDefaults(for: tab) } label: { Label(L("Restore Defaults"), systemImage: "arrow.counterclockwise") }
                     .buttonStyle(.ghost)
+                // In LongoKit there's no About tab: General offers it too.
+                if isHosted && tab == .general {
+                    Button(action: model.copyDiagnostics) { Label(L("Copy Diagnostics"), systemImage: "doc.on.doc") }
+                        .buttonStyle(.ghost)
+                }
             }
-            (Text(L("Crafted by ")) + Text(AppInfo.author).foregroundColor(Theme.solarLight))
-                .font(.mono(10))
-                .foregroundStyle(Theme.textFaint)
-                .padding(.leading, 6)
             Spacer()
             Button { NSApp.terminate(nil) } label: { Label(L("Quit"), systemImage: "power") }
                 .buttonStyle(GhostButtonStyle(tint: Theme.solarLight))

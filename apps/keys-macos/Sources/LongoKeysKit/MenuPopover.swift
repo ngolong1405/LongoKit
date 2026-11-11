@@ -50,11 +50,10 @@ struct MenuPopover: View {
             }
 
             Hairline()
-            MenuFooter { if !MainWindowRef.show() { openWindow(id: "main") } }
+            MenuFooter { if !MainWindowRef.show(module: KeysModule.id) { openWindow(id: "main") } }
         }
         .padding(14)
-        .frame(width: 360)
-        .background(LinearGradient(colors: [Theme.popoverTop, Theme.popoverBottom], startPoint: .top, endPoint: .bottom))
+        .popoverFrame(width: 360)
         .id(model.language)
     }
 

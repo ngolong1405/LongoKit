@@ -149,7 +149,10 @@ final class AppModel: ObservableObject {
     private var permissionTimer: Timer?
     private var pauseKey: GlobalHotKey?
     /// Input Monitoring granted after launch only takes effect in a new process.
-    private let launchedWithInputMonitoring = AppModel.checkInputMonitoring()
+    /// Whether the process started with Input Monitoring: macOS only applies a new grant to a fresh process. Noted at
+    /// launch (`MouseModule.prepare`), not when the module starts, which in LongoKit can be much later.
+    static var launchedWithInputMonitoring = false
+    static func noteLaunch() { launchedWithInputMonitoring = checkInputMonitoring() }
     /// Shown on the General tab during the short pause before restarting.
     @Published private(set) var isRelaunching = false
     private let deviceMonitor = DeviceMonitor()
@@ -194,7 +197,7 @@ final class AppModel: ObservableObject {
         guard startsEngine else { return }
 
         // The way out if a mapping gets in the way: every button and the wheel back to normal, from any app.
-        pauseKey = GlobalHotKey(controlOptionCommand: kVK_ANSI_M, id: 2) { [weak self] in
+        pauseKey = GlobalHotKey(controlOptionCommand: kVK_ANSI_M) { [weak self] in
             guard let self, self.hasAccessibility else { return }
             self.isEnabled.toggle()
         }
@@ -251,27 +254,12 @@ final class AppModel: ObservableObject {
     /// A permission just came through in System Settings: come back to the front, and once everything is granted,
     /// restart if this process can't pick the change up by itself.
     private func permissionGranted(tapFailed: Bool) {
+        // Forward, but on whatever page is open: in LongoKit another module may have asked for the permission.
         MainWindowRef.show()
         guard allPermissionsGranted, !isRelaunching,
-              tapFailed || !launchedWithInputMonitoring else { return }
+              tapFailed || !Self.launchedWithInputMonitoring else { return }
         isRelaunching = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { Self.relaunch() }
-    }
-
-    /// Starts a fresh copy of the app once this one has quit, then quits.
-    private static func relaunch() {
-        let bundle = Bundle.main.bundlePath
-        guard bundle.hasSuffix(".app") else { return } // `swift run` has no bundle to reopen
-        let pid = ProcessInfo.processInfo.processIdentifier
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/bin/sh")
-        task.arguments = ["-c", "while kill -0 \(pid) 2>/dev/null; do sleep 0.1; done; /usr/bin/open \"$0\"", bundle]
-        do {
-            try task.run()
-            NSApp.terminate(nil)
-        } catch {
-            NSLog("Relaunch failed: \(error.localizedDescription)")
-        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { AppLaunch.relaunch() }
     }
 
     func toggleEnabled() {
@@ -347,7 +335,7 @@ final class AppModel: ObservableObject {
         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?\(anchor)")!)
     }
 
-    private static func checkInputMonitoring() -> Bool {
+    static func checkInputMonitoring() -> Bool {
         IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted
     }
 

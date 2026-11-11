@@ -12,7 +12,6 @@ enum Vietnamese {
             "Mọi bàn phím trở về phím gốc, và lớp Hyper về mặc định.",
         "Cancel": "Huỷ",
         "OK": "OK",
-        "Crafted by ": "Thực hiện bởi ",
         "Quit": "Thoát",
         "Close window (keeps running in the menu bar)": "Đóng cửa sổ (app vẫn chạy trên menu bar)",
         "Minimize": "Thu nhỏ",

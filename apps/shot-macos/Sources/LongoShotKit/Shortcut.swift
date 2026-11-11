@@ -163,7 +163,4 @@ enum ShotAction: String, CaseIterable, Codable, Identifiable {
     static var defaultShortcuts: [ShotAction: Shortcut] {
         Dictionary(uniqueKeysWithValues: allCases.compactMap { action in action.defaultShortcut.map { (action, $0) } })
     }
-
-    /// Hot key ids start at 1.
-    var hotKeyID: UInt32 { UInt32(Self.allCases.firstIndex(of: self)! + 1) }
 }

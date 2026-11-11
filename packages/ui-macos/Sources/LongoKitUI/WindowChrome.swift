@@ -8,17 +8,19 @@ import SwiftUI
 public struct WindowFrame<Content: View>: View {
     /// Off for snapshots: ImageRenderer can't draw the AppKit blur view.
     public var blur = true
+    public var width = Theme.windowWidth
     @ViewBuilder public let content: Content
 
-    public init(blur: Bool = true, @ViewBuilder content: () -> Content) {
+    public init(blur: Bool = true, width: CGFloat = Theme.windowWidth, @ViewBuilder content: () -> Content) {
         self.blur = blur
+        self.width = width
         self.content = content()
     }
 
     public var body: some View {
         let shape = RoundedRectangle(cornerRadius: Theme.windowRadius, style: .continuous)
         VStack(spacing: 0) { content }
-            .frame(width: Theme.windowWidth)
+            .frame(width: width)
             .background(
                 ZStack {
                     if blur { VisualEffectBackground() }
@@ -201,12 +203,22 @@ public enum MainWindowRef {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { malloc_zone_pressure_relief(nil, 0) }
     }
 
-    /// Brings the window (and the Dock icon) back. Returns false when SwiftUI hasn't created the window yet.
+    /// Set by an app hosting several modules: opens its window on the module that asked.
+    public static var showModule: ((String) -> Void)?
+    /// Set by an app hosting several modules: makes its window when SwiftUI hasn't yet (or has dropped it).
+    public static var open: (() -> Void)?
+
+    /// Brings the window (and the Dock icon) back, on `module`'s page in an app hosting several. Returns false when
+    /// SwiftUI hasn't created the window yet.
     @discardableResult
-    public static func show() -> Bool {
+    public static func show(module: String? = nil) -> Bool {
+        if let module { showModule?(module) }
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
-        guard let window else { return false }
+        guard let window else {
+            open?()
+            return open != nil
+        }
         WindowVisibility.shared.isShown = true
         window.makeKeyAndOrderFront(nil)
         return true

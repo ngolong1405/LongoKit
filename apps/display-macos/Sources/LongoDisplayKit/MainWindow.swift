@@ -5,12 +5,28 @@ struct MainWindow: View {
     @EnvironmentObject private var model: AppModel
     /// Height of the hidden system title bar, which SwiftUI still reserves as a top safe area.
     @State private var titlebarInset: CGFloat = 0
-    /// The open page's height: the window fits it, up to the tallest page size.
-    @State private var pageHeight = Theme.contentHeight
 
     var body: some View {
         WindowFrame {
             TitleBar()
+            ModulePanel()
+        }
+        // Rebuild every view when the language changes so all L() strings update.
+        .id(model.language)
+        .padding(.top, -titlebarInset)
+        .background(WindowConfigurator { titlebarInset = $0 })
+    }
+}
+
+/// Everything in the window but its frame and title bar: the tabs, the open page and the footer. The LongoKit app
+/// shows it beside its sidebar.
+struct ModulePanel: View {
+    @EnvironmentObject private var model: AppModel
+    /// The open page's height: the window fits it, up to the tallest page size.
+    @State private var pageHeight = Theme.lastPageHeight
+
+    var body: some View {
+        VStack(spacing: 0) {
             TabBar()
             SlimScrollView(contentHeight: $pageHeight) {
                 TabContent(tab: model.tab)
@@ -20,10 +36,6 @@ struct MainWindow: View {
             .transaction { $0.animation = nil }
             WindowFooter(tab: model.tab)
         }
-        // Rebuild every view when the language changes so all L() strings update.
-        .id(model.language)
-        .padding(.top, -titlebarInset)
-        .background(WindowConfigurator { titlebarInset = $0 })
     }
 }
 
@@ -84,9 +96,11 @@ private struct ModePill: View {
 
 struct TabBar: View {
     @EnvironmentObject private var model: AppModel
+    /// In the LongoKit app, About is the app's own page.
+    @Environment(\.isHosted) private var isHosted
 
     var body: some View {
-        PillTabBar(tabs: MainTab.allCases, selection: $model.tab) { tab in
+        PillTabBar(tabs: isHosted ? MainTab.allCases.filter { $0 != .about } : MainTab.allCases, selection: $model.tab) { tab in
             tab == .displays && !model.displays.isEmpty ? L("Displays") + " (\(model.displays.count))" : tab.title
         } symbol: { tab in
             switch tab {
@@ -106,10 +120,6 @@ struct WindowFooter: View {
         HStack {
             Button(action: confirmRestore) { Label(L("Restore Defaults"), systemImage: "arrow.counterclockwise") }
                 .buttonStyle(.ghost)
-            (Text(L("Crafted by ")) + Text(AppInfo.author).foregroundColor(Theme.solarLight))
-                .font(.mono(10))
-                .foregroundStyle(Theme.textFaint)
-                .padding(.leading, 6)
             Spacer()
             Button { NSApp.terminate(nil) } label: { Label(L("Quit"), systemImage: "power") }
                 .buttonStyle(GhostButtonStyle(tint: Theme.solarLight))

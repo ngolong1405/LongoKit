@@ -10,4 +10,8 @@ Each app is a module (`LongoModule`) in a `Longo<App>Kit` library, plus a small 
 
 Inside a module, `L()` reads the module's own table first, so two modules in one app can word a string differently.
 
+The LongoKit app (`apps/kit-macos`) runs several modules in one process through `LongoModule.host`, which hands back a
+`HostedModule`: the module's window page and menu, its language and appearance, and its state. Inside it,
+`\.isHosted` is true, so a module leaves the app-wide settings and About to LongoKit.
+
 Colors match `brand/tokens.css`; change both together.

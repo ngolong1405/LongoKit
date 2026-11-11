@@ -285,7 +285,7 @@ final class AppModel: ObservableObject {
     }
 
     func showWindow() {
-        if !MainWindowRef.show() { openWindow() }
+        if !MainWindowRef.show(module: ShotModule.id) { openWindow() }
     }
 
     /// Captures need Screen Recording; without it, ask and show where to turn it on.
@@ -698,7 +698,7 @@ final class AppModel: ObservableObject {
         guard live, recording == nil else { return }
         var taken: Set<ShotAction> = []
         for (action, shortcut) in shortcuts {
-            let hotKey = GlobalHotKey(keyCode: shortcut.keyCode, modifiers: shortcut.modifiers, id: action.hotKeyID) { [weak self] in
+            let hotKey = GlobalHotKey(keyCode: shortcut.keyCode, modifiers: shortcut.modifiers) { [weak self] in
                 // Out of the Carbon handler first; picking an area runs its own event handling.
                 DispatchQueue.main.async { self?.perform(action) }
             }

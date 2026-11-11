@@ -69,3 +69,31 @@ public struct MenuFooterButton: View {
         }
     }
 }
+
+public extension Theme {
+    /// Every module's menu is this wide in the LongoKit app, so the popover keeps one size from module to module.
+    static let hostedMenuWidth: CGFloat = 380
+}
+
+public extension View {
+    /// A menu bar popover's width and background. Hosted, the menu takes the host's width and leaves the background to
+    /// it, so menus of different heights share one popover without a seam.
+    func popoverFrame(width: CGFloat) -> some View {
+        modifier(PopoverFrame(width: width))
+    }
+}
+
+private struct PopoverFrame: ViewModifier {
+    let width: CGFloat
+    @Environment(\.isHosted) private var isHosted
+
+    func body(content: Content) -> some View {
+        content
+            .frame(width: isHosted ? Theme.hostedMenuWidth : width)
+            .background {
+                if !isHosted {
+                    LinearGradient(colors: [Theme.popoverTop, Theme.popoverBottom], startPoint: .top, endPoint: .bottom)
+                }
+            }
+    }
+}

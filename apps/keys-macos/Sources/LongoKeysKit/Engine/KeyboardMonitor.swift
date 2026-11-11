@@ -52,7 +52,8 @@ final class KeyboardMonitor {
             let device = IOHIDElementGetDevice(IOHIDValueGetElement(value))
             Unmanaged<KeyboardMonitor>.fromOpaque(context!).takeUnretainedValue().activity(device)
         }, context)
-        IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
+        // Common modes, so devices keep reporting while any alert or panel in the app runs its modal loop.
+        IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.commonModes.rawValue)
         IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
     }
 
