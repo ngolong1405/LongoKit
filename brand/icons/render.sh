@@ -5,11 +5,11 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-for icon in mouse display keys shot; do
+for icon in mouse display keys shot kit; do
     for theme in dark light; do
         "$CHROME" --headless=new --disable-gpu --hide-scrollbars --default-background-color=00000000 \
             --window-size=1024,1024 --virtual-time-budget=1500 \
             --screenshot="$PWD/$icon-$theme.png" "file://$PWD/icons.html?icon=$icon&theme=$theme" >/dev/null 2>&1
     done
 done
-echo "Rendered brand/icons/{mouse,display,keys,shot}-{dark,light}.png"
+echo "Rendered brand/icons/{mouse,display,keys,shot,kit}-{dark,light}.png"

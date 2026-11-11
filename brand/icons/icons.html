@@ -1,7 +1,9 @@
 <!doctype html>
 <!--
   LongoKit Trinity icons (1024×1024): LongoMouse, LongoDisplay, LongoKeys as gradient line art on an obsidian
-  (dark) or porcelain (light) squircle, plus LongoShot. Pick one with ?icon=mouse|display|keys|shot&theme=dark|light.
+  (dark) or porcelain (light) squircle, plus LongoShot, and LongoKit (all four on one tile). Pick one with
+  ?icon=mouse|display|keys|shot|kit&theme=dark|light. Add &mark=1 for the small mark used in sidebars: just the tile,
+  with a bigger glyph, so it reads at 20 pt.
   Render all of them with brand/icons/render.sh.
 -->
 <html>
@@ -118,10 +120,10 @@
     <script>
       const params = new URLSearchParams(location.search);
       const icon = params.get("icon") || "mouse";
+      const mark = params.get("mark") === "1";
       const theme = params.get("theme") || "dark";
       document.querySelector("#tile rect").setAttribute("fill", `url(#tile-${theme})`);
       document.getElementById("rim").setAttribute("stroke", `url(#rim-${theme})`);
-      document.getElementById(`glyph-${icon}`).style.display = "";
       // Pale yellow disappears on white; the light tiles use a deeper gold.
       if (theme === "light") {
         for (const node of document.querySelectorAll('[fill="#fde047"], [stop-color="#fde047"]')) {
@@ -144,6 +146,35 @@
       key(364, 514, 296, "url(#space)");
       key(674, 514, 82, "url(#key)");
       add("rect", { x: 464, y: 539, width: 96, height: 7, rx: 3.5, fill: "#ff6b35", stroke: "none" });
+
+      if (icon === "kit") {
+        // LongoKit: the four glyphs on one tile, one per corner.
+        const svg = document.getElementById("icon");
+        const scale = mark ? 0.56 : 0.5;
+        const [near, far] = mark ? [318, 706] : [330, 694];
+        [["mouse", near, near + 4], ["display", far, near + 4], ["keys", near, far - 4], ["shot", far, far - 4]].forEach(([name, x, y]) => {
+          const glyph = document.getElementById(`glyph-${name}`).cloneNode(true);
+          glyph.removeAttribute("id");
+          glyph.style.display = "";
+          const cell = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          cell.setAttribute("transform", `translate(${x - 512 * scale} ${y - 512 * scale}) scale(${scale})`);
+          cell.appendChild(glyph);
+          svg.appendChild(cell);
+        });
+      } else {
+        document.getElementById(`glyph-${icon}`).style.display = "";
+      }
+
+      if (mark) {
+        // The small mark: crop to the tile and blow the glyph up.
+        const svg = document.getElementById("icon");
+        svg.setAttribute("viewBox", "100 100 824 824");
+        document.getElementById("tile").removeAttribute("filter");
+        if (icon !== "kit") {
+          const grow = icon === "keys" ? 1.12 : 1.3; // the keyboard is wide already
+          document.getElementById(`glyph-${icon}`).setAttribute("transform", `translate(512 512) scale(${grow}) translate(-512 -512)`);
+        }
+      }
     </script>
   </body>
 </html>

@@ -25,6 +25,7 @@ apply mouse mouse-macos
 apply display display-macos
 apply keys keys-macos
 apply shot shot-macos
+apply kit kit-macos
 # The LongoKit mark (website header, favicon, Longo Mouse's installer) is the mouse icon.
 sips -z 512 512 brand/icons/mouse-dark.png --out brand/logo/logo-dark.png >/dev/null
 sips -z 512 512 brand/icons/mouse-light.png --out brand/logo/logo-light.png >/dev/null

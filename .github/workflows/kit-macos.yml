@@ -1,0 +1,27 @@
+name: kit-macos
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/**", "packages/ui-macos/**", ".github/workflows/kit-macos.yml"]
+  pull_request:
+    paths: ["apps/**", "packages/ui-macos/**", ".github/workflows/kit-macos.yml"]
+
+jobs:
+  build:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: apps/kit-macos
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build
+      - name: Self-test
+        run: .build/debug/LongoKit --selftest
+      - name: App bundle and disk image
+        run: ./scripts/build-app.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LongoKit
+          path: apps/kit-macos/build/LongoKit.dmg
