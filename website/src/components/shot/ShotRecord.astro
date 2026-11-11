@@ -105,7 +105,7 @@ const grips = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
         </div>
 
         <!-- The toolbar under the area while adjusting, as in the app. -->
-        <div class="relative z-10 mx-auto -mt-4 flex w-fit max-w-full flex-wrap items-center justify-center gap-1 rounded-2xl border border-white/15 bg-[#111216]/95 p-1.5 font-display text-xs text-white shadow-[0_4px_20px_rgba(0,0,0,0.45)] transition-opacity" data-toolbar>
+        <div class="relative z-10 mx-auto -mt-4 flex w-fit max-w-full flex-wrap items-center justify-center gap-1 rounded-2xl border border-white/15 bg-[#111216]/95 p-1.5 font-display text-xs text-white shadow-[0_4px_20px_rgba(0,0,0,0.45)]" data-toolbar>
           <button type="button" class="flex items-center gap-1 rounded-lg px-2 py-1 text-white/85 hover:bg-white/10" data-whole><span class="material-symbols-outlined text-[16px]">desktop_windows</span>{t.whole}</button>
           <span class="h-5 w-px bg-white/[0.12]"></span>
           <button type="button" class="tog flex h-7 w-8 items-center justify-center rounded-lg" aria-pressed="true" data-audio="sound" title={t.sound} aria-label={t.sound}><span class="material-symbols-outlined text-[17px]" data-on="volume_up" data-off="volume_off">volume_up</span></button>
@@ -174,8 +174,8 @@ const grips = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
     const live = phase === "rec" || phase === "pause";
     areaEl.classList.toggle("rec", live || phase === "count");
     bar.classList.toggle("on", live);
-    toolbar.style.opacity = phase === "set" ? "1" : "0";
-    toolbar.style.pointerEvents = phase === "set" ? "" : "none";
+    // Gone (not just transparent) outside adjusting, so it leaves no empty band under the screen.
+    toolbar.style.display = phase === "set" ? "" : "none";
     areaEl.style.visibility = phase === "done" ? "hidden" : "";
     mb.classList.toggle("rec", live);
     mb.textContent = live ? `● ${fmt(now())}` : "◉";
