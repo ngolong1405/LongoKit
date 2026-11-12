@@ -205,14 +205,9 @@ enum SelfTest {
         let recent = AppModel(live: false, defaults: UserDefaults(suiteName: historySuite)!, historyFolder: historyFolder)
         let small = Output.png(drawText(["1"]), scale: 1)!
         for _ in 0..<12 { recent.remember(file: nil, png: small) }
-        // The files are written in the background: wait until there are 10 and it stays that way (slow machines, CI).
+        // The files are written and deleted in the background, in order: once that's done, there are 10.
+        History.files.sync {}
         func cached() -> [String] { (try? FileManager.default.contentsOfDirectory(atPath: historyFolder.path)) ?? [] }
-        let waitUntil = Date().addingTimeInterval(5)
-        var steady = 0
-        while steady < 3 && Date() < waitUntil {
-            RunLoop.main.run(until: Date().addingTimeInterval(0.1))
-            steady = cached().count == 10 ? steady + 1 : 0
-        }
         let cachedFiles = cached()
         check("Recent keeps the last 10", recent.history.count == 10)
         check("Clipboard-only captures are kept in the cache, and only the last 10", cachedFiles.count == 10)

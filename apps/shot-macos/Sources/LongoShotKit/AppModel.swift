@@ -740,11 +740,12 @@ final class AppModel: ObservableObject {
         if let file { return add(HistoryItem(file: file, isMovie: false, cached: false)) }
         let copy = historyFolder.appendingPathComponent(UUID().uuidString + ".png")
         let folder = historyFolder
-        add(HistoryItem(file: copy, isMovie: false, cached: true))
-        DispatchQueue.global(qos: .utility).async {
+        // Written before `add` can drop (and delete) it: both go through the same queue, in order.
+        History.files.async {
             try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             try? png.write(to: copy, options: .atomic)
         }
+        add(HistoryItem(file: copy, isMovie: false, cached: true))
     }
 
     private func add(_ item: HistoryItem) {

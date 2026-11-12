@@ -34,10 +34,14 @@ enum History {
     }
 
     /// The app's own copies of `items`, removed from disk (off the main thread; never the user's own files).
+    /// Cached copies are written and deleted here, one after another in order: a copy dropped right after it's
+    /// added is deleted after it's written, not before (and left behind).
+    static let files = DispatchQueue(label: "com.longokit.shot.history", qos: .utility)
+
     static func deleteCached(_ items: [HistoryItem]) {
         let files = items.filter(\.cached).map(\.file)
         guard !files.isEmpty else { return }
-        DispatchQueue.global(qos: .utility).async {
+        Self.files.async {
             for file in files { try? FileManager.default.removeItem(at: file) }
         }
     }
