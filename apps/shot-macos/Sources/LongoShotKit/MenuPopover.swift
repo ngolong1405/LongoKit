@@ -159,7 +159,8 @@ private struct RecentGrid: View {
                 RecentPreview(item: item, close: close) { selected = nil }
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
-            LazyVGrid(columns: Array(repeating: GridItem(.fixed(52), spacing: 6), count: 5), alignment: .leading, spacing: 6) {
+            // Two rows of five (Recent keeps ten), spread across the menu's whole width.
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 5), spacing: 6) {
                 ForEach(model.history) { item in
                     RecentCell(item: item, selected: item.id == selected) {
                         withAnimation(Motion.quick) { selected = selected == item.id ? nil : item.id }
@@ -189,21 +190,25 @@ private struct RecentCell: View {
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: 6, style: .continuous)
         Button(action: select) {
-            ZStack {
-                if let image {
-                    Image(nsImage: image).resizable().interpolation(.medium).aspectRatio(contentMode: .fill)
-                } else {
-                    Theme.tint(0.06)
+            // As wide as its column, 4:3.
+            Color.clear
+                .aspectRatio(4 / 3, contentMode: .fit)
+                .overlay {
+                    if let image {
+                        Image(nsImage: image).resizable().interpolation(.medium).aspectRatio(contentMode: .fill)
+                    } else {
+                        Theme.tint(0.06)
+                    }
                 }
-                if item.isMovie {
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 18, height: 18)
-                        .background(Circle().fill(Color.black.opacity(0.6)))
+                .overlay {
+                    if item.isMovie {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 18, height: 18)
+                            .background(Circle().fill(Color.black.opacity(0.6)))
+                    }
                 }
-            }
-            .frame(width: 52, height: 40)
             .clipShape(shape)
             .overlay(shape.strokeBorder(selected || hovering ? Theme.solar : Theme.hairline, lineWidth: selected ? 2 : hovering ? 1.5 : 1))
             .scaleEffect(hovering && !selected ? 1.05 : 1)

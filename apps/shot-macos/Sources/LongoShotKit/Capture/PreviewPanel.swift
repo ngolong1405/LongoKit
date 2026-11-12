@@ -54,6 +54,7 @@ final class PreviewPanel {
         let visible = (screen ?? NSScreen.main ?? NSScreen.screens[0]).visibleFrame
         let frame = CGRect(x: visible.maxX - size.width - 6, y: visible.minY + 6, width: size.width, height: size.height)
         let panel = NSPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        panel.identifier = Capturer.panelID
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false

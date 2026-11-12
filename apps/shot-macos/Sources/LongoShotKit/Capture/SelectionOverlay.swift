@@ -39,23 +39,28 @@ final class SelectionOverlay {
     private let completion: (Selection?) -> Void
     /// On-screen windows of other apps, front to back, in global top-left coordinates.
     private let windows: [(id: CGWindowID, frame: CGRect)]
+    /// Each screen as it was when the shortcut was pressed, shown under the overlay (empty: the live screen shows).
+    fileprivate let frozen: [CGDirectDisplayID: NSImage]
     /// The screen whose area is being adjusted, and the toolbar under it.
     private weak var adjustingView: OverlayView?
     private var toolbar: NSPanel?
 
     /// Starts picking; `completion` gets nil when it's cancelled. Picking again while picking does nothing.
     static func pick(_ mode: Mode, hint: String, allowsWindows: Bool = true, allowsScreen: Bool = false,
-                     adjusting: Adjusting? = nil, windowsOnClick: Bool = false, completion: @escaping (Selection?) -> Void) {
+                     adjusting: Adjusting? = nil, windowsOnClick: Bool = false,
+                     frozen: [CGDirectDisplayID: (image: CGImage, scale: CGFloat)] = [:], completion: @escaping (Selection?) -> Void) {
         guard current == nil else { return }
         let overlay = SelectionOverlay(mode: mode, hint: hint, allowsWindows: allowsWindows, allowsScreen: allowsScreen,
-                                       adjusting: adjusting, windowsOnClick: windowsOnClick, completion: completion)
+                                       adjusting: adjusting, windowsOnClick: windowsOnClick, frozen: frozen, completion: completion)
         current = overlay
         overlay.show()
     }
 
     private init(mode: Mode, hint: String, allowsWindows: Bool, allowsScreen: Bool, adjusting: Adjusting?,
-                 windowsOnClick: Bool = false, completion: @escaping (Selection?) -> Void) {
+                 windowsOnClick: Bool = false, frozen: [CGDirectDisplayID: (image: CGImage, scale: CGFloat)] = [:],
+                 completion: @escaping (Selection?) -> Void) {
         self.windowsOnClick = windowsOnClick
+        self.frozen = frozen.mapValues { NSImage(cgImage: $0.image, size: .zero) }
         self.mode = mode
         self.hint = hint
         self.allowsWindows = allowsWindows
@@ -112,6 +117,7 @@ final class SelectionOverlay {
             let (content, size) = adjusting.toolbar { [weak self] command in self?.run(command) }
             let panel = NSPanel(contentRect: CGRect(origin: .zero, size: size), styleMask: [.borderless, .nonactivatingPanel],
                                 backing: .buffered, defer: false)
+            panel.identifier = Capturer.panelID
             panel.isOpaque = false
             panel.backgroundColor = .clear
             panel.hasShadow = false
@@ -202,6 +208,7 @@ private final class OverlayPanel: NSPanel {
     init(screen: NSScreen) {
         super.init(contentRect: screen.frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         setFrame(screen.frame, display: false)
+        identifier = Capturer.panelID
         level = .screenSaver
         isOpaque = false
         backgroundColor = .clear
@@ -461,6 +468,8 @@ private final class OverlayView: NSView {
     private static let solar = NSColor(red: 1, green: 0.42, blue: 0.21, alpha: 1)
 
     override func draw(_ dirtyRect: NSRect) {
+        // The screen as it was when the shortcut was pressed, so menus that have closed since still show.
+        overlay.frozen[screen.displayID]?.draw(in: bounds, from: .zero, operation: .copy, fraction: 1, respectFlipped: true, hints: nil)
         // A little darker while adjusting, so the area stands out.
         let dim = NSColor.black.withAlphaComponent(adjusting ? 0.45 : 0.32)
         let cutout = area ?? hoveredWindow?.rect

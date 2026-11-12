@@ -122,6 +122,7 @@ final class InPlaceEditor {
 
     private static func panel(_ frame: CGRect, level: NSWindow.Level) -> NSPanel {
         let panel = KeyPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        panel.identifier = Capturer.panelID
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false

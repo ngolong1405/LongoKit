@@ -23,11 +23,37 @@ enum Capturer {
         NSWorkspace.shared.open(url)
     }
 
-    /// The app's real windows: its settings (in LongoKit, every module's) and the drawing window. They're captured like
-    /// any app's; everything else the app shows on screen is a panel or the menu bar, and stays out.
+    /// Marks the panels Shot puts on screen to capture with: the selection overlay, its toolbar, the preview, the
+    /// recording bar and countdown, the drawing toolbar. Only these stay out of captures.
+    static let panelID = NSUserInterfaceItemIdentifier("longoshot.panel")
+
+    /// Everything else the app shows: its settings (in LongoKit, every module's), the drawing window, the menu bar
+    /// popover and its icon. Captured like any app's windows.
     @MainActor static var ownWindows: Set<CGWindowID> {
-        Set(NSApp.windows.filter { !($0 is NSPanel) && $0.level == .normal && $0.isVisible && $0.windowNumber > 0 }
-            .map { CGWindowID($0.windowNumber) })
+        // Menu bar icon windows report numbers past 32 bits (like 2³²) that aren't window ids: they're skipped.
+        Set(NSApp.windows.filter { $0.identifier != panelID && $0.isVisible }
+            .compactMap { $0.windowNumber > 0 ? CGWindowID(exactly: $0.windowNumber) : nil })
+    }
+
+    /// Every screen as it is right now, before anything of Shot's shows: picking an area then cuts from this, so menus
+    /// and popovers that close at the first click are still in the picture (like macOS's own ⇧⌘4). Empty if it fails;
+    /// the pick then captures live.
+    @MainActor static func freeze() async -> [CGDirectDisplayID: (image: CGImage, scale: CGFloat)] {
+        var frozen: [CGDirectDisplayID: (image: CGImage, scale: CGFloat)] = [:]
+        for screen in NSScreen.screens {
+            let scale = screen.backingScaleFactor
+            if let image = try? await image(display: screen.displayID, rect: nil, scale: scale) {
+                frozen[screen.displayID] = (image, scale)
+            }
+        }
+        return frozen
+    }
+
+    /// Part of a frozen screen: `rect` in points from its top-left, `.null` for all of it.
+    static func cut(_ screen: CGImage, scale: CGFloat, to rect: CGRect) -> CGImage? {
+        guard !rect.isNull else { return screen }
+        let pixels = CGRect(x: rect.minX * scale, y: rect.minY * scale, width: rect.width * scale, height: rect.height * scale)
+        return screen.cropping(to: pixels.integral)
     }
 
     /// Leaves the app out, but for its real windows. Panels made later, like the recording bar, stay out too.

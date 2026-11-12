@@ -48,6 +48,20 @@ enum SelfTest {
         check("Restore defaults brings the shortcuts back", reloaded.shortcuts == ShotAction.defaultShortcuts && reloaded.copyToClipboard)
         UserDefaults().removePersistentDomain(forName: suite)
 
+        // The app's own windows, with a menu bar icon among them (its window's number isn't a window id).
+        let icon = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        icon.button?.title = "S"
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        let own = Capturer.ownWindows
+        check("The app's windows are listed with a menu bar icon open", own.allSatisfy { $0 > 0 })
+        NSStatusBar.system.removeStatusItem(icon)
+
+        // An area cut from a frozen screen: points to pixels, from the top-left.
+        let still = drawText(["Frozen"])
+        let cut = Capturer.cut(still, scale: 2, to: CGRect(x: 10, y: 5, width: 100, height: 20))
+        check("An area is cut from the frozen screen at its pixel size", cut?.width == 200 && cut?.height == 40)
+        check("The whole frozen screen is the whole picture", Capturer.cut(still, scale: 2, to: .null)?.width == still.width)
+
         // Hot keys: two at once each register (an unusual combination, released right away).
         let first = GlobalHotKey(keyCode: kVK_F19, modifiers: controlKey | optionKey | shiftKey | cmdKey) {}
         let second = GlobalHotKey(keyCode: kVK_F18, modifiers: controlKey | optionKey | shiftKey | cmdKey) {}

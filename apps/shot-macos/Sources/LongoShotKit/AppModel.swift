@@ -299,21 +299,35 @@ final class AppModel: ObservableObject {
         return false
     }
 
+    /// Screens as they were when a capture's shortcut was pressed; an area picked is cut from these.
+    private var frozen: [CGDirectDisplayID: (image: CGImage, scale: CGFloat)] = [:]
+
+    /// A picture (or its text): the screens are frozen first, so a menu or popover open when the shortcut is pressed
+    /// is still there after the first click closes it.
     private func pick(_ mode: SelectionOverlay.Mode, hint: String, text: Bool, allowsWindows: Bool = true, allowsScreen: Bool = false,
                       draw: Bool = false, windowsOnClick: Bool = false) {
-        pick(mode, hint: hint, allowsWindows: allowsWindows, allowsScreen: allowsScreen, windowsOnClick: windowsOnClick) { [weak self] selection in
-            self?.run(selection, text: text, draw: draw)
+        guard ready(), !isFreezing else { return }
+        isFreezing = true
+        Task { @MainActor in
+            frozen = await Capturer.freeze()
+            isFreezing = false
+            pick(mode, hint: hint, allowsWindows: allowsWindows, allowsScreen: allowsScreen, windowsOnClick: windowsOnClick,
+                 frozen: frozen) { [weak self] selection in
+                self?.run(selection, text: text, draw: draw)
+            }
         }
     }
+    private var isFreezing = false
 
     private func pick(_ mode: SelectionOverlay.Mode, hint: String, allowsWindows: Bool = true, allowsScreen: Bool = false,
                       adjusting: SelectionOverlay.Adjusting? = nil, windowsOnClick: Bool = false,
+                      frozen: [CGDirectDisplayID: (image: CGImage, scale: CGFloat)] = [:],
                       then use: @escaping (Selection) -> Void) {
         guard ready() else { return }
         PreviewPanel.shared.dismiss()
         SelectionOverlay.pick(mode, hint: hint, allowsWindows: allowsWindows, allowsScreen: allowsScreen,
-                              adjusting: adjusting, windowsOnClick: windowsOnClick) { selection in
-            if let selection { use(selection) }
+                              adjusting: adjusting, windowsOnClick: windowsOnClick, frozen: frozen) { [weak self] selection in
+            if let selection { use(selection) } else { self?.frozen = [:] }
         }
     }
 
@@ -328,6 +342,7 @@ final class AppModel: ObservableObject {
                 var place: (NSScreen, CGRect)?
                 if draw, case let .window(id) = selection { place = Capturer.place(of: id) }
                 let (image, scale, screen) = try await grab(selection, shadow: place == nil)
+                frozen = [:]
                 if case let .area(_, rect, _) = selection, let screen { place = (screen, rect) }
                 if text {
                     await recognize(image, on: screen)
@@ -354,6 +369,10 @@ final class AppModel: ObservableObject {
         switch selection {
         case let .area(display, rect, scale):
             let screen = NSScreen.screens.first { $0.displayID == display }
+            // Cut from the frozen screen when there is one: what was there when the shortcut was pressed.
+            if let still = frozen[display], let image = Capturer.cut(still.image, scale: still.scale, to: rect) {
+                return (image, still.scale, screen)
+            }
             let image = try await Capturer.image(display: display, rect: rect.isNull ? nil : rect, scale: scale)
             return (image, scale, screen)
         case let .window(id):
