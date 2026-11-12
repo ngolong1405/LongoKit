@@ -58,8 +58,9 @@ final class Suite: ObservableObject {
     /// Off for self-tests and snapshots: modules then touch nothing on the Mac.
     let live: Bool
     private let defaults: UserDefaults
-    /// The defaults domain each module keeps its settings in.
-    private let storeName: (String) -> String
+    /// The defaults domain each module keeps its settings in: its own app's, so the two share one set of settings
+    /// (they never run at once, so each starts from what the other last saved).
+    private let storeName: @MainActor (String) -> String
     /// Whether a module's own app is running.
     private let runsElsewhere: (ModuleInfo) -> Bool
     private var subscriptions: [String: AnyCancellable] = [:]
@@ -70,11 +71,11 @@ final class Suite: ObservableObject {
         static let language = "language"
         static let appearance = "appearance"
         static let menuBarIcon = "showMenuBarIcon"
-        static func imported(_ id: String) -> String { "imported." + id }
+        static func shared(_ id: String) -> String { "shared." + id }
     }
 
     init(live: Bool = true, defaults: UserDefaults = .standard,
-         storeName: @escaping (String) -> String = { "com.longokit.kit." + $0 },
+         storeName: @escaping @MainActor (String) -> String = Suite.defaultStoreName,
          runsElsewhere: ((ModuleInfo) -> Bool)? = nil) {
         self.live = live
         self.defaults = defaults
@@ -182,9 +183,10 @@ final class Suite: ObservableObject {
     private func run(_ info: ModuleInfo, turnOn: Bool = false) {
         guard enabled.contains(info.id), hosts[info.id] == nil, !runsElsewhere(info) else { return refreshStatuses() }
         let store = UserDefaults(suiteName: storeName(info.id)) ?? .standard
-        if live, !defaults.bool(forKey: Keys.imported(info.id)) {
-            defaults.set(true, forKey: Keys.imported(info.id))
-            Self.importSettings(from: info.type.bundleIdentifier, into: store)
+        // LongoKit 0.1.3 and earlier kept a copy of its own: what was set there, the latest, moves to the shared one.
+        if live, !defaults.bool(forKey: Keys.shared(info.id)) {
+            defaults.set(true, forKey: Keys.shared(info.id))
+            Self.moveSettings(from: "com.longokit.kit." + info.id, into: store)
         }
         let host = info.type.host(defaults: store, live: live)
         host.language = language
@@ -199,12 +201,16 @@ final class Suite: ObservableObject {
         moduleChanged(info.id)
     }
 
-    /// The first time a module runs here, it starts from its own app's settings. Values already here win.
-    static func importSettings(from domain: String, into store: UserDefaults) {
+    /// A module's own app's defaults domain.
+    static func defaultStoreName(_ id: String) -> String {
+        ModuleInfo.all.first { $0.id == id }?.type.bundleIdentifier ?? "com.longokit.kit." + id
+    }
+
+    /// Moves the settings kept in `domain` into `store`, over what's there, and removes `domain`.
+    static func moveSettings(from domain: String, into store: UserDefaults) {
         guard let old = UserDefaults.standard.persistentDomain(forName: domain) else { return }
-        for (key, value) in old where store.object(forKey: key) == nil {
-            store.set(value, forKey: key)
-        }
+        for (key, value) in old { store.set(value, forKey: key) }
+        UserDefaults.standard.removePersistentDomain(forName: domain)
     }
 
     private func moduleChanged(_ id: String) {

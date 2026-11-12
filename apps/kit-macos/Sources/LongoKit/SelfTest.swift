@@ -98,15 +98,21 @@ enum SelfTest {
         MainWindowRef.showModule?("shot")
         check("a module asking for the window opens its page", suite.page == .module("shot") && suite.menuModule == "shot")
 
-        // Bringing settings over from a module's own app
-        UserDefaults().setPersistentDomain(["probe": 42, "kept": "own"], forName: "com.longokit.selftest.own")
+        // One set of settings with each module's own app: LongoKit uses that app's defaults domain.
+        check("each module keeps its settings where its own app does", ModuleInfo.all.allSatisfy { info in
+            Suite.defaultStoreName(info.id) == info.type.bundleIdentifier
+        })
+        // What an earlier LongoKit kept in a copy of its own moves over, the latest, and the copy goes.
+        UserDefaults().setPersistentDomain(["probe": 42, "kept": "kit"], forName: "com.longokit.selftest.own")
         let store = UserDefaults(suiteName: storePrefix + "probe")!
-        store.set("here", forKey: "kept")
-        Suite.importSettings(from: "com.longokit.selftest.own", into: store)
-        check("a module's settings come over from its own app", store.integer(forKey: "probe") == 42)
-        check("…without overwriting what's already here", store.string(forKey: "kept") == "here")
-        Suite.importSettings(from: "com.longokit.selftest.missing", into: store)
-        check("an app that never ran brings nothing", store.integer(forKey: "probe") == 42)
+        store.set("app", forKey: "kept")
+        store.set("app", forKey: "other")
+        Suite.moveSettings(from: "com.longokit.selftest.own", into: store)
+        check("settings LongoKit kept on its own move to the shared ones", store.integer(forKey: "probe") == 42
+              && store.string(forKey: "kept") == "kit" && store.string(forKey: "other") == "app")
+        check("…and its own copy is removed", UserDefaults().persistentDomain(forName: "com.longokit.selftest.own")?.isEmpty ?? true)
+        Suite.moveSettings(from: "com.longokit.selftest.missing", into: store)
+        check("nothing to move changes nothing", store.integer(forKey: "probe") == 42)
 
         // Shortcuts: the modules share one process. The fixed ones never clash (Display ⌃⌥⌘B, Mouse ⌃⌥⌘M, Keys ⌃⌥⌘K;
         // Shot's are ⌥⇧ by default), and a combination one module holds is refused to another, which Shot shows as taken.
