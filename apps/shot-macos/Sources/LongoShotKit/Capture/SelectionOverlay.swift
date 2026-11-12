@@ -111,7 +111,12 @@ final class SelectionOverlay {
             backdrop.wantsLayer = true
             backdrop.layer?.contents = frozen[screen.displayID]
             backdrop.layer?.contentsGravity = .resize
+            // The dimming goes under the view (its grips and corners sit on top of it, undimmed).
+            let shade = FlippedView(frame: view.frame)
+            shade.wantsLayer = true
+            backdrop.addSubview(shade)
             backdrop.addSubview(view)
+            view.installLayers(shade: shade.layer!)
             panel.contentView = backdrop
             backdrops[screen.displayID] = backdrop
             views.append(view)
@@ -137,7 +142,7 @@ final class SelectionOverlay {
     }
 
     fileprivate func refresh() {
-        for view in views { view.needsDisplay = true }
+        for view in views { view.update() }
     }
 
     /// The frontmost window under a point (global top-left coordinates).
@@ -300,6 +305,25 @@ private final class OverlayView: NSView {
     private var adjusting = false
     private var pointer: CGPoint?
 
+    /// Live, everything that follows the pointer is a layer moved in place: the dimming (four plain layers around the
+    /// cutout), the glowing edge, the size pill and the crosshair. The view itself only draws what changes now and
+    /// then (the hint; an adjustable area's corners and grips), so dragging an area out keeps up with the pointer.
+    /// Snapshots draw it all in `draw`.
+    private var layered = false
+    private let dims = (0..<4).map { _ in CALayer() }
+    private let edge = CALayer()
+    private let lines = (across: CALayer(), down: CALayer())
+    private let pill = CALayer()
+    private let dot = CALayer()
+    private let pillText = CATextLayer()
+    /// What `draw` last drew, to draw again only when it changes.
+    private struct Drawn: Equatable {
+        var adjustable: CGRect?
+        var moving: Bool
+        var hint: String?
+    }
+    private var drawn: Drawn?
+
     init(overlay: SelectionOverlay, screen: NSScreen) {
         owner = overlay
         self.screen = screen
@@ -313,6 +337,120 @@ private final class OverlayView: NSView {
 
     override var isFlipped: Bool { true }
     override var acceptsFirstResponder: Bool { true }
+
+    func installLayers(shade: CALayer) {
+        layered = true
+        for dim in dims { shade.addSublayer(dim) }
+        wantsLayer = true
+        let root = layer!
+        edge.shadowColor = Self.solar.cgColor
+        edge.shadowOffset = .zero
+        edge.borderColor = Self.solar.cgColor
+        lines.across.backgroundColor = NSColor.white.withAlphaComponent(0.35).cgColor
+        lines.down.backgroundColor = lines.across.backgroundColor
+        pill.backgroundColor = NSColor(red: 0.07, green: 0.07, blue: 0.09, alpha: 0.88).cgColor
+        pill.borderColor = Self.solar.withAlphaComponent(0.5).cgColor
+        pill.borderWidth = 1
+        dot.backgroundColor = Self.solar.cgColor
+        dot.cornerRadius = 3
+        pill.addSublayer(dot)
+        let font = Self.labelAttributes[.font] as! NSFont
+        pillText.font = font
+        pillText.fontSize = font.pointSize
+        pillText.foregroundColor = NSColor.white.cgColor
+        pillText.contentsScale = screen.backingScaleFactor
+        pill.addSublayer(pillText)
+        for layer in [edge, lines.across, lines.down, pill] { root.addSublayer(layer) }
+        update()
+    }
+
+    /// Shows the current state: layers moved at once, the view drawn again only if what it draws changed.
+    func update() {
+        guard owner != nil else { return }
+        guard layered else { needsDisplay = true; return }
+        place()
+        let hinted = pointer != nil || window?.isKeyWindow == true
+        let now = Drawn(adjustable: adjusting ? area : nil, moving: adjusting && drag != nil, hint: hinted ? overlay.hintText : nil)
+        if now != drawn {
+            drawn = now
+            needsDisplay = true
+        }
+    }
+
+    private func place() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
+        let window = area == nil ? hoveredWindow?.rect : nil
+        let color = NSColor.black.withAlphaComponent(adjusting ? 0.45 : 0.32).cgColor
+        for dim in dims { dim.backgroundColor = color }
+        if let cut = (area ?? window)?.intersection(bounds), !cut.isNull {
+            dims[0].frame = CGRect(x: 0, y: 0, width: bounds.width, height: cut.minY)
+            dims[1].frame = CGRect(x: 0, y: cut.maxY, width: bounds.width, height: bounds.height - cut.maxY)
+            dims[2].frame = CGRect(x: 0, y: cut.minY, width: cut.minX, height: cut.height)
+            dims[3].frame = CGRect(x: cut.maxX, y: cut.minY, width: bounds.width - cut.maxX, height: cut.height)
+        } else {
+            dims[0].frame = bounds
+            for dim in dims.dropFirst() { dim.frame = .zero }
+        }
+
+        // The glowing Solar Amber edge, around the area or the window under the pointer.
+        if let rect = area {
+            frameEdge(rect.insetBy(dx: -1.5, dy: -1.5), width: 1.5, glow: adjusting ? 5 : 3, opacity: 0.8)
+        } else if let rect = window {
+            frameEdge(rect, width: 2, glow: 4, opacity: 0.7)
+        } else {
+            edge.isHidden = true
+        }
+
+        // Crosshair lines through the pointer, to line up the first corner.
+        let crosshair = area == nil && window == nil && overlay.currentMode == .area ? pointer : nil
+        lines.across.isHidden = crosshair == nil
+        lines.down.isHidden = crosshair == nil
+        if let crosshair {
+            lines.across.frame = CGRect(x: 0, y: crosshair.y - 0.5, width: bounds.width, height: 1)
+            lines.down.frame = CGRect(x: crosshair.x - 0.5, y: 0, width: 1, height: bounds.height)
+        }
+
+        // The size, under the area (above it while adjusting, where the toolbar is under it).
+        pill.isHidden = area == nil
+        if let rect = area {
+            let text = "\(Int(rect.width)) × \(Int(rect.height))"
+            let size = (text as NSString).size(withAttributes: Self.labelAttributes)
+            var label = CGRect(x: rect.midX - size.width / 2 - 8, y: 0, width: size.width + 16, height: size.height + 6)
+            if adjusting {
+                label.origin.y = rect.minY - size.height - 12
+                if label.minY < 4 { label.origin.y = rect.minY + 6 }
+            } else {
+                label.origin.y = rect.maxY + 6
+                if label.maxY > bounds.height - 4 { label.origin.y = rect.maxY - label.height - 6 }
+            }
+            var frame = label.insetBy(dx: -6, dy: -2)
+            frame.size.width += 6
+            frame.origin.x = min(max(frame.minX, 4), bounds.width - frame.width - 4)
+            if pill.bounds.size != frame.size {
+                pill.cornerRadius = frame.height / 2
+                dot.frame = CGRect(x: 7, y: frame.height / 2 - 3, width: 6, height: 6)
+                pillText.frame = CGRect(x: 22, y: (frame.height - size.height) / 2, width: size.width + 2, height: size.height)
+            }
+            pill.frame = frame
+            if pillText.string as? String != text { pillText.string = text }
+        }
+    }
+
+    private func frameEdge(_ frame: CGRect, width: CGFloat, glow: CGFloat, opacity: Float) {
+        edge.isHidden = false
+        if edge.bounds.size != frame.size || edge.borderWidth != width {
+            edge.bounds = CGRect(origin: .zero, size: frame.size)
+            edge.borderWidth = width
+            // Just the line glows: its outline, not the inside.
+            edge.shadowPath = CGPath(rect: edge.bounds.insetBy(dx: width / 2, dy: width / 2), transform: nil)
+                .copy(strokingWithWidth: width, lineCap: .butt, lineJoin: .miter, miterLimit: 10)
+        }
+        edge.shadowRadius = glow
+        edge.shadowOpacity = opacity
+        edge.position = CGPoint(x: frame.midX, y: frame.midY)
+    }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
     private func local(_ event: NSEvent) -> CGPoint {
@@ -339,7 +477,7 @@ private final class OverlayView: NSView {
         area = nil
         adjusting = false
         drag = nil
-        needsDisplay = true
+        update()
     }
 
     /// The highlighted window, in this view's coordinates.
@@ -412,7 +550,7 @@ private final class OverlayView: NSView {
     override func mouseExited(with event: NSEvent) {
         guard owner != nil else { return }
         pointer = nil
-        needsDisplay = true
+        update()
     }
 
     override func mouseDown(with event: NSEvent) {
@@ -462,7 +600,7 @@ private final class OverlayView: NSView {
             return
         }
         if adjusting, let area { overlay.moveToolbar(self, rect: area) }
-        needsDisplay = true
+        update()
     }
 
     /// `original` with the edges `handle` holds moved to `point`; it can be dragged past the opposite edge.
@@ -484,14 +622,17 @@ private final class OverlayView: NSView {
 
     override func mouseUp(with event: NSEvent) {
         guard owner != nil else { return }
-        defer { drag = nil }
+        defer {
+            drag = nil
+            update()
+        }
         guard case .select = drag else {
             if let pointer { cursor(for: pointer).set() }
             return
         }
         guard let rect = area?.integral, rect.width >= 4, rect.height >= 4 else {
             area = nil
-            needsDisplay = true
+            update()
             // A click, not a drag: the window under it.
             if overlay.windowsOnClick, let hovered = hoveredWindow { overlay.pickWindowSoon(hovered.id) }
             return
@@ -531,6 +672,16 @@ private final class OverlayView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         guard owner != nil else { return }
+        if layered {
+            if adjusting, let area { drawAdjusting(area) }
+        } else {
+            drawAll()
+        }
+        if pointer != nil || window?.isKeyWindow == true { drawHint() }
+    }
+
+    /// Everything, for snapshots (live, the layers show most of it).
+    private func drawAll() {
         // A little darker while adjusting, so the area stands out.
         let dim = NSColor.black.withAlphaComponent(adjusting ? 0.45 : 0.32)
         let cutout = area ?? hoveredWindow?.rect
@@ -571,8 +722,6 @@ private final class OverlayView: NSView {
             lines.lineWidth = 1
             lines.stroke()
         }
-
-        if pointer != nil || window?.isKeyWindow == true { drawHint() }
     }
 
     /// The area's frame in the LongoKit look: a glowing Solar Amber edge; while adjusting, viewfinder corners like
@@ -588,8 +737,11 @@ private final class OverlayView: NSView {
         edge.lineWidth = 1.5
         edge.stroke()
         NSGraphicsContext.restoreGraphicsState()
-        guard adjusting else { return }
+        if adjusting { drawAdjusting(rect) }
+    }
 
+    /// An adjustable area's viewfinder corners and side grips, and thirds while it's moved or resized.
+    private func drawAdjusting(_ rect: CGRect) {
         if drag != nil {
             NSColor.white.withAlphaComponent(0.22).setStroke()
             let thirds = NSBezierPath()
@@ -720,4 +872,9 @@ extension SelectionOverlay {
         image.addRepresentation(rep)
         return image
     }
+}
+
+/// A plain view with its origin at the top-left, like the overlay's.
+private final class FlippedView: NSView {
+    override var isFlipped: Bool { true }
 }

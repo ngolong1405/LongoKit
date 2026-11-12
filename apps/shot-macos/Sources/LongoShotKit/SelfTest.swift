@@ -389,6 +389,33 @@ enum SelfTest {
                 SelectionOverlay.dismissLingering()
                 RunLoop.main.run(until: Date().addingTimeInterval(0.1))
             }
+            // Dragging an area out: the edge follows the pointer as a layer, and the screen isn't drawn again.
+            SelectionOverlay.pick(.area, hint: "") { _ in }
+            var tracks = false
+            if let panel = NSApp.windows.first(where: { $0.identifier == Capturer.panelID && $0.isVisible && $0.screen == screen }),
+               let view = panel.contentView?.subviews.first(where: { $0.className.contains("OverlayView") }) {
+                panel.displayIfNeeded()
+                let height = view.bounds.height
+                func mouse(_ type: NSEvent.EventType, _ x: CGFloat, _ y: CGFloat) -> NSEvent {
+                    NSEvent.mouseEvent(with: type, location: CGPoint(x: x, y: height - y), modifierFlags: [], timestamp: 0,
+                                       windowNumber: panel.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1)!
+                }
+                view.mouseDown(with: mouse(.leftMouseDown, 100, 100))
+                view.mouseDragged(with: mouse(.leftMouseDragged, 250, 200))
+                panel.displayIfNeeded()
+                let started = Date()
+                for step in 1...60 { view.mouseDragged(with: mouse(.leftMouseDragged, 300 + CGFloat(step), 250)) }
+                let perStep = Date().timeIntervalSince(started) * 1000 / 60
+                view.mouseDragged(with: mouse(.leftMouseDragged, 400, 300))
+                let edge = view.layer?.sublayers?.first { !$0.isHidden && $0.borderWidth == 1.5 }
+                let expected = CGRect(x: 98.5, y: 98.5, width: 303, height: 203)
+                tracks = !view.needsDisplay && edge.map { abs($0.frame.minX - expected.minX) < 0.5 && abs($0.frame.width - expected.width) < 0.5
+                    && abs($0.frame.minY - expected.minY) < 0.5 && abs($0.frame.height - expected.height) < 0.5 } == true
+                print(String(format: "      a drag step while picking takes %.2f ms", perStep))
+            }
+            SelectionOverlay.cancel()
+            SelectionOverlay.dismissLingering()
+            print("\(tracks ? "PASS" : "FAIL")  dragging an area out moves its edge with the pointer, without drawing the screen again")
             // The selection overlay stays a moment after a pick (until the editor takes over); the pointer moving over
             // it meanwhile is harmless.
             SelectionOverlay.pick(.area, hint: "") { _ in }
@@ -485,7 +512,7 @@ enum SelfTest {
             let placed = id.flatMap { Capturer.place(of: $0) }
             let inside = placed.map { CGRect(origin: .zero, size: $0.0.frame.size).contains($0.1) } ?? (id == nil)
             print("\(inside ? "PASS" : "FAIL")  a window is found where it is on its screen\(placed.map { " (\(Int($0.1.width))×\(Int($0.1.height)))" } ?? "")")
-            exit(ok && fills && quiet && adjustable && arrows && shown && follows && back && inside && !InPlaceEditor.isOpen ? 0 : 1)
+            exit(ok && fills && tracks && quiet && adjustable && arrows && shown && follows && back && inside && !InPlaceEditor.isOpen ? 0 : 1)
         }
     }
 
