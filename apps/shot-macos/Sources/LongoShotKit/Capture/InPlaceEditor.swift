@@ -349,6 +349,10 @@ private final class AdjustableView: NSView {
     private let marksMask = CALayer()
     /// Holds the toolbar; it's this that moves with the area, so the SwiftUI toolbar inside never changes frame.
     private let toolbarHolder = NSView()
+    /// The layers, in views stacked bottom to top (AppKit keeps the order of subviews, not of loose sublayers):
+    /// the frozen screen; the marks; the dimming, edge, grips and size; then the toolbar, so nothing dims it.
+    private let pictureView = FlippedLayerView()
+    private let chromeView = FlippedLayerView()
     /// The marks canvas, made when a tool is first picked (most captures are copied without drawing).
     private var marks: NSView?
     private let image: CGImage
@@ -370,20 +374,24 @@ private final class AdjustableView: NSView {
         grips = Grip.allCases.map { _ in CALayer() }
         super.init(frame: CGRect(origin: .zero, size: size))
         wantsLayer = true
-        let root = layer!
+        pictureView.frame = bounds
+        addSubview(pictureView)
+        let root = chromeView.layer!
         let scale = CGFloat(image.width) / max(size.width, 1)
 
         let picture = CALayer()
         picture.frame = bounds
         picture.contents = image
         picture.contentsGravity = .resize
-        root.addSublayer(picture)
+        pictureView.layer!.addSublayer(picture)
 
         marksHolder.frame = bounds
         marksHolder.wantsLayer = true
         marksMask.backgroundColor = NSColor.black.cgColor
         marksHolder.layer?.mask = marksMask
         addSubview(marksHolder)
+        chromeView.frame = bounds
+        addSubview(chromeView)
 
         for dim in dims {
             dim.backgroundColor = NSColor.black.withAlphaComponent(InPlaceEditor.dim).cgColor
@@ -553,4 +561,18 @@ private final class AdjustableView: NSView {
         CATransaction.commit()
         mouseMoved(with: event)
     }
+}
+
+/// A layer-backed view with its origin at the top-left, holding layers.
+private final class FlippedLayerView: NSView {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        wantsLayer = true
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override var isFlipped: Bool { true }
+    // Layers only: the pointer is the editor's.
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
 }

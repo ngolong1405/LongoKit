@@ -333,8 +333,10 @@ final class AppModel: ObservableObject {
     private func pickAgain() {
         let screens = pickedOn
         pickedOn = [:]
+        // Without them, the screens are taken again leaving Shot's windows out: the editor just put away can still
+        // be on screen for a moment, and a quick capture would have it in.
         pick(.area, hint: L("Drag an area  ·  Click a window  ·  Double-click: whole screen  ·  Esc: cancel"), text: false,
-             allowsScreen: true, draw: drawAfterCapture, windowsOnClick: true, reuse: screens)
+             allowsScreen: true, draw: drawAfterCapture, windowsOnClick: true, reuse: screens, leavingOutPanels: true)
     }
 
     /// A picture (or its text). The overlay comes up at once; the screens are frozen meanwhile and slipped under it
@@ -343,7 +345,7 @@ final class AppModel: ObservableObject {
     /// `reuse`: screens already frozen, to pick on them again.
     private func pick(_ mode: SelectionOverlay.Mode, hint: String, text: Bool, allowsWindows: Bool = true, allowsScreen: Bool = false,
                       draw: Bool = false, windowsOnClick: Bool = false,
-                      reuse: [CGDirectDisplayID: (image: CGImage, scale: CGFloat)] = [:]) {
+                      reuse: [CGDirectDisplayID: (image: CGImage, scale: CGFloat)] = [:], leavingOutPanels: Bool = false) {
         guard ready(), !SelectionOverlay.isPicking else { return }
         if !reuse.isEmpty {
             frozen = reuse
@@ -355,7 +357,7 @@ final class AppModel: ObservableObject {
         }
         // A panel of Shot's on screen (the last capture's preview) could still be in a quick capture taken right after
         // it's put away: then ScreenCaptureKit, which leaves it out.
-        let clear = !Capturer.panelsShowing
+        let clear = !leavingOutPanels && !Capturer.panelsShowing
         PreviewPanel.shared.dismiss()
         // As iShot does: the screens as they are, in one quick call each, then the overlay on them.
         if clear, let still = Capturer.freezeNow() {
@@ -422,6 +424,8 @@ final class AppModel: ObservableObject {
                 var place: (NSScreen, CGRect)?
                 if draw, case let .window(id) = selection { place = Capturer.place(of: id) }
                 let (image, scale, screen) = try await grab(selection, shadow: place == nil)
+                // Kept for Esc, which goes back to picking on the same screens.
+                if draw, !frozen.isEmpty { pickedOn = frozen }
                 frozen = [:]
                 if case let .area(_, rect, _) = selection, let screen { place = (screen, rect) }
                 if text {

@@ -481,6 +481,12 @@ enum SelfTest {
                 }
             }
             print("\(shown ? "PASS" : "FAIL")  the editor shows the area clear and the screen around it dimmed, the right way up")
+            // The toolbar is the top view, over the dimming (a layer above it would darken it).
+            let editorViews = InPlaceEditor.view?.subviews ?? []
+            let loose = (InPlaceEditor.view?.layer?.sublayers ?? []).filter { layer in !editorViews.contains { $0.layer === layer } }
+            let onTop = loose.isEmpty && editorViews.last?.subviews.first?.className.contains("NSHostingView") == true
+                && editorViews.dropLast().allSatisfy { ($0.layer?.zPosition ?? 0) == 0 && ($0.layer?.sublayers ?? []).allSatisfy { $0.zPosition <= 10 } }
+            print("\(onTop ? "PASS" : "FAIL")  the toolbar sits over the dimmed screen, not under it")
             // Dragging: each step moves the area and the window shows it.
             let dragging = Date()
             for step in 1...120 {
@@ -520,7 +526,7 @@ enum SelfTest {
             let placed = id.flatMap { Capturer.place(of: $0) }
             let inside = placed.map { CGRect(origin: .zero, size: $0.0.frame.size).contains($0.1) } ?? (id == nil)
             print("\(inside ? "PASS" : "FAIL")  a window is found where it is on its screen\(placed.map { " (\(Int($0.1.width))×\(Int($0.1.height)))" } ?? "")")
-            exit(ok && fills && tracks && quiet && adjustable && arrows && shown && follows && back && inside && !InPlaceEditor.isOpen ? 0 : 1)
+            exit(ok && fills && tracks && quiet && adjustable && arrows && shown && onTop && follows && back && inside && !InPlaceEditor.isOpen ? 0 : 1)
         }
     }
 
