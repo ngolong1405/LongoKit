@@ -6,8 +6,6 @@ enum Vietnamese {
         "About": "Giới thiệu",
         "Modules": "Module",
         "%d of %d on": "Bật %d/%d",
-        "Running": "Đang chạy",
-        "Paused": "Tạm dừng",
         "Open as its own app": "Đang mở dưới dạng app riêng",
         "Quit": "Thoát",
         "Quit LongoKit: every module stops until it's opened again": "Thoát LongoKit: mọi module dừng cho tới khi mở lại",
@@ -31,15 +29,7 @@ enum Vietnamese {
         "Quit %@": "Thoát %@",
 
         // Turning modules off, and their own apps
-        "Turn off %@?": "Tắt %@?",
-        "LongoKit restarts to unload it. Its settings are kept for when you turn it back on.":
-            "LongoKit sẽ khởi động lại để gỡ module. Cài đặt vẫn được giữ cho lần bật lại.",
-        "Turn Off and Restart": "Tắt và khởi động lại",
         "Cancel": "Huỷ",
-        "Finish the recording first": "Hãy dừng quay trước",
-        "Turning a module off restarts LongoKit, which would stop it.":
-            "Tắt một module sẽ khởi động lại LongoKit, việc quay sẽ bị dừng.",
-        "OK": "OK",
         "%@ is also open on its own": "%@ cũng đang mở riêng",
         "LongoKit already runs %@. Both at once would act on everything twice.":
             "LongoKit đã chạy %@. Mở cả hai cùng lúc thì mọi thao tác sẽ bị xử lý hai lần.",
@@ -53,9 +43,12 @@ enum Vietnamese {
         "Crafted by %@": "Thực hiện bởi %@",
 
         // Menu
+        "Settings…": "Cài đặt…",
+        "%@ (off)": "%@ (đang tắt)",
+        "Needs permission": "Cần cấp quyền",
+        "%@ · needs permission": "%@ · cần cấp quyền",
+        "%@ (open on its own)": "%@ (đang mở riêng)",
         "Off": "Đang tắt",
-        "%@ · paused": "%@ · tạm dừng",
         "%@ · open as its own app": "%@ · đang mở dưới dạng app riêng",
-        "%@ · off": "%@ · đang tắt",
     ]
 }

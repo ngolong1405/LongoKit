@@ -17,14 +17,11 @@ struct MenuPopover: View {
                 AppLogo(size: 38).padding(-3)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(AppInfo.name).font(.display(14, .semibold)).foregroundStyle(Theme.text)
-                    let color = model.hasPermission ? Theme.emerald : Theme.amber
-                    HStack(spacing: 5) {
-                        Circle().fill(color).frame(width: 6, height: 6).shadow(color: color, radius: 3)
-                        Text(model.hasPermission ? L("Ready") : L("Needs permission")).font(.ui(11)).foregroundStyle(color).lineLimit(1)
-                    }
+                    PowerLabel(isOn: model.isEnabled, attention: model.hasPermission ? nil : L("Needs permission"))
                 }
                 Spacer(minLength: 4)
                 ThemeSwitcher(selection: $model.appearance)
+                AppPowerButton(name: AppInfo.name, isOn: model.isEnabled) { model.isEnabled.toggle() }
             }
             Hairline()
 

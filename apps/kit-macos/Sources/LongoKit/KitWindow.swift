@@ -11,11 +11,16 @@ struct KitWindow: View {
 
     var body: some View {
         WindowFrame(blur: !forSnapshot, width: Sidebar.width + 1 + Theme.windowWidth) {
-            TitleBar()
+            // The sidebar runs the full height, window controls on top, like macOS's own settings; the title sits over
+            // the page, centered on it like the module's tabs below.
             HStack(alignment: .top, spacing: 0) {
                 Sidebar()
                 Rectangle().fill(Theme.hairline).frame(width: 1).frame(maxHeight: .infinity)
-                PageView().frame(width: Theme.windowWidth)
+                VStack(spacing: 0) {
+                    TitleBar()
+                    PageView()
+                }
+                .frame(width: Theme.windowWidth)
             }
             // As tall as the open page; the sidebar stretches to match.
             .fixedSize(horizontal: false, vertical: true)
@@ -38,7 +43,6 @@ struct TitleBar: View {
                 Text(AppInfo.name).font(.display(14, .semibold)).tracking(-0.2).foregroundStyle(Theme.text)
             }
             HStack {
-                TrafficLights()
                 Spacer()
                 RunningPill()
             }
@@ -53,7 +57,7 @@ private struct RunningPill: View {
     @EnvironmentObject private var suite: Suite
 
     var body: some View {
-        let running = suite.statuses.values.filter { $0 == .running || $0 == .paused }.count
+        let running = suite.statuses.values.filter { $0 == .running || $0 == .attention }.count
         let color = running > 0 ? Theme.emerald : Theme.textFaint
         HStack(spacing: 6) {
             Circle().fill(color).frame(width: 6, height: 6).shadow(color: color.opacity(0.9), radius: running > 0 ? 3 : 0)
@@ -73,6 +77,14 @@ struct Sidebar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                TrafficLights()
+                Spacer()
+            }
+            .padding(.horizontal, 6)
+            // The same 44 pt row as the title, from the window's top edge (the sidebar's padding pulled back).
+            .frame(height: 44)
+            .padding(.top, -10)
             SidebarRow(page: .general, title: L("General")) { SidebarSymbol(name: "gearshape") }
             Text(L("Modules").uppercased())
                 .font(.mono(9.5, .semibold))
@@ -170,8 +182,8 @@ struct StatusMark: View {
 
     var body: some View {
         switch status {
-        case .running: light(Theme.emerald).help(L("Running"))
-        case .paused: light(Theme.amber).help(L("Paused"))
+        case .running: light(Power.color(true)).help(Power.label(true))
+        case .attention: light(Theme.amber).help(L("Needs permission"))
         case .elsewhere:
             Image(systemName: "arrow.up.forward.app")
                 .font(.system(size: 11, weight: .medium))

@@ -11,15 +11,15 @@ final class Suite: ObservableObject {
         case general, module(String), about
     }
 
-    /// Where a module stands.
+    /// Where a module stands. On or off is one switch, wherever it shows: the module's own, the General page's, the
+    /// menu bar's. Off stops it at once, and from the next launch it isn't even loaded.
     enum Status: Equatable {
-        /// Turned off: not loaded, no memory, no permissions.
         case off
-        /// Turned on, but its own app is running, so it waits for that to quit.
+        /// On, but its own app is running, so it waits for that to quit.
         case elsewhere
         case running
-        /// Its own power switch is off.
-        case paused
+        /// On, but held back, like by a missing permission.
+        case attention
     }
 
     @Published var page: Page = .general
@@ -139,24 +139,20 @@ final class Suite: ObservableObject {
         }
     }
 
-    /// Turns a module on, at once, or off. A module that has run can't be unloaded, so turning it off restarts the app.
+    /// Turns a module on or off, at once: on loads it if it isn't yet; off stops it, and it isn't loaded next time.
     func setEnabled(_ info: ModuleInfo, _ on: Bool) {
         if on {
             enabled.insert(info.id)
-            run(info)
-        } else if hosts[info.id] == nil {
+            if let host = hosts[info.id] {
+                if !host.isOn { host.setRunning(true) }
+            } else {
+                run(info, turnOn: true)
+            }
+        } else {
             enabled.remove(info.id)
-            refreshStatuses()
-        } else if !live {
-            enabled.remove(info.id)
-            hosts[info.id] = nil
-            subscriptions[info.id] = nil
-            refreshStatuses()
-        } else if confirmTurningOff(info) {
-            enabled.remove(info.id)
-            // Still running if the restart can't happen: keep it on, as the switch shows.
-            if !AppLaunch.relaunch() { enabled.insert(info.id) }
+            if let host = hosts[info.id], host.isOn { host.setRunning(false) }
         }
+        refreshStatuses()
     }
 
     /// Quits a module's own app, so the module can run here; it starts once the app is gone.
@@ -172,12 +168,18 @@ final class Suite: ObservableObject {
         if hosts[id] != nil { menuModule = id }
     }
 
-    /// The module the menu bar popover shows: the last one picked, or else the first that runs.
+    /// The module the menu bar popover shows: the last one picked, or else the first that's on.
     var menuInfo: ModuleInfo {
-        ModuleInfo.named(menuModule ?? "") ?? ModuleInfo.all.first { hosts[$0.id] != nil } ?? ModuleInfo.all[0]
+        ModuleInfo.named(menuModule ?? "")
+            ?? ModuleInfo.all.first { status($0.id) == .running || status($0.id) == .attention } ?? ModuleInfo.all[0]
     }
 
-    private func run(_ info: ModuleInfo) {
+    /// The switch each module showed last, to tell when the person flips it in the module itself.
+    private var lastSwitch: [String: Bool] = [:]
+
+    /// Loads a module that's on. `turnOn`: the person just turned it on, so its own switch goes on too; otherwise
+    /// a module that was switched off in itself stays off.
+    private func run(_ info: ModuleInfo, turnOn: Bool = false) {
         guard enabled.contains(info.id), hosts[info.id] == nil, !runsElsewhere(info) else { return refreshStatuses() }
         let store = UserDefaults(suiteName: storeName(info.id)) ?? .standard
         if live, !defaults.bool(forKey: Keys.imported(info.id)) {
@@ -189,6 +191,9 @@ final class Suite: ObservableObject {
         host.appearance = appearance
         // Each module sets this from its own menu bar setting; LongoKit's is the one that counts.
         MainWindowRef.keepsDockIconWhenHidden = !showMenuBarIcon
+        if turnOn && !host.isOn { host.setRunning(true) }
+        lastSwitch[info.id] = host.isOn
+        if !host.isOn { enabled.remove(info.id) }
         hosts[info.id] = host
         subscriptions[info.id] = host.changes.sink { [weak self] in self?.moduleChanged(info.id) }
         moduleChanged(info.id)
@@ -207,6 +212,11 @@ final class Suite: ObservableObject {
         // A module's theme switcher (in its menu) changes the whole app's appearance.
         if host.appearance != appearance { appearance = host.appearance }
         if host.language != language { language = host.language }
+        // The module's own switch (in its menu or General tab) is the same switch as LongoKit's.
+        if lastSwitch[id] != host.isOn {
+            lastSwitch[id] = host.isOn
+            if host.isOn { enabled.insert(id) } else { enabled.remove(id) }
+        }
         // A module may set this from its own menu bar setting (say, restoring its defaults); LongoKit's counts.
         MainWindowRef.keepsDockIconWhenHidden = !showMenuBarIcon
         refreshStatuses()
@@ -217,12 +227,12 @@ final class Suite: ObservableObject {
     private func refreshStatuses() {
         var next: [String: Status] = [:]
         for info in ModuleInfo.all {
-            if let host = hosts[info.id] {
-                next[info.id] = host.isRunning ? .running : .paused
-            } else if enabled.contains(info.id) {
-                next[info.id] = .elsewhere
-            } else {
+            if !enabled.contains(info.id) {
                 next[info.id] = .off
+            } else if let host = hosts[info.id] {
+                next[info.id] = host.isRunning ? .running : .attention
+            } else {
+                next[info.id] = .elsewhere
             }
         }
         if next != statuses { statuses = next }
@@ -252,22 +262,6 @@ final class Suite: ObservableObject {
         alert.addButton(withTitle: L("Keep Both"))
         NSApp.activate(ignoringOtherApps: true)
         if alert.runModal() == .alertFirstButtonReturn { quitOwnApp(info) }
-    }
-
-    private func confirmTurningOff(_ info: ModuleInfo) -> Bool {
-        let alert = NSAlert()
-        if hosts.values.contains(where: \.isBusy) {
-            alert.messageText = L("Finish the recording first")
-            alert.informativeText = L("Turning a module off restarts LongoKit, which would stop it.")
-            alert.addButton(withTitle: L("OK"))
-            alert.runModal()
-            return false
-        }
-        alert.messageText = L("Turn off %@?", info.title)
-        alert.informativeText = L("LongoKit restarts to unload it. Its settings are kept for when you turn it back on.")
-        alert.addButton(withTitle: L("Turn Off and Restart"))
-        alert.addButton(withTitle: L("Cancel"))
-        return alert.runModal() == .alertFirstButtonReturn
     }
 
     /// Runs `action` once no module is busy, checking every second.

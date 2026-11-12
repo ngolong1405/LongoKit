@@ -4,7 +4,7 @@ import SwiftUI
 /// The stand-alone app's window and menu bar item. Its `@main` is in the LongoDisplay target, so another app can host
 /// this module too.
 public struct DisplayScenes: Scene {
-    @StateObject private var model = AppModel(live: !Snapshot.isRequested && !SelfTest.isRequested && !SelfTest.isDiagnoseRequested)
+    @StateObject private var model = DisplayAppDelegate.model
 
     public init() {}
 
@@ -33,6 +33,8 @@ public struct DisplayScenes: Scene {
 }
 
 public final class DisplayAppDelegate: NSObject, NSApplicationDelegate {
+    /// Made here so the right-click menu of the menu bar icon can reach it.
+    @MainActor static let model = AppModel(live: !Snapshot.isRequested && !SelfTest.isRequested && !SelfTest.isDiagnoseRequested)
     private var closeShortcutMonitor: Any?
 
     override public init() { super.init() }
@@ -50,6 +52,16 @@ public final class DisplayAppDelegate: NSObject, NSApplicationDelegate {
         if SelfTest.isRequested { MainActor.assumeIsolated { SelfTest.runAndExit() } }
         if SelfTest.isDiagnoseRequested { MainActor.assumeIsolated { SelfTest.diagnoseAndExit() } }
         closeShortcutMonitor = MainWindowRef.interceptCloseShortcut()
+        if !Snapshot.isRequested && !SelfTest.isRequested && !SelfTest.isDiagnoseRequested {
+            MainActor.assumeIsolated {
+                let model = Self.model
+                StatusItemMenu.install(doubleClick: { MainWindowRef.show() }) {
+                    StatusItemMenu.standard(name: AppInfo.name, icon: DisplayModule.image("Logo.png"), isOn: model.isEnabled, toggle: { model.isEnabled.toggle() },
+                                            settings: { MainWindowRef.show() },
+                                            about: { model.tab = .about; MainWindowRef.show() })
+                }
+            }
+        }
     }
 
     /// Only Quit ends the app; closing the window leaves it running in the menu bar.

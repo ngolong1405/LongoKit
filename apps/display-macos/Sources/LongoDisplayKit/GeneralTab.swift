@@ -6,6 +6,13 @@ struct GeneralTab: View {
 
     var body: some View {
         VStack(spacing: 12) {
+            SettingsGroup(L("Status")) {
+                PowerRow(name: AppInfo.name, isOn: model.isEnabled,
+                         help: model.isEnabled ? L("Brightness, Sync, the brightness keys and dimming are working.")
+                             : L("Off: displays keep their brightness; Sync, the brightness keys and dimming stop.")) {
+                    model.isEnabled.toggle()
+                }
+            }
             SettingsGroup(L("Brightness")) {
                 CompactRow(L("Brightness Mode"), help: modeHelp) {
                     Segmented(options: BrightnessMode.allCases, selection: $model.mode, title: { $0.title })

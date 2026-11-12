@@ -4,7 +4,7 @@ import SwiftUI
 /// The stand-alone app's window and menu bar item. Its `@main` is in the LongoMouse target, so another app can host
 /// this module too.
 public struct MouseScenes: Scene {
-    @StateObject private var model = AppModel(startsEngine: !Snapshot.isRequested && !SelfTest.isRequested)
+    @StateObject private var model = MouseAppDelegate.model
 
     public init() {}
 
@@ -31,6 +31,8 @@ public struct MouseScenes: Scene {
 }
 
 public final class MouseAppDelegate: NSObject, NSApplicationDelegate {
+    /// Made here so the right-click menu of the menu bar icon can reach it.
+    @MainActor static let model = AppModel(startsEngine: !Snapshot.isRequested && !SelfTest.isRequested)
     private var closeShortcutMonitor: Any?
 
     override public init() { super.init() }
@@ -47,6 +49,16 @@ public final class MouseAppDelegate: NSObject, NSApplicationDelegate {
         if Snapshot.isRequested { MainActor.assumeIsolated { Snapshot.renderAndExit() } }
         if SelfTest.isRequested { MainActor.assumeIsolated { SelfTest.runAndExit() } }
         closeShortcutMonitor = MainWindowRef.interceptCloseShortcut()
+        if !Snapshot.isRequested && !SelfTest.isRequested {
+            MainActor.assumeIsolated {
+                let model = Self.model
+                StatusItemMenu.install(doubleClick: { MainWindowRef.show() }) {
+                    StatusItemMenu.standard(name: AppInfo.name, icon: MouseModule.image("Logo.png"), isOn: model.isRunning, toggle: model.toggleEnabled,
+                                            settings: { MainWindowRef.show() },
+                                            about: { model.tab = .about; MainWindowRef.show() })
+                }
+            }
+        }
     }
 
     /// Only Quit ends the app; closing the window leaves it running in the menu bar.

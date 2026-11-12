@@ -14,6 +14,8 @@ public enum ShotModule: LongoModule {
         // About is the host's own page.
         if model.tab == .about { model.tab = .general }
         return ModelHost(model: model, panel: { ModulePanel() }, menu: { MenuPopover() },
+                         isRunning: { $0.isEnabled },
+                         setRunning: { $0.isEnabled = $1 },
                          // While recording, the menu bar shows the time.
                          menuBarImage: { $0.isRecordingScreen ? MenuBarIcon.recording(seconds: $0.recordingSeconds, paused: $0.isRecordingPaused) : nil },
                          isBusy: { $0.isRecordingScreen || $0.countdown != nil },

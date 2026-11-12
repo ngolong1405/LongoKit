@@ -19,6 +19,14 @@ enum MainTab: CaseIterable {
 @MainActor
 final class AppModel: ObservableObject {
     @Published var tab: MainTab = .general
+    /// Paused, the shortcuts let go (other apps can use them meanwhile); the menu still captures.
+    @Published var isEnabled: Bool {
+        didSet {
+            guard isEnabled != oldValue else { return }
+            defaults.set(isEnabled, forKey: Keys.enabled)
+            registerHotKeys()
+        }
+    }
 
     // Where captures go.
     @Published var saveFolder: URL {
@@ -166,6 +174,7 @@ final class AppModel: ObservableObject {
         static let language = "language"
         static let appearance = "appearance"
         static let menuBarIcon = "showMenuBarIcon"
+        static let enabled = "enabled"
         static let systemAudio = "recordSystemAudio"
         static let microphone = "recordMicrophone"
         static let cursor = "recordCursor"
@@ -207,6 +216,7 @@ final class AppModel: ObservableObject {
         recordFramesPerSecond = defaults.object(forKey: Keys.framesPerSecond) as? Int == 60 ? 60 : 30
         recordCountdown = defaults.object(forKey: Keys.countdown) as? Bool ?? true
         shortcuts = Self.loadShortcuts(defaults)
+        isEnabled = defaults.object(forKey: Keys.enabled) as? Bool ?? true
         language = defaults.string(forKey: Keys.language).flatMap(AppLanguage.init(rawValue:)) ?? .systemDefault
         appearance = defaults.string(forKey: Keys.appearance).flatMap(AppAppearance.init(rawValue:)) ?? .system
         let menuBarIcon = defaults.object(forKey: Keys.menuBarIcon) as? Bool ?? true
@@ -338,6 +348,19 @@ final class AppModel: ObservableObject {
         Task { @MainActor in
             defer { isBusy = false }
             do {
+                // An area (or the screen) to draw on: the editor gets the whole screen, so the area can still change.
+                if draw, !text, case let .area(display, rect, scale) = selection,
+                   let screen = NSScreen.screens.first(where: { $0.displayID == display }) {
+                    let still = frozen[display]
+                    frozen = [:]
+                    let full: CGImage
+                    if let still { full = still.image } else { full = try await Capturer.image(display: display, rect: nil, scale: scale) }
+                    let fullScale = still?.scale ?? scale
+                    InPlaceEditor.open(screen: full, scale: fullScale, on: screen, area: rect) { [weak self] outcome in
+                        self?.finishDrawing(outcome, scale: fullScale, on: screen)
+                    }
+                    return
+                }
                 // A window to draw on in place is taken without its shadow, to sit exactly on its frame.
                 var place: (NSScreen, CGRect)?
                 if draw, case let .window(id) = selection { place = Capturer.place(of: id) }
@@ -348,12 +371,7 @@ final class AppModel: ObservableObject {
                     await recognize(image, on: screen)
                 } else if draw, let (screen, rect) = place {
                     InPlaceEditor.open(image, scale: scale, on: screen, area: rect) { [weak self] outcome in
-                        switch outcome {
-                        case let .save(drawn): self?.deliver(drawn, scale: scale, on: screen)
-                        case let .saveAndCopy(drawn): self?.deliver(drawn, scale: scale, on: screen, copy: true)
-                        case let .copy(drawn): self?.deliver(drawn, scale: scale, on: screen, save: false)
-                        case .discard: break
-                        }
+                        self?.finishDrawing(outcome, scale: scale, on: screen)
                     }
                 } else {
                     deliver(image, scale: scale, on: screen)
@@ -362,6 +380,15 @@ final class AppModel: ObservableObject {
                 message(L("Couldn't capture"), detail: error.localizedDescription, symbol: "exclamationmark.triangle.fill",
                         tint: Theme.amber)
             }
+        }
+    }
+
+    private func finishDrawing(_ outcome: InPlaceEditor.Outcome, scale: CGFloat, on screen: NSScreen) {
+        switch outcome {
+        case let .save(drawn): deliver(drawn, scale: scale, on: screen)
+        case let .saveAndCopy(drawn): deliver(drawn, scale: scale, on: screen, copy: true)
+        case let .copy(drawn): deliver(drawn, scale: scale, on: screen, save: false)
+        case .discard: break
         }
     }
 
@@ -714,7 +741,7 @@ final class AppModel: ObservableObject {
 
     private func registerHotKeys() {
         hotKeys = [:]
-        guard live, recording == nil else { return }
+        guard live, isEnabled, recording == nil else { return }
         var taken: Set<ShotAction> = []
         for (action, shortcut) in shortcuts {
             let hotKey = GlobalHotKey(keyCode: shortcut.keyCode, modifiers: shortcut.modifiers) { [weak self] in

@@ -235,11 +235,10 @@ final class AppModel: ObservableObject {
         let inputMonitoring = Self.checkInputMonitoring()
         let gained = (accessibility && !hasAccessibility) || (inputMonitoring && !hasInputMonitoring)
         if accessibility != hasAccessibility {
-            // Without access the switch reads off; once access arrives, turn remapping on.
-            isEnabled = accessibility
+            // The switch keeps the person's choice; remapping waits for access (syncEngine), and starts once it
+            // arrives, since granting it means they want it on.
+            if accessibility { isEnabled = true }
             hasAccessibility = accessibility
-        } else if !accessibility && isEnabled {
-            isEnabled = false
         }
         if inputMonitoring != hasInputMonitoring { hasInputMonitoring = inputMonitoring }
         var tapFailed = false
@@ -263,12 +262,9 @@ final class AppModel: ObservableObject {
     }
 
     func toggleEnabled() {
-        if hasAccessibility {
-            isEnabled.toggle()
-        } else {
-            isEnabled = true
-            requestAccessibility()
-        }
+        isEnabled.toggle()
+        // On without Accessibility: ask for it; remapping starts once it's granted.
+        if isEnabled && !hasAccessibility { requestAccessibility() }
     }
 
     func requestAccessibility() {

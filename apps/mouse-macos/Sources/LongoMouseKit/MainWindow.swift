@@ -121,13 +121,14 @@ struct TitleBar: View {
     }
 }
 
-/// Compact Running / Paused / Listening indicator.
+/// Compact On / Off / Listening indicator.
 private struct StatusPill: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
         let (text, color): (String, Color) = model.isCapturing ? (L("Listening"), Theme.violet)
-            : model.isRunning ? (L("Running"), Theme.emerald) : (L("Paused"), Theme.amber)
+            : !model.isEnabled ? (Power.label(false), Power.color(false))
+            : model.isRunning ? (Power.label(true), Power.color(true)) : (L("Needs Accessibility"), Theme.amber)
         HStack(spacing: 6) {
             Circle()
                 .fill(color)
@@ -140,7 +141,7 @@ private struct StatusPill: View {
         .background(Capsule().fill(color.opacity(0.1)))
         .help(model.isCapturing ? L("Listening for a mouse button to add")
               : model.isRunning ? L("Your custom buttons are active")
-              : L("%@ is paused; mouse buttons work as normal", AppInfo.name))
+              : L("Off: mouse buttons and scrolling work as macOS does by itself."))
         .animation(.easeOut(duration: 0.2), value: text)
     }
 }

@@ -6,10 +6,10 @@ pays just to run.
 
 - **One window:** the modules down a sidebar, each with its own tabs, as in its own app. Language, appearance, start at
   login and the menu bar icon are set once, on the General page.
-- **One menu bar icon:** a strip to pick a module, then its quick controls. Shot's timer takes the icon over while it
-  records.
-- **Turn modules on or off** on the General page. Turning one on starts it at once; turning one off restarts LongoKit,
-  since a running module can't be unloaded (a recording under way has to finish first).
+- **One menu bar icon:** click for a strip to pick a module and its quick controls; double-click for the window;
+  right-click for Settings, each module's on/off, About and Quit. Shot's timer takes the icon over while it records.
+- **One on/off per module,** wherever it shows: the module's own switch, the General page, the right-click menu, the
+  sidebar's light. Off stops it at once; from the next launch it isn't loaded at all.
 - **From the separate apps:** the first time a module runs here, it starts from its own app's settings. While a
   module's own app is open, the module waits, so nothing acts twice; **Run Here** quits that app and takes over.
 

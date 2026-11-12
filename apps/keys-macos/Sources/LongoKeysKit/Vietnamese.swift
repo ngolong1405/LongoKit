@@ -141,7 +141,7 @@ enum Vietnamese {
         // Menu bar
         "Caps Lock on all keyboards": "Caps Lock trên mọi bàn phím",
         "A password field is active: Hyper waits until you leave it.": "Đang ở ô mật khẩu: Hyper tạm ngưng tới khi bạn rời ô.",
-        "Preferences…": "Mở cài đặt…",
+        "Settings…": "Cài đặt…",
 
         // About
         "Remap keys for each keyboard, turn Caps Lock into Esc and Hyper, and give Hyper a layer of arrows, apps and shortcuts.":
@@ -194,5 +194,7 @@ enum Vietnamese {
         "Accessibility": "Trợ năng",
         "App": "Ứng dụng",
         "Status": "Trạng thái",
+        // On / off
+        "⌃⌥⌘K turns it on or off from any app.": "⌃⌥⌘K bật hoặc tắt nó từ bất kỳ app nào.",
     ]
 }

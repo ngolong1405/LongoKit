@@ -19,7 +19,11 @@ public enum MouseModule: LongoModule {
         // About is the host's own page.
         if model.tab == .about { model.tab = .general }
         return ModelHost(model: model, panel: { ModulePanel() }, menu: { MenuPopover() },
-                         isRunning: { $0.isRunning })
+                         // The switch is the person's choice; running also needs Accessibility.
+                         isOn: { $0.isEnabled },
+                         isRunning: { $0.isRunning },
+                         // Without Accessibility, turning it on asks for it.
+                         setRunning: { model, on in if on != model.isEnabled { model.toggleEnabled() } })
     }
 }
 

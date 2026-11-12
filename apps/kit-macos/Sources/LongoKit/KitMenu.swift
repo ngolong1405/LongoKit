@@ -3,28 +3,18 @@ import LongoKitUI
 import SwiftUI
 
 /// The menu bar popover: a strip of every module, then the picked one's quick controls (or a way to turn it on).
-/// Every module's menu is laid out at once, the others hidden, so the popover keeps the tallest one's size and never
-/// resizes from module to module.
+/// Every module's menu is as wide as the others, so switching only changes the height, which fits the menu shown.
 struct KitMenu: View {
     @EnvironmentObject private var suite: Suite
 
     var body: some View {
-        let selection = suite.menuInfo.id
+        let info = suite.menuInfo
         VStack(spacing: 0) {
-            ModuleStrip(selection: selection)
-            ZStack(alignment: .top) {
-                ForEach(ModuleInfo.all) { info in
-                    let shown = info.id == selection
-                    Group {
-                        if let host = suite.hosts[info.id] { host.menu } else { OffMenu(info: info) }
-                    }
-                    .opacity(shown ? 1 : 0)
-                    // Hidden menus keep their place (and the popover's size), but not their buttons or shortcuts.
-                    .disabled(!shown)
-                    .allowsHitTesting(shown)
-                    .accessibilityHidden(!shown)
-                }
+            ModuleStrip(selection: info.id)
+            Group {
+                if let host = suite.hosts[info.id] { host.menu } else { OffMenu(info: info) }
             }
+            .id(info.id)
             .frame(width: Theme.hostedMenuWidth)
             // The module's controls change at once; only the strip's tile slides.
             .transaction { $0.animation = nil }
@@ -84,10 +74,10 @@ private struct ModuleStrip: View {
 
     private func help(_ info: ModuleInfo, _ status: Suite.Status) -> String {
         switch status {
-        case .running: return info.appName
-        case .paused: return L("%@ · paused", info.appName)
+        case .running: return info.appName + " · " + Power.label(true)
+        case .attention: return L("%@ · needs permission", info.appName)
         case .elsewhere: return L("%@ · open as its own app", info.appName)
-        case .off: return L("%@ · off", info.appName)
+        case .off: return info.appName + " · " + Power.label(false)
         }
     }
 }
@@ -115,7 +105,7 @@ private struct OffMenu: View {
                     HStack(spacing: 5) {
                         Image(systemName: elsewhere ? "arrow.up.forward.app" : "power")
                             .font(.system(size: 9, weight: .bold))
-                        Text(elsewhere ? L("Open as its own app") : L("Off"))
+                        Text(elsewhere ? L("Open as its own app") : Power.label(false))
                             .font(.ui(11))
                     }
                     .foregroundStyle(elsewhere ? Theme.amber : Theme.textFaint)

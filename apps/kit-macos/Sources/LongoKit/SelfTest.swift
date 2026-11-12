@@ -54,7 +54,9 @@ enum SelfTest {
         check("a module whose own app is open waits", suite.hosts["keys"] == nil && suite.status("keys") == .elsewhere)
         suite.setEnabled(ModuleInfo.named("mouse")!, false)
         settle()
-        check("turning a module off drops it", suite.hosts["mouse"] == nil && suite.status("mouse") == .off)
+        check("turning a module off stops it at once, no restart", suite.status("mouse") == .off
+              && suite.hosts["mouse"]?.isOn == false)
+        check("…and it isn't loaded next time", !(defaults.stringArray(forKey: "modules") ?? []).contains("mouse"))
         check("…and the menu moves to another", suite.menuInfo.id == "display")
 
         // A module's own app quitting starts the module here, unless it was turned off meanwhile.
@@ -113,6 +115,20 @@ enum SelfTest {
         let again = GlobalHotKey(keyCode: kVK_F17, modifiers: hyper) {}
         check("a shortcut one module holds can't be taken by another", held.isRegistered && !again.isRegistered)
         check("…and each has an id of its own", held.id != again.id)
+
+        // The right-click menu: Settings, a switch per module, About, Quit.
+        suite.hosts["shot"]!.setRunning(false)
+        settle()
+        check("a module's own switch turns it off in LongoKit too", suite.status("shot") == .off)
+        let menu = StatusMenu.make(suite)
+        let titles = menu.items.map(\.title)
+        check("the right-click menu has Settings, the four modules, About and Quit",
+              menu.items.count == 9 && titles.first == "Settings…" && titles.last == "Quit")
+        check("…a module that's on ticked, one that's off not", menu.items[2].state == .off && menu.items[5].state == .off
+              && menu.items[3].state == .on)
+        menu.items[5].target.map { _ = ($0 as AnyObject).perform(menu.items[5].action) }
+        settle()
+        check("…and clicking one that's off turns it on", suite.status("shot") == .running)
 
         // Every page and menu draws
         for (id, host) in suite.hosts.sorted(by: { $0.key < $1.key }) {

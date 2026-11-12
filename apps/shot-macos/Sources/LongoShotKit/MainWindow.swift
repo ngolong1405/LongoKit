@@ -77,10 +77,11 @@ struct StatusPill: View {
 
     var body: some View {
         let ready = model.hasPermission
-        let color = ready ? Theme.emerald : Theme.amber
+        let color = Power.color(model.isEnabled, attention: !ready)
         HStack(spacing: 6) {
             Circle().fill(color).frame(width: 6, height: 6).shadow(color: color.opacity(0.9), radius: 3)
-            Text(ready ? L("Ready") : L("Needs permission")).font(.ui(11, .medium)).foregroundStyle(Theme.textSecondary)
+            Text(model.isEnabled && !ready ? L("Needs permission") : Power.label(model.isEnabled))
+                .font(.ui(11, .medium)).foregroundStyle(Theme.textSecondary)
         }
         .padding(.horizontal, 9)
         .frame(height: 24)

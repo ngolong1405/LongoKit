@@ -52,8 +52,12 @@ public protocol HostedModule: AnyObject {
     var changes: AnyPublisher<Void, Never> { get }
     var language: AppLanguage { get set }
     var appearance: AppAppearance { get set }
-    /// The module's own power switch: on, or paused.
+    /// The module's switch: on or off, as the person set it.
+    var isOn: Bool { get }
+    /// On and working; on but not running means something holds it back, like a missing permission.
     var isRunning: Bool { get }
+    /// Turns the module's switch on or off (turning on may ask for a permission).
+    func setRunning(_ on: Bool)
     /// What the menu bar should show instead of the host's icon, like a recording's timer; nil otherwise.
     var menuBarImage: NSImage? { get }
     /// Work quitting would cut short, like a recording under way.
@@ -100,7 +104,9 @@ public final class ModelHost<Model: HostableModel>: HostedModule where Model.Obj
     public let model: Model
     private let makePanel: () -> AnyView
     private let makeMenu: () -> AnyView
+    private let on: (Model) -> Bool
     private let running: (Model) -> Bool
+    private let switchRunning: (Model, Bool) -> Void
     private let image: (Model) -> NSImage?
     private let busy: (Model) -> Bool
     private let finish: (Model, @escaping () -> Void) -> Void
@@ -109,7 +115,9 @@ public final class ModelHost<Model: HostableModel>: HostedModule where Model.Obj
         model: Model,
         @ViewBuilder panel: @escaping () -> Panel,
         @ViewBuilder menu: @escaping () -> Menu,
+        isOn: ((Model) -> Bool)? = nil,
         isRunning: @escaping (Model) -> Bool = { _ in true },
+        setRunning: @escaping (Model, Bool) -> Void = { _, _ in },
         menuBarImage: @escaping (Model) -> NSImage? = { _ in nil },
         isBusy: @escaping (Model) -> Bool = { _ in false },
         prepareToQuit: @escaping (Model, @escaping () -> Void) -> Void = { _, done in done() }
@@ -117,7 +125,9 @@ public final class ModelHost<Model: HostableModel>: HostedModule where Model.Obj
         self.model = model
         makePanel = { AnyView(Hosted(model: model, content: panel)) }
         makeMenu = { AnyView(Hosted(model: model, content: menu)) }
+        on = isOn ?? isRunning
         running = isRunning
+        switchRunning = setRunning
         image = menuBarImage
         busy = isBusy
         finish = prepareToQuit
@@ -141,7 +151,9 @@ public final class ModelHost<Model: HostableModel>: HostedModule where Model.Obj
         set { if model.appearance != newValue { model.appearance = newValue } }
     }
 
+    public var isOn: Bool { on(model) }
     public var isRunning: Bool { running(model) }
+    public func setRunning(_ on: Bool) { switchRunning(model, on) }
     public var menuBarImage: NSImage? { image(model) }
     public var isBusy: Bool { busy(model) }
 

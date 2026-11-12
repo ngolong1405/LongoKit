@@ -232,7 +232,7 @@ private struct DiagnosticPanel: View {
             } else if model.isRunning {
                 Chip(L("Ready"), tone: .emerald)
             } else {
-                Chip(L("Paused"), tone: .amber)
+                Chip(Power.label(false))
             }
         }
         .padding(12)

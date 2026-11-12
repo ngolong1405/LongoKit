@@ -6,8 +6,13 @@ struct GeneralTab: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            if !model.hasPermission {
-                SettingsGroup(L("Permissions")) {
+            SettingsGroup(L("Status")) {
+                PowerRow(name: AppInfo.name, isOn: model.isEnabled,
+                         help: model.isEnabled ? L("Your shortcuts capture and record from any app.")
+                             : L("Off: the shortcuts let go, so other apps can use them; the menu still captures.")) {
+                    model.isEnabled.toggle()
+                }
+                if !model.hasPermission {
                     PermissionLine(L("Screen Recording"),
                                    help: L("Turn on %@ in System Settings › Privacy & Security › Screen & System Audio Recording. If macOS asks, quit and reopen the app.", AppInfo.name),
                                    granted: false, grant: model.requestPermission)

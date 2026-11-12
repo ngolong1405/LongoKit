@@ -123,7 +123,7 @@ enum Vietnamese {
             "macOS cũng dùng phím tắt này. Tắt nó trong Cài đặt hệ thống › Bàn phím › Phím tắt, hoặc chọn phím khác.",
 
         // Menu & About
-        "Preferences…": "Mở cài đặt…",
+        "Settings…": "Cài đặt…",
         "License": "Giấy phép",
         "Part of LongoKit · Crafted by %@": "Thuộc LongoKit · Thực hiện bởi %@",
 
@@ -241,5 +241,9 @@ enum Vietnamese {
         "Click to preview": "Bấm để xem trước",
         "Copy it again (⌘C)": "Copy lại (⌘C)",
         "Recording starts soon · Esc cancels": "Sắp bắt đầu quay · Esc để huỷ",
+        // On / off
+        "Status": "Trạng thái",
+        "Your shortcuts capture and record from any app.": "Phím tắt chụp và quay màn hình từ bất kỳ app nào.",
+        "Off: the shortcuts let go, so other apps can use them; the menu still captures.": "Đang tắt: phím tắt được nhả ra để app khác dùng; vẫn chụp được từ menu.",
     ]
 }

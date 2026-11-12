@@ -43,8 +43,8 @@ private struct ModuleRow: View {
             .help(L("Open %@", info.title))
             Spacer(minLength: 8)
             switch status {
-            case .running: Chip(L("Running"), tone: .emerald, dot: true)
-            case .paused: Chip(L("Paused"), tone: .amber, dot: true)
+            case .running: Chip(Power.label(true), tone: .emerald, dot: true)
+            case .attention: Chip(L("Needs permission"), tone: .amber, dot: true)
             case .elsewhere:
                 Button(L("Run Here")) { suite.quitOwnApp(info) }
                     .buttonStyle(GhostButtonStyle(tint: Theme.amber, compact: true))

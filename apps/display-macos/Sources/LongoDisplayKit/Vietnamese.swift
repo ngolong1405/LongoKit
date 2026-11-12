@@ -76,7 +76,7 @@ enum Vietnamese {
         "No displays found.": "Không tìm thấy màn hình.",
         "All": "Tất cả",
         "Set every display to %d%%": "Đặt mọi màn hình ở %d%%",
-        "Preferences…": "Mở cài đặt…",
+        "Settings…": "Cài đặt…",
         "Follows the built-in display in Sync mode": "Theo màn hình MacBook ở chế độ Đồng bộ",
 
         // DDC control
@@ -185,5 +185,9 @@ enum Vietnamese {
         "Play here": "Phát ở đây",
         "Send the Mac's sound to this display instead": "Chuyển âm thanh của máy sang phát qua màn hình này",
         "Not playing: the Mac's sound goes to another device": "Không phát: âm thanh của máy đang ra thiết bị khác",
+        // On / off
+        "Status": "Trạng thái",
+        "Brightness, Sync, the brightness keys and dimming are working.": "Độ sáng, Đồng bộ, phím độ sáng và làm tối đang hoạt động.",
+        "Off: displays keep their brightness; Sync, the brightness keys and dimming stop.": "Đang tắt: màn hình giữ độ sáng hiện tại; Đồng bộ, phím độ sáng và làm tối tạm ngưng.",
     ]
 }

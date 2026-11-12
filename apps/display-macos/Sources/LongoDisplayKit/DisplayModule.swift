@@ -15,6 +15,7 @@ public enum DisplayModule: LongoModule {
         if model.tab == .about { model.tab = .general }
         return ModelHost(model: model, panel: { ModulePanel() }, menu: { MenuPopover() },
                          isRunning: { $0.isEnabled },
+                         setRunning: { $0.isEnabled = $1 },
                          prepareToQuit: { model, done in
                              model.prepareToQuit()
                              done()

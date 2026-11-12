@@ -28,25 +28,11 @@ struct MenuPopover: View {
             AppLogo(size: 38, dimmed: !model.isRunning).padding(-3)
             VStack(alignment: .leading, spacing: 2) {
                 Text(AppInfo.name).font(.display(14, .semibold)).foregroundStyle(Theme.text)
-                HStack(spacing: 5) {
-                    Circle().fill(statusColor).frame(width: 6, height: 6).shadow(color: statusColor, radius: 3)
-                    Text(statusText).font(.ui(11)).foregroundStyle(statusColor).lineLimit(1)
-                }
+                PowerLabel(isOn: model.isEnabled, attention: model.hasAccessibility ? nil : L("Needs Accessibility"))
             }
             Spacer(minLength: 4)
             ThemeSwitcher(selection: $model.appearance)
-            Button(action: model.toggleEnabled) {
-                Image(systemName: "power").font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(model.isRunning ? Color.white : Theme.textMuted)
-                    .frame(width: 28, height: 28)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(model.isRunning ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.slate))
-                    )
-                    .shadow(color: Theme.solar.opacity(model.isRunning ? 0.45 : 0), radius: 6)
-            }
-            .buttonStyle(.plain)
-            .help((model.isRunning ? L("Pause %@", AppInfo.name) : L("Turn %@ back on", AppInfo.name)) + " (⌃⌥⌘M)")
+            AppPowerButton(name: AppInfo.name, isOn: model.isEnabled, shortcut: "⌃⌥⌘M", toggle: model.toggleEnabled)
         }
     }
 
@@ -157,15 +143,6 @@ struct MenuPopover: View {
     }
 
     // MARK: Helpers
-
-    private var statusText: String {
-        if !model.hasAccessibility { return L("Paused · Needs Accessibility") }
-        return model.isRunning ? L("Running") : L("Paused")
-    }
-
-    private var statusColor: Color {
-        model.isRunning ? Theme.emerald : Theme.amber
-    }
 
     /// Brings up the main window, optionally on a mouse's button configuration.
     private func openMain(_ deviceID: String?) {

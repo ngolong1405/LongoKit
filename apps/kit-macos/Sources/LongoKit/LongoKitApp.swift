@@ -62,7 +62,11 @@ final class KitAppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         if Snapshot.isRequested { MainActor.assumeIsolated { Snapshot.renderAndExit() } }
         if SelfTest.isRequested { MainActor.assumeIsolated { SelfTest.runAndExit() } }
-        MainActor.assumeIsolated { Self.suite.start() }
+        MainActor.assumeIsolated {
+            Self.suite.start()
+            // Right-click on the menu bar icon: Settings, each module's switch, About, Quit. Double-click: the window.
+            StatusItemMenu.install(doubleClick: { MainWindowRef.show() }) { StatusMenu.make(Self.suite) }
+        }
         closeShortcutMonitor = MainWindowRef.interceptCloseShortcut()
         // Started at login, the app waits in the menu bar instead of opening its window.
         if Self.launchedAtLogin {

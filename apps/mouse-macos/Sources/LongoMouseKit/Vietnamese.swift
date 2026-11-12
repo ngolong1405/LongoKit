@@ -339,7 +339,7 @@ enum Vietnamese {
         "Per-Device Profile": "Hồ sơ riêng",
         "Configure buttons for this mouse": "Cấu hình nút cho chuột này",
         "Natural Scroll": "Cuộn tự nhiên",
-        "Preferences…": "Mở cài đặt…",
+        "Settings…": "Cài đặt…",
 
         // Alerts & menus
         "Restore %@ defaults?": "Khôi phục mặc định tab %@?",
@@ -405,5 +405,9 @@ enum Vietnamese {
         "App": "Ứng dụng",
         "Permissions": "Quyền",
         "Mouse": "Chuột",
+        // On / off
+        "Needs Accessibility": "Cần quyền Trợ năng",
+        "⌃⌥⌘M turns it on or off from any app.": "⌃⌥⌘M bật hoặc tắt nó từ bất kỳ app nào.",
+        "Off: mouse buttons and scrolling work as macOS does by itself.": "Đang tắt: nút chuột và cuộn hoạt động như macOS mặc định.",
     ]
 }

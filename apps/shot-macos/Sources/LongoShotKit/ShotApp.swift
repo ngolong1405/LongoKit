@@ -64,6 +64,16 @@ public final class ShotAppDelegate: NSObject, NSApplicationDelegate {
         if SelfTest.isRecordTestRequested { MainActor.assumeIsolated { SelfTest.recordAndExit() } }
         if SelfTest.isDrawTestRequested { MainActor.assumeIsolated { SelfTest.drawAndExit() } }
         closeShortcutMonitor = MainWindowRef.interceptCloseShortcut()
+        if !Snapshot.isRequested && !SelfTest.isRequested && !SelfTest.isRecordTestRequested && !SelfTest.isDrawTestRequested {
+            MainActor.assumeIsolated {
+                let model = Self.model
+                StatusItemMenu.install(doubleClick: model.showWindow) {
+                    StatusItemMenu.standard(name: AppInfo.name, icon: ShotModule.image("Logo.png"), isOn: model.isEnabled,
+                                            toggle: { model.isEnabled.toggle() }, settings: model.showWindow,
+                                            about: { model.tab = .about; model.showWindow() })
+                }
+            }
+        }
         // Started at login, the app waits in the background for its shortcuts instead of opening its window.
         if Self.launchedAtLogin {
             DispatchQueue.main.async { MainWindowRef.hide() }

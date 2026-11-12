@@ -30,17 +30,13 @@ struct GeneralTab: View {
     }
 }
 
-/// On/off for remapping; what's in effect right now is in the tooltip.
+/// On/off for remapping, the same switch as in the menu; what's in effect right now is in the tooltip.
 private struct StatusRow: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
-        let running = model.isRunning
-        CompactRow(running ? L("%@ is active", AppInfo.name) : L("%@ is paused", AppInfo.name),
-                   help: help, tint: running ? Theme.emerald : Theme.amber) {
-            if !model.hasAccessibility { Chip(L("Action Required"), tone: .amber) }
-            DSSwitch(isOn: running) { model.toggleEnabled() }
-        }
+        PowerRow(name: AppInfo.name, isOn: model.isEnabled, help: help,
+                 attention: model.hasAccessibility ? nil : L("Action Required"), toggle: model.toggleEnabled)
     }
 
     private var help: String {
@@ -48,8 +44,8 @@ private struct StatusRow: View {
         if !model.hasAccessibility {
             return L("Mouse click capture, gestures, and scrolling are suspended until permissions are granted.")
         }
-        let shortcut = L("⌃⌥⌘M pauses or resumes it from any app.")
-        guard model.isRunning else { return L("%@ is paused. Flip the switch to turn it back on.", AppInfo.name) + " " + shortcut }
+        let shortcut = L("⌃⌥⌘M turns it on or off from any app.")
+        guard model.isRunning else { return L("Off: mouse buttons and scrolling work as macOS does by itself.") + " " + shortcut }
         guard let device = model.activeDevice else { return L("No mouse connected yet.") + " " + shortcut }
         let buttons = model.activeProfileDeviceID != nil ? L("Own buttons") : L("Shared buttons")
         let scrolling = model.activeScrollDeviceID != nil ? L("Own scrolling") : L("Shared scrolling")

@@ -82,20 +82,20 @@ struct TitleBar: View {
     }
 }
 
-/// Running / Paused at a glance (⌃⌥⌘K).
+/// On / Off at a glance (⌃⌥⌘K).
 private struct StatusPill: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
-        let color = model.isEnabled ? Theme.emerald : Theme.amber
+        let color = Power.color(model.isEnabled)
         HStack(spacing: 6) {
             Circle().fill(color).frame(width: 6, height: 6).shadow(color: color.opacity(0.9), radius: 3)
-            Text(model.isEnabled ? L("Running") : L("Paused")).font(.ui(11, .medium)).foregroundStyle(Theme.textSecondary)
+            Text(Power.label(model.isEnabled)).font(.ui(11, .medium)).foregroundStyle(Theme.textSecondary)
         }
         .padding(.horizontal, 9)
         .frame(height: 24)
         .background(Capsule().fill(color.opacity(0.1)))
-        .help(L("⌃⌥⌘K pauses or resumes LongoKeys from any app."))
+        .help(L("⌃⌥⌘K turns it on or off from any app."))
     }
 }
 

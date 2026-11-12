@@ -56,6 +56,28 @@ enum SelfTest {
         check("The app's windows are listed with a menu bar icon open", own.allSatisfy { $0 > 0 })
         NSStatusBar.system.removeStatusItem(icon)
 
+        // The right-click menu of the menu bar icon: Settings, the app's switch, About, Quit.
+        var toggled = false
+        let menu = StatusItemMenu.standard(name: "Longo Shot", icon: nil, isOn: true, toggle: { toggled = true },
+                                           settings: {}, about: {})
+        check("The right-click menu has Settings, the switch, About and Quit",
+              menu.items.map(\.title) == ["Settings…", "", "Longo Shot", "", "About", "Quit"])
+        check("…with the switch ticked while it runs", menu.items[2].state == .on)
+        _ = (menu.items[2].target as AnyObject?)?.perform(menu.items[2].action)
+        check("…and clicking it switches", toggled)
+
+        // The area while drawing: eight grips resize it, the edges move it, always on screen.
+        let bounds = CGRect(x: 0, y: 0, width: 1000, height: 800)
+        let box = CGRect(x: 100, y: 100, width: 300, height: 200)
+        check("A corner grip resizes both ways", Grip.bottomRight.resize(box, by: CGSize(width: 50, height: 20), in: bounds)
+              == CGRect(x: 100, y: 100, width: 350, height: 220))
+        check("A side grip resizes one way", Grip.left.resize(box, by: CGSize(width: -40, height: 99), in: bounds)
+              == CGRect(x: 60, y: 100, width: 340, height: 200))
+        check("Dragging past the other side flips it", Grip.right.resize(box, by: CGSize(width: -400, height: 0), in: bounds)
+              == CGRect(x: 0, y: 100, width: 100, height: 200))
+        check("The area moves by its edges and stays on screen", moved(box, by: CGSize(width: 900, height: -500), in: bounds)
+              == CGRect(x: 700, y: 0, width: 300, height: 200))
+
         // An area cut from a frozen screen: points to pixels, from the top-left.
         let still = drawText(["Frozen"])
         let cut = Capturer.cut(still, scale: 2, to: CGRect(x: 10, y: 5, width: 100, height: 20))
@@ -287,6 +309,16 @@ enum SelfTest {
             let fills = abs(whole.width - screen.frame.width) < 1 && abs(whole.height - screen.frame.height) < 1
             print("\(fills ? "PASS" : "FAIL")  a whole-screen capture is drawn on full screen, toolbar inside (\(Int(whole.width))×\(Int(whole.height)))")
             InPlaceEditor.cancel()
+            // The whole screen at hand: the editor covers it and the area stays adjustable.
+            let size = screen.frame.size
+            let space = CGColorSpace(name: CGColorSpace.sRGB)!
+            let still = CGContext(data: nil, width: Int(size.width * 2), height: Int(size.height * 2), bitsPerComponent: 8,
+                                  bytesPerRow: 0, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!.makeImage()!
+            InPlaceEditor.open(screen: still, scale: 2, on: screen, area: area) { _ in }
+            let adjustable = InPlaceEditor.area == area && abs((InPlaceEditor.frame ?? .zero).width - size.width) < 1
+            print("\(adjustable ? "PASS" : "FAIL")  an area to draw on keeps the whole screen, so it can still be resized")
+            if CommandLine.arguments.contains("--hold") { RunLoop.main.run(until: Date().addingTimeInterval(4)) }
+            InPlaceEditor.cancel()
             // A window to draw on in place: found on its screen, inside it. The first sizable window that sits on one
             // screen (thin strips and windows across two screens have no place to draw in, by design).
             let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
@@ -299,7 +331,7 @@ enum SelfTest {
             let placed = id.flatMap { Capturer.place(of: $0) }
             let inside = placed.map { CGRect(origin: .zero, size: $0.0.frame.size).contains($0.1) } ?? (id == nil)
             print("\(inside ? "PASS" : "FAIL")  a window is found where it is on its screen\(placed.map { " (\(Int($0.1.width))×\(Int($0.1.height)))" } ?? "")")
-            exit(ok && fills && inside && !InPlaceEditor.isOpen ? 0 : 1)
+            exit(ok && fills && adjustable && inside && !InPlaceEditor.isOpen ? 0 : 1)
         }
     }
 

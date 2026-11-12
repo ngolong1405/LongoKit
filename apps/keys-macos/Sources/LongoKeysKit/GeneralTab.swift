@@ -7,11 +7,10 @@ struct GeneralTab: View {
     var body: some View {
         VStack(spacing: 12) {
             SettingsGroup(L("Status")) {
-                CompactRow(model.isEnabled ? L("%@ is active", AppInfo.name) : L("%@ is paused", AppInfo.name),
-                           help: (model.isEnabled ? L("Your keyboards use the keys you set.") : L("Every keyboard types as macOS does by itself."))
-                               + " " + L("⌃⌥⌘K pauses or resumes it from any app."),
-                           tint: model.isEnabled ? Theme.emerald : Theme.amber) {
-                    DSSwitch(isOn: $model.isEnabled)
+                PowerRow(name: AppInfo.name, isOn: model.isEnabled,
+                         help: (model.isEnabled ? L("Your keyboards use the keys you set.") : L("Every keyboard types as macOS does by itself."))
+                             + " " + L("⌃⌥⌘K turns it on or off from any app.")) {
+                    model.isEnabled.toggle()
                 }
                 // Simple remaps need nothing; only what's missing is listed.
                 if !model.hasAccessibility {
