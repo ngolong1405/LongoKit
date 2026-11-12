@@ -78,6 +78,34 @@ enum SelfTest {
         check("The area moves by its edges and stays on screen", moved(box, by: CGSize(width: 900, height: -500), in: bounds)
               == CGRect(x: 700, y: 0, width: 300, height: 200))
 
+        // The quick captures iShot uses (CoreGraphics', looked up at run time) are there, at the screen's density.
+        if let screen = NSScreen.main {
+            let quick = Capturer.instant(display: screen.displayID, pointWidth: screen.frame.width)
+            check("Quick screen captures are available (\(quick.map { "\($0.image.width)×\($0.image.height)" } ?? "no"))",
+                  quick.map { abs($0.scale - screen.backingScaleFactor) < 0.01 } ?? false)
+        }
+
+        // Captures keep the screen's own colors (Display P3 on a Mac's), so the frozen screen matches the live one.
+        let colors = Capturer.colorSpace(of: CGMainDisplayID())
+        check("Captures use the screen's colors (\(colors))", colors == CGColorSpace.displayP3 || colors == CGColorSpace.sRGB)
+
+        // Drawing on a capture: cut the area first, then draw only on it; the result looks the same as drawing on the
+        // whole screen and cutting after.
+        let screenShot = drawText(["Meeting notes", "Ship v0.2 on Friday", "Phở at 12:30"])
+        let marked = [Mark(tool: .rectangle, points: [CGPoint(x: 60, y: 40), CGPoint(x: 420, y: 150)], color: CGColor(red: 1, green: 0, blue: 0, alpha: 1), width: 8),
+                      Mark(tool: .arrow, points: [CGPoint(x: 500, y: 200), CGPoint(x: 150, y: 90)], color: CGColor(red: 0, green: 0, blue: 1, alpha: 1), width: 6)]
+        let partArea = CGRect(x: 25, y: 15, width: 200, height: 90)
+        let before = Mark.render(marked, on: screenShot).flatMap { Capturer.cut($0, scale: 2, to: partArea) }
+        let after = Capturer.cut(screenShot, scale: 2, to: partArea).flatMap { Mark.render(marked, on: $0, origin: CGPoint(x: 50, y: 30)) }
+        check("Drawing on just the area matches drawing on the whole screen", samePixels(before, after))
+
+        // On the clipboard at once: the PNG is made when it's pasted.
+        let board = NSPasteboard(name: NSPasteboard.Name("LongoShot.selftest"))
+        Output.promise(screenShot, scale: 2, on: board)
+        let pasted = board.data(forType: .png).flatMap { NSBitmapImageRep(data: $0) }
+        check("A capture is on the clipboard at once, as a PNG when pasted", pasted?.pixelsWide == screenShot.width)
+        board.releaseGlobally()
+
         // An area cut from a frozen screen: points to pixels, from the top-left.
         let still = drawText(["Frozen"])
         let cut = Capturer.cut(still, scale: 2, to: CGRect(x: 10, y: 5, width: 100, height: 20))
@@ -219,6 +247,38 @@ enum SelfTest {
         print("      read: \(english) / \(vietnamese)")
         check("Reads English text", english.joined(separator: " ").contains("LongoKit"))
         check("Reads Vietnamese text with its marks", vietnamese.joined(separator: " ").contains("Việt Nam"))
+        // Other scripts, each read as itself; a Latin line keeps its Vietnamese marks next to them.
+        let scripts = drawText(["你好世界", "안녕하세요", "こんにちは", "สวัสดีชาวโลก", "Phở ở Hàng Bè"])
+        let readAll = DispatchSemaphore(value: 0)
+        var others: [String] = []
+        Task.detached {
+            others = (try? await TextRecognizer.lines(in: scripts, vietnameseFirst: true)) ?? []
+            readAll.signal()
+        }
+        while readAll.wait(timeout: .now()) == .timedOut { RunLoop.main.run(until: Date().addingTimeInterval(0.05)) }
+        print("      read: \(others)")
+        let all = others.joined(separator: " ")
+        check("Reads Chinese, Korean, Japanese and Thai", ["你好世界", "안녕하세요", "こんにちは", "สวัสดี"].allSatisfy(all.contains))
+        check("…and Vietnamese marks among them", all.contains("Phở ở Hàng Bè"))
+        // The text window: read as any script, or as one language; lines joined; the choice remembered.
+        var remembered = ""
+        let window = TextReading(scripts, language: "auto", vietnameseFirst: true) { remembered = $0 }
+        func settle(_ reading: TextReading) {
+            let deadline = Date().addingTimeInterval(20)
+            while reading.isReading && Date() < deadline { RunLoop.main.run(until: Date().addingTimeInterval(0.05)) }
+        }
+        settle(window)
+        check("The text window reads any script at first", window.text.contains("你好世界") && window.text.contains("Phở ở Hàng Bè"))
+        window.joinsLines = true
+        check("…joins its lines into one paragraph", !window.text.contains("\n") && window.text.contains("你好世界 "))
+        window.language = "ko-KR"
+        settle(window)
+        check("…reads it again as the language picked, and remembers it", remembered == "ko-KR" && window.text.contains("안녕하세요"))
+        let choices = TextReading.choices.map(\.code)
+        check("…offers Automatic first, then every language Vision reads", choices.first == "auto" && choices.contains("vi-VT")
+              && choices.contains("zh-Hans") && choices.count > 20)
+
+        check("Tells Latin text from other scripts", TextRecognizer.isLatin("Phở ở Hàng Bè — 12.5%") && !TextRecognizer.isLatin("Xin chào 안녕"))
 
         print(failures == 0 ? "\nALL PASSED" : "\n\(failures) FAILED")
         exit(failures == 0 ? 0 : 1)
@@ -285,6 +345,16 @@ enum SelfTest {
         }
     }
 
+    /// `LongoShot --text-demo`: the text window on a sample picture for a few seconds, to look at.
+    static var isTextDemoRequested: Bool { CommandLine.arguments.contains("--text-demo") }
+
+    @MainActor
+    static func textDemoAndExit() {
+        let sample = drawText(["Meeting notes · Ghi chú cuộc họp", "Ship v0.2 on Friday", "你好世界 · 안녕하세요", "Phở ở Hàng Bè rất ngon"])
+        TextWindow.open(TextReading(sample, language: "auto", vietnameseFirst: true), scale: 1, on: NSScreen.main) { _ in }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { exit(0) }
+    }
+
     /// `LongoShot --draw-test`: opens the in-place editor on a sample picture and checks it's on screen with its
     /// toolbar under the area. Nothing is captured, so it needs no permission.
     static var isDrawTestRequested: Bool { CommandLine.arguments.contains("--draw-test") }
@@ -309,14 +379,98 @@ enum SelfTest {
             let fills = abs(whole.width - screen.frame.width) < 1 && abs(whole.height - screen.frame.height) < 1
             print("\(fills ? "PASS" : "FAIL")  a whole-screen capture is drawn on full screen, toolbar inside (\(Int(whole.width))×\(Int(whole.height)))")
             InPlaceEditor.cancel()
+            // From the shortcut to the overlay on screen: the screens frozen (quick captures), then the overlay on them.
+            for _ in 0..<3 {
+                let pressed = Date()
+                let still = Capturer.freezeNow() ?? [:]
+                SelectionOverlay.pick(.area, hint: "", frozen: still) { _ in }
+                print(String(format: "      shortcut → overlay up: %.0f ms (screens frozen: %d)", Date().timeIntervalSince(pressed) * 1000, still.count))
+                SelectionOverlay.cancel()
+                SelectionOverlay.dismissLingering()
+                RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+            }
+            // The selection overlay stays a moment after a pick (until the editor takes over); the pointer moving over
+            // it meanwhile is harmless.
+            SelectionOverlay.pick(.area, hint: "") { _ in }
+            let overlayViews = NSApp.windows.filter { $0.identifier == Capturer.panelID && $0.isVisible }
+                .compactMap { $0.contentView.map { [$0] + $0.subviews } }.flatMap { $0 }
+            SelectionOverlay.cancel()
+            let moved = NSEvent.mouseEvent(with: .mouseMoved, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: 0,
+                                           context: nil, eventNumber: 0, clickCount: 0, pressure: 0)!
+            for view in overlayViews { view.mouseMoved(with: moved) }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+            for view in overlayViews { view.mouseMoved(with: moved) }
+            let quiet = !overlayViews.isEmpty && overlayViews.allSatisfy { $0.trackingAreas.isEmpty || !($0.className.contains("OverlayView")) }
+            print("\(quiet ? "PASS" : "FAIL")  the selection overlay stops following the pointer once done, and can't crash before it's gone")
+            RunLoop.main.run(until: Date().addingTimeInterval(0.3))
             // The whole screen at hand: the editor covers it and the area stays adjustable.
             let size = screen.frame.size
             let space = CGColorSpace(name: CGColorSpace.sRGB)!
-            let still = CGContext(data: nil, width: Int(size.width * 2), height: Int(size.height * 2), bitsPerComponent: 8,
-                                  bytesPerRow: 0, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!.makeImage()!
+            let canvas = CGContext(data: nil, width: Int(size.width * 2), height: Int(size.height * 2), bitsPerComponent: 8,
+                                   bytesPerRow: 0, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+            // A pattern, so where the area's part sits can be seen (stripes every 100 pt).
+            for stripe in 0..<Int(size.width / 50) {
+                canvas.setFillColor(stripe % 2 == 0 ? CGColor(red: 1, green: 0.42, blue: 0.21, alpha: 1) : CGColor(red: 0.55, green: 0.36, blue: 0.96, alpha: 1))
+                canvas.fill(CGRect(x: stripe * 100, y: 0, width: 100, height: Int(size.height * 2)))
+            }
+            let still = canvas.makeImage()!
+            let opening = Date()
             InPlaceEditor.open(screen: still, scale: 2, on: screen, area: area) { _ in }
+            print(String(format: "      the editor opened in %.0f ms", Date().timeIntervalSince(opening) * 1000))
             let adjustable = InPlaceEditor.area == area && abs((InPlaceEditor.frame ?? .zero).width - size.width) < 1
             print("\(adjustable ? "PASS" : "FAIL")  an area to draw on keeps the whole screen, so it can still be resized")
+            let arrows = Grip.allCases.allSatisfy { $0.cursor != .crosshair && $0.cursor != .openHand }
+                && Grip.left.cursor == .resizeLeftRight && Grip.top.cursor == .resizeUpDown
+            print("\(arrows ? "PASS" : "FAIL")  each grip shows a resize arrow the ways it moves")
+            // Drawn the right way up: the area clear, the screen just above it dimmed.
+            var shown = false
+            if let layer = InPlaceEditor.view?.layer,
+               let context = CGContext(data: nil, width: Int(size.width), height: Int(size.height), bitsPerComponent: 8,
+                                       bytesPerRow: 0, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) {
+                // The view's layer is flipped (top-left origin) where it's shown; rendering on its own, the context is.
+                context.translateBy(x: 0, y: size.height)
+                context.scaleBy(x: 1, y: -1)
+                layer.render(in: context)
+                if let drawn = context.makeImage() {
+                    func red(_ point: CGPoint) -> Int {
+                        guard let pixel = Capturer.cut(drawn, scale: 1, to: CGRect(origin: point, size: CGSize(width: 1, height: 1))),
+                              let data = pixel.dataProvider?.data, let bytes = CFDataGetBytePtr(data) else { return -1 }
+                        return Int(bytes[0])
+                    }
+                    let inside = red(CGPoint(x: area.minX + 20, y: area.minY + 20))
+                    // On a purple stripe inside the area, nothing orange over it (the edge's glow stays on the edge).
+                    let purple = red(CGPoint(x: area.minX + 70, y: area.midY))
+                    let above = red(CGPoint(x: area.minX + 20, y: area.minY - 20))
+                    print("      area \(inside), above it \(above), purple inside \(purple)")
+                    shown = inside > 200 && above < inside - 40 && purple < 185
+                }
+            }
+            print("\(shown ? "PASS" : "FAIL")  the editor shows the area clear and the screen around it dimmed, the right way up")
+            // Dragging: each step moves the area and the window shows it.
+            let dragging = Date()
+            for step in 1...120 {
+                InPlaceEditor.area = area.offsetBy(dx: CGFloat(step % 60), dy: CGFloat(step % 40))
+                InPlaceEditor.view?.window?.displayIfNeeded()
+                CATransaction.flush()
+            }
+            print(String(format: "      a drag step takes %.2f ms", Date().timeIntervalSince(dragging) * 1000 / 120))
+            InPlaceEditor.area = area
+            // As in iShot: no tool at first, so the area can be dragged elsewhere; ⌘C then copies what's there now.
+            let movable = InPlaceEditor.tool == nil
+            let first = InPlaceEditor.picture(still, marks: [], area: InPlaceEditor.area ?? .zero, scale: 2)
+            InPlaceEditor.area = area.offsetBy(dx: 50, dy: 0)
+            let elsewhere = InPlaceEditor.picture(still, marks: [], area: InPlaceEditor.area ?? .zero, scale: 2)
+            // The stripes are 50 pt wide: the area started on an orange one, and 50 pt on it starts on a purple one.
+            let follows = movable && corner(first) == "orange" && corner(elsewhere) == "purple" && elsewhere.width == first.width
+            print("\(follows ? "PASS" : "FAIL")  with no tool picked, the area can be dragged elsewhere, and the copy is what's there now")
+            InPlaceEditor.cancel()
+            // Esc while drawing goes back to picking the area (on the same screens), as in iShot; nothing is copied.
+            var outcome: InPlaceEditor.Outcome?
+            InPlaceEditor.open(screen: still, scale: 2, on: screen, area: area) { outcome = $0 }
+            InPlaceEditor.finish(.back)
+            var back = false
+            if case .pickAgain = outcome { back = !InPlaceEditor.isOpen }
+            print("\(back ? "PASS" : "FAIL")  Esc while drawing goes back to picking the area, copying nothing")
             if CommandLine.arguments.contains("--hold") { RunLoop.main.run(until: Date().addingTimeInterval(4)) }
             InPlaceEditor.cancel()
             // A window to draw on in place: found on its screen, inside it. The first sizable window that sits on one
@@ -331,8 +485,36 @@ enum SelfTest {
             let placed = id.flatMap { Capturer.place(of: $0) }
             let inside = placed.map { CGRect(origin: .zero, size: $0.0.frame.size).contains($0.1) } ?? (id == nil)
             print("\(inside ? "PASS" : "FAIL")  a window is found where it is on its screen\(placed.map { " (\(Int($0.1.width))×\(Int($0.1.height)))" } ?? "")")
-            exit(ok && fills && adjustable && inside && !InPlaceEditor.isOpen ? 0 : 1)
+            exit(ok && fills && quiet && adjustable && arrows && shown && follows && back && inside && !InPlaceEditor.isOpen ? 0 : 1)
         }
+    }
+
+    /// "orange" or "purple": the drawing test's stripe at a picture's top-left corner.
+    private static func corner(_ image: CGImage) -> String {
+        var pixel = [UInt8](repeating: 0, count: 4)
+        let context = CGContext(data: &pixel, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+                                space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        // Only the top-left pixel lands in the 1×1 context.
+        context.draw(image, in: CGRect(x: 0, y: 1 - image.height, width: image.width, height: image.height))
+        return pixel[0] > 200 ? "orange" : pixel[2] > 200 ? "purple" : "other"
+    }
+
+    /// Whether two pictures look the same: every pixel within 8 of 255 (antialiased edges round a little differently
+    /// when drawn from another origin).
+    private static func samePixels(_ a: CGImage?, _ b: CGImage?) -> Bool {
+        guard let a, let b, a.width == b.width, a.height == b.height else { return false }
+        func pixels(_ image: CGImage) -> [UInt8] {
+            var bytes = [UInt8](repeating: 0, count: image.width * image.height * 4)
+            let context = CGContext(data: &bytes, width: image.width, height: image.height, bitsPerComponent: 8, bytesPerRow: image.width * 4,
+                                    space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+            context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+            return bytes
+        }
+        let x = pixels(a), y = pixels(b)
+        var differ = 0, most = 0
+        for i in x.indices where x[i] != y[i] { differ += 1; most = max(most, abs(Int(x[i]) - Int(y[i]))) }
+        if most > 8 { print("      \(a.width)×\(a.height): \(differ) bytes differ, at most by \(most)") }
+        return most <= 8
     }
 
     /// Black text on white, the way a capture of a document would look.

@@ -4,18 +4,22 @@ import SwiftUI
 
 /// Drawing on an area right after it's captured, where it was on screen: the picture stays in place over a dimmed
 /// screen with the drawing toolbar under it. Done hands back the picture with its marks to save and copy as set; ⌘C,
-/// to save and copy whatever the clipboard setting; Esc, to copy only; ✕, nothing. With the whole screen at hand (an
+/// to save and copy whatever the clipboard setting; Esc goes back to picking the area; ✕, nothing. With the whole screen at hand (an
 /// area or the screen), the area can still be resized from its eight grips and moved by its edges while drawing.
 @MainActor
 final class InPlaceEditor {
     enum Outcome {
         case save(CGImage)
         case saveAndCopy(CGImage)
-        case copy(CGImage)
+        /// Esc: back to picking the area, on the same frozen screens.
+        case pickAgain
         case discard
     }
 
     private static var current: InPlaceEditor?
+
+    /// How dark the screen around the area is: the selection overlay's, so nothing jumps between the two.
+    static let dim = 0.32
 
     /// Captures wait until the open editor is done.
     static var isOpen: Bool { current != nil }
@@ -23,8 +27,21 @@ final class InPlaceEditor {
     /// The editor's frame on screen, for the drawing test.
     static var frame: CGRect? { current?.panel?.frame }
 
-    /// The area being drawn on, in points from the screen's top-left, when it can be adjusted.
-    static var area: CGRect? { current?.adjustable?.rect }
+    /// What the editor shows, for the drawing test.
+    static var view: NSView? { current?.panel?.contentView }
+
+    /// The area being drawn on, in points from the screen's top-left, when it can be adjusted. Setting it is what
+    /// dragging the area does (for the drawing test).
+    static var area: CGRect? {
+        get { current?.adjustable?.rect }
+        set { if let newValue { current?.adjustable?.rect = newValue } }
+    }
+
+    /// The drawing tool picked (none: dragging moves the area).
+    static var tool: Mark.Tool? { current?.state.tool }
+
+    /// Finishes as the toolbar's buttons and keys do (for the drawing test).
+    static func finish(_ result: Annotator.Result) { current?.finish(result) }
 
     /// The adjustable area, published for the view.
     final class Area: ObservableObject {
@@ -60,6 +77,16 @@ final class InPlaceEditor {
         editor.showAdjustable(on: screen, area: area.isNull ? CGRect(origin: .zero, size: screen.frame.size) : area)
     }
 
+    private static var measuredToolbar: (AppLanguage, CGSize)?
+
+    /// The drawing toolbar's size, measured once per language rather than on every capture.
+    private static func toolbarSize(_ state: AnnotationState) -> CGSize {
+        if let (language, size) = measuredToolbar, language == Localizer.language { return size }
+        let size = NSHostingView(rootView: DrawToolbar(state: state) { _ in }).fittingSize
+        measuredToolbar = (Localizer.language, size)
+        return size
+    }
+
     private init(image: CGImage, scale: CGFloat, completion: @escaping (Outcome) -> Void) {
         self.image = image
         state = AnnotationState(pixelsPerPoint: scale)
@@ -71,11 +98,10 @@ final class InPlaceEditor {
         for other in NSScreen.screens {
             let backdrop = Self.panel(other.frame, level: .screenSaver)
             backdrop.contentView = Backdrop(frame: CGRect(origin: .zero, size: other.frame.size), clear: other == screen ? rect : nil)
-            backdrop.orderFrontRegardless()
             backdrops.append(backdrop)
         }
 
-        let toolbarSize = NSHostingView(rootView: DrawToolbar(state: state) { _ in }).fittingSize
+        let toolbarSize = Self.toolbarSize(state)
         let layout = Self.layout(area: rect, toolbar: toolbarSize, screen: screen)
         let root = ZStack(alignment: .topLeading) {
             MarkCanvas(image: image, state: state)
@@ -94,8 +120,7 @@ final class InPlaceEditor {
                            width: layout.frame.width, height: layout.frame.height)
         let panel = Self.panel(frame, level: NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 1))
         panel.contentView = host
-        panel.makeKeyAndOrderFront(nil)
-        self.panel = panel
+        present(panel)
     }
 
     private func showAdjustable(on screen: NSScreen, area rect: CGRect) {
@@ -103,23 +128,45 @@ final class InPlaceEditor {
         for other in NSScreen.screens where other != screen {
             let backdrop = Self.panel(other.frame, level: .screenSaver)
             backdrop.contentView = Backdrop(frame: CGRect(origin: .zero, size: other.frame.size), clear: nil)
-            backdrop.orderFrontRegardless()
             backdrops.append(backdrop)
         }
         let area = Area(rect)
         adjustable = area
-        let toolbarSize = NSHostingView(rootView: DrawToolbar(state: state) { _ in }).fittingSize
-        let root = AdjustableEditor(image: image, size: screen.frame.size, state: state, area: area,
-                                    toolbar: { Self.layout(area: $0, toolbar: toolbarSize, screen: screen).toolbar }) { [weak self] result in
+        // As in iShot: no tool at first, so the area can be dragged elsewhere or resized before copying; picking a tool
+        // draws.
+        state.tool = nil
+        let toolbarSize = Self.toolbarSize(state)
+        let view = AdjustableView(image: image, size: screen.frame.size, state: state, area: area, toolbarSize: toolbarSize,
+                                  toolbar: { Self.layout(area: $0, toolbar: toolbarSize, screen: screen).toolbar }) { [weak self] result in
             self?.finish(result)
         }
-        let host = NSHostingView(rootView: root)
-        host.sizingOptions = []
-        host.frame = CGRect(origin: .zero, size: screen.frame.size)
         let panel = Self.panel(screen.frame, level: NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 1))
-        panel.contentView = host
-        panel.makeKeyAndOrderFront(nil)
+        // The frozen screen covers it all: nothing under it to blend with.
+        panel.isOpaque = true
+        panel.backgroundColor = .black
+        panel.contentView = view
+        present(panel)
+        // The toolbar takes the keys: tools, ⌘Z, Return, Esc.
+        panel.makeFirstResponder(view.toolbarHost)
+    }
+
+    /// Puts the editor up in place of the selection overlay as one change on screen: drawn before it's shown, and the
+    /// overlay taken down in the same update, so there's no frame with neither, or with both.
+    private func present(_ panel: NSPanel) {
+        panel.contentView?.layoutSubtreeIfNeeded()
+        panel.displayIfNeeded()
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0
+            for backdrop in backdrops { backdrop.orderFrontRegardless() }
+            panel.makeKeyAndOrderFront(nil)
+            SelectionOverlay.dismissLingering()
+        }
         self.panel = panel
+    }
+
+    /// Measures the toolbar ahead of the first capture, so opening the editor then has nothing extra to do.
+    static func warmUp() {
+        _ = toolbarSize(AnnotationState(pixelsPerPoint: 2))
     }
 
     /// Where the toolbar goes (screen points from the top-left): under the area, else above it, else inside at its
@@ -140,38 +187,53 @@ final class InPlaceEditor {
     }
 
     private func finish(_ result: Annotator.Result) {
+        let marks: [Mark]
+        let outcome: (CGImage) -> Outcome
         switch result {
-        case let .done(marks):
-            close(with: .save(picture(with: marks)))
-        case let .copy(marks):
-            close(with: .saveAndCopy(picture(with: marks)))
-        case let .clipboard(marks):
-            close(with: .copy(picture(with: marks)))
-        case .cancel:
-            close(with: .discard)
+        case let .done(drawn): (marks, outcome) = (drawn, { .save($0) })
+        case let .copy(drawn): (marks, outcome) = (drawn, { .saveAndCopy($0) })
+        case .cancel: return close(with: .discard)
+        case .back: return close(with: .pickAgain)
+        }
+        // Gone from the screen at once; the picture is drawn at full size off the main thread, then handed on.
+        let image = image, area = adjustable?.rect, scale = state.pixelsPerPoint, completion = completion
+        dismiss()
+        Task { @MainActor in
+            let picture = await Task.detached(priority: .userInitiated) {
+                Self.picture(image, marks: marks, area: area, scale: scale)
+            }.value
+            completion(outcome(picture))
         }
     }
 
-    private func picture(with marks: [Mark]) -> CGImage {
-        let drawn = marks.isEmpty ? image : Mark.render(marks, on: image) ?? image
-        // The whole screen was at hand: cut the area as it ended up.
-        guard let adjustable else { return drawn }
-        return Capturer.cut(drawn, scale: state.pixelsPerPoint, to: adjustable.rect) ?? drawn
+    /// The marks drawn onto the capture; with the whole screen at hand, cut to the area as it ended up.
+    nonisolated static func picture(_ image: CGImage, marks: [Mark], area: CGRect?, scale: CGFloat) -> CGImage {
+        // The area is cut first (sharing the screen's pixels), so only its part is drawn on, not the whole screen.
+        let part = area.flatMap { Capturer.cut(image, scale: scale, to: $0) } ?? image
+        guard !marks.isEmpty else { return part }
+        let origin = area.map { CGPoint(x: ($0.minX * scale).rounded(.down), y: ($0.minY * scale).rounded(.down)) } ?? .zero
+        return Mark.render(marks, on: part, origin: origin) ?? part
     }
 
-    private func close(with outcome: Outcome) {
+    private func dismiss() {
         panel?.orderOut(nil)
         for backdrop in backdrops { backdrop.orderOut(nil) }
         panel = nil
         backdrops = []
         if Self.current === self { Self.current = nil }
         NSCursor.arrow.set()
+    }
+
+    private func close(with outcome: Outcome) {
+        dismiss()
         completion(outcome)
     }
 
     private static func panel(_ frame: CGRect, level: NSWindow.Level) -> NSPanel {
         let panel = KeyPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.identifier = Capturer.panelID
+        // Up and gone at once: no zoom from macOS.
+        panel.animationBehavior = .none
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
@@ -207,7 +269,7 @@ final class InPlaceEditor {
                 path.append(NSBezierPath(rect: clear))
                 path.windingRule = .evenOdd
             }
-            NSColor.black.withAlphaComponent(0.45).setFill()
+            NSColor.black.withAlphaComponent(InPlaceEditor.dim).setFill()
             path.fill()
         }
     }
@@ -221,6 +283,23 @@ enum Grip: CaseIterable {
     var right: Bool { self == .topRight || self == .right || self == .bottomRight }
     var top: Bool { self == .topLeft || self == .top || self == .topRight }
     var bottom: Bool { self == .bottomLeft || self == .bottom || self == .bottomRight }
+
+    /// The pointer over this grip: a resize arrow pointing the ways it moves.
+    var cursor: NSCursor {
+        switch self {
+        case .left, .right: return .resizeLeftRight
+        case .top, .bottom: return .resizeUpDown
+        default:
+            guard #available(macOS 15.0, *) else { return .crosshair }
+            let position: NSCursor.FrameResizePosition = switch self {
+            case .topLeft: .topLeft
+            case .topRight: .topRight
+            case .bottomLeft: .bottomLeft
+            default: .bottomRight
+            }
+            return .frameResize(position: position, directions: .all)
+        }
+    }
 
     func point(in rect: CGRect) -> CGPoint {
         CGPoint(x: left ? rect.minX : right ? rect.maxX : rect.midX, y: top ? rect.minY : bottom ? rect.maxY : rect.midY)
@@ -249,104 +328,229 @@ func moved(_ rect: CGRect, by delta: CGSize, in bounds: CGRect) -> CGRect {
            width: rect.width, height: rect.height)
 }
 
-/// The whole screen to draw on, the area clear and the rest dimmed, with the area's eight grips and the toolbar.
-private struct AdjustableEditor: View {
-    let image: CGImage
-    let size: CGSize
-    @ObservedObject var state: AnnotationState
-    @ObservedObject var area: InPlaceEditor.Area
-    let toolbar: (CGRect) -> CGRect
-    let finish: (Annotator.Result) -> Void
-    /// The area when a grip or an edge started being dragged.
-    @State private var dragStart: CGRect?
+/// The whole screen as frozen while picking, dimmed around the area, with the area's eight grips and the toolbar.
+/// Everything that moves with the area is a layer moved in place (nothing is redrawn while dragging), so moving or
+/// resizing it keeps up with the pointer; the marks and the toolbar are SwiftUI, only slid along.
+private final class AdjustableView: NSView {
+    let toolbarHost: NSView
+    private let state: AnnotationState
+    private let area: InPlaceEditor.Area
+    private let toolbar: (CGRect) -> CGRect
+    private let toolbarSize: CGSize
+    /// The dimmed screen: four plain layers around the area (top, bottom, left, right), which the GPU just moves,
+    /// rather than one shape to fill again over the whole screen.
+    private let dims = (0..<4).map { _ in CALayer() }
+    private let edge = CALayer()
+    private let grips: [CALayer]
+    private let sizeLabel = CATextLayer()
+    /// Holds the marks canvas, still, over the whole screen; a mask the size of the area shows only its part, and only
+    /// the mask moves with the area.
+    private let marksHolder = NSView()
+    private let marksMask = CALayer()
+    /// Holds the toolbar; it's this that moves with the area, so the SwiftUI toolbar inside never changes frame.
+    private let toolbarHolder = NSView()
+    /// The marks canvas, made when a tool is first picked (most captures are copied without drawing).
+    private var marks: NSView?
+    private let image: CGImage
+    private var watching: [Any] = []
+    /// What a drag started on, and the area then.
+    private enum Handle { case move, grip(Grip) }
+    private var drag: (handle: Handle, start: CGPoint, rect: CGRect)?
 
-    private var bounds: CGRect { CGRect(origin: .zero, size: size) }
+    init(image: CGImage, size: CGSize, state: AnnotationState, area: InPlaceEditor.Area, toolbarSize: CGSize,
+         toolbar: @escaping (CGRect) -> CGRect, finish: @escaping (Annotator.Result) -> Void) {
+        self.state = state
+        self.area = area
+        self.toolbar = toolbar
+        self.toolbarSize = toolbarSize
+        let host = NSHostingView(rootView: DrawToolbar(state: state, finish: finish).fixedSize())
+        host.sizingOptions = []
+        toolbarHost = host
+        self.image = image
+        grips = Grip.allCases.map { _ in CALayer() }
+        super.init(frame: CGRect(origin: .zero, size: size))
+        wantsLayer = true
+        let root = layer!
+        let scale = CGFloat(image.width) / max(size.width, 1)
 
-    var body: some View {
-        let rect = area.rect
-        let bar = toolbar(rect)
-        ZStack(alignment: .topLeading) {
-            MarkCanvas(image: image, state: state)
-                .frame(width: size.width, height: size.height)
-            // Outside the area: dimmed, not part of the picture, and nothing draws there.
-            Outside(area: rect)
-                .fill(Color.black.opacity(0.45), style: FillStyle(eoFill: true))
-                .contentShape(Outside(area: rect), eoFill: true)
-                .onTapGesture {}
-            Rectangle()
-                .strokeBorder(Theme.solar, lineWidth: 1.5)
-                .frame(width: rect.width, height: rect.height)
-                .offset(x: rect.minX, y: rect.minY)
-                .allowsHitTesting(false)
-            // The edges move the area.
-            ForEach(0..<4, id: \.self) { side in
-                edge(side, of: rect)
-            }
-            ForEach(Grip.allCases, id: \.self) { grip in
-                grab(grip, at: grip.point(in: rect))
-            }
-            if dragStart != nil {
-                Text("\(Int(rect.width)) × \(Int(rect.height))")
-                    .font(.mono(11, .semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
-                    .background(Capsule().fill(Color.black.opacity(0.72)))
-                    .offset(x: rect.minX, y: max(rect.minY - 26, 4))
-                    .allowsHitTesting(false)
-            }
-            DrawToolbar(state: state, finish: finish)
-                .fixedSize()
-                .offset(x: bar.minX, y: bar.minY)
+        let picture = CALayer()
+        picture.frame = bounds
+        picture.contents = image
+        picture.contentsGravity = .resize
+        root.addSublayer(picture)
+
+        marksHolder.frame = bounds
+        marksHolder.wantsLayer = true
+        marksMask.backgroundColor = NSColor.black.cgColor
+        marksHolder.layer?.mask = marksMask
+        addSubview(marksHolder)
+
+        for dim in dims {
+            dim.backgroundColor = NSColor.black.withAlphaComponent(InPlaceEditor.dim).cgColor
+            dim.zPosition = 1
+            root.addSublayer(dim)
         }
-        .frame(width: size.width, height: size.height, alignment: .topLeading)
+
+        // The same glowing edge as while picking; the glow follows a path, so it isn't worked out from pixels.
+        let solar = NSColor(red: 1, green: 0.42, blue: 0.21, alpha: 1).cgColor
+        edge.borderColor = solar
+        edge.borderWidth = 1.5
+        edge.shadowColor = solar
+        edge.shadowOpacity = 0.8
+        edge.shadowRadius = 3
+        edge.shadowOffset = .zero
+        edge.zPosition = 2
+        root.addSublayer(edge)
+
+        for grip in grips {
+            grip.bounds = CGRect(x: 0, y: 0, width: 10, height: 10)
+            grip.backgroundColor = NSColor.white.cgColor
+            grip.borderColor = solar
+            grip.borderWidth = 1.5
+            grip.cornerRadius = 2.5
+            grip.shadowColor = NSColor.black.cgColor
+            grip.shadowOpacity = 0.35
+            grip.shadowRadius = 2
+            grip.shadowOffset = .zero
+            grip.shadowPath = CGPath(roundedRect: grip.bounds, cornerWidth: 2.5, cornerHeight: 2.5, transform: nil)
+            grip.zPosition = 3
+            root.addSublayer(grip)
+        }
+
+        sizeLabel.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .semibold)
+        sizeLabel.fontSize = 11
+        sizeLabel.foregroundColor = NSColor.white.cgColor
+        sizeLabel.backgroundColor = NSColor.black.withAlphaComponent(0.72).cgColor
+        sizeLabel.alignmentMode = .center
+        sizeLabel.contentsScale = scale
+        sizeLabel.isHidden = true
+        sizeLabel.zPosition = 4
+        root.addSublayer(sizeLabel)
+
+        host.frame = CGRect(origin: .zero, size: toolbarSize)
+        toolbarHolder.frame = host.frame
+        toolbarHolder.addSubview(host)
+        addSubview(toolbarHolder)
+
+        place(area.rect)
+        // The drawing test (and anything else) setting the area moves it too.
+        watching.append(area.$rect.dropFirst().sink { [weak self] rect in self?.place(rect) })
+        watching.append(state.$tool.sink { [weak self] tool in if tool != nil { self?.makeMarks() } })
+        addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .activeAlways, .inVisibleRect], owner: self))
     }
 
-    /// A grip: a small white square, a larger target around it.
-    private func grab(_ grip: Grip, at point: CGPoint) -> some View {
-        RoundedRectangle(cornerRadius: 2.5, style: .continuous)
-            .fill(Color.white)
-            .overlay(RoundedRectangle(cornerRadius: 2.5, style: .continuous).strokeBorder(Theme.solar, lineWidth: 1.5))
-            .frame(width: 10, height: 10)
-            .shadow(color: .black.opacity(0.35), radius: 2)
-            .frame(width: 22, height: 22)
-            .contentShape(Rectangle())
-            .position(point)
-            .onHover { inside in (inside ? NSCursor.crosshair : NSCursor.arrow).set() }
-            .gesture(DragGesture(minimumDistance: 1).onChanged { value in
-                let start = dragStart ?? area.rect
-                dragStart = start
-                area.rect = grip.resize(start, by: value.translation, in: bounds)
-            }.onEnded { _ in dragStart = nil })
+    required init?(coder: NSCoder) { fatalError() }
+
+    override var isFlipped: Bool { true }
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    private func makeMarks() {
+        guard marks == nil else { return }
+        let canvas = NSHostingView(rootView: MarkCanvas(image: image, state: state, showsImage: false)
+            .frame(width: bounds.width, height: bounds.height))
+        canvas.sizingOptions = []
+        canvas.frame = bounds
+        marksHolder.addSubview(canvas)
+        marks = canvas
     }
 
-    /// One edge, a thin strip along it: dragging it moves the whole area.
-    private func edge(_ side: Int, of rect: CGRect) -> some View {
-        let thickness: CGFloat = 10
-        let horizontal = side % 2 == 0
-        let frame = horizontal
-            ? CGRect(x: rect.minX, y: (side == 0 ? rect.minY : rect.maxY) - thickness / 2, width: rect.width, height: thickness)
-            : CGRect(x: (side == 1 ? rect.maxX : rect.minX) - thickness / 2, y: rect.minY, width: thickness, height: rect.height)
-        return Color.clear
-            .frame(width: frame.width, height: frame.height)
-            .contentShape(Rectangle())
-            .position(x: frame.midX, y: frame.midY)
-            .onHover { inside in (inside ? NSCursor.openHand : NSCursor.arrow).set() }
-            .gesture(DragGesture(minimumDistance: 1).onChanged { value in
-                let start = dragStart ?? area.rect
-                dragStart = start
-                area.rect = moved(start, by: value.translation, in: bounds)
-            }.onEnded { _ in dragStart = nil })
+    /// Puts everything that follows the area where it now is, without animation.
+    private func place(_ rect: CGRect) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        dims[0].frame = CGRect(x: 0, y: 0, width: bounds.width, height: rect.minY)
+        dims[1].frame = CGRect(x: 0, y: rect.maxY, width: bounds.width, height: bounds.height - rect.maxY)
+        dims[2].frame = CGRect(x: 0, y: rect.minY, width: rect.minX, height: rect.height)
+        dims[3].frame = CGRect(x: rect.maxX, y: rect.minY, width: bounds.width - rect.maxX, height: rect.height)
+        let outer = rect.insetBy(dx: -1.5, dy: -1.5)
+        // Moving keeps the size: then only the position changes, and the glow's path stays as it is.
+        if edge.bounds.size != outer.size {
+            edge.bounds = CGRect(origin: .zero, size: outer.size)
+            // Just the 1.5 pt line, as an outline (two rects in one path would fill the whole area with the glow).
+            edge.shadowPath = CGPath(rect: edge.bounds.insetBy(dx: 0.75, dy: 0.75), transform: nil)
+                .copy(strokingWithWidth: 1.5, lineCap: .butt, lineJoin: .miter, miterLimit: 10)
+        }
+        edge.position = CGPoint(x: outer.midX, y: outer.midY)
+        for (grip, layer) in zip(Grip.allCases, grips) { layer.position = grip.point(in: rect) }
+        marksMask.frame = rect
+        if !sizeLabel.isHidden {
+            let text = "\(Int(rect.width)) × \(Int(rect.height))"
+            if sizeLabel.string as? String != text {
+                sizeLabel.string = text
+                let width = text.size(withAttributes: [.font: NSFont.monospacedSystemFont(ofSize: 11, weight: .semibold)]).width + 14
+                sizeLabel.bounds = CGRect(x: 0, y: 0, width: width, height: 19)
+                sizeLabel.cornerRadius = 9.5
+            }
+            sizeLabel.position = CGPoint(x: rect.minX + sizeLabel.bounds.width / 2, y: max(rect.minY - 26, 4) + 9.5)
+        }
+        CATransaction.commit()
+        toolbarHolder.setFrameOrigin(toolbar(rect).origin)
     }
-}
 
-/// Everything but the area.
-private struct Outside: Shape {
-    let area: CGRect
+    // MARK: Pointer
 
-    func path(in rect: CGRect) -> Path {
-        var path = Path(rect)
-        path.addRect(area)
-        return path
+    /// What's under `point`: a grip, an edge or (with no tool picked) the inside, which move the area.
+    private func handle(at point: CGPoint) -> Handle? {
+        let rect = area.rect
+        for grip in Grip.allCases where hypot(point.x - grip.point(in: rect).x, point.y - grip.point(in: rect).y) <= 11 {
+            return .grip(grip)
+        }
+        let outer = rect.insetBy(dx: -5, dy: -5), inner = rect.insetBy(dx: 5, dy: 5)
+        if outer.contains(point) && !inner.contains(point) { return .move }
+        if state.tool == nil && rect.contains(point) { return .move }
+        return nil
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        let local = convert(point, from: superview)
+        if toolbarHolder.frame.contains(local) { return super.hitTest(point) }
+        // A tool picked: inside the area is the marks' (but the grips and edges still adjust it).
+        if state.tool != nil, handle(at: local) == nil, area.rect.contains(local) { return super.hitTest(point) }
+        return bounds.contains(local) ? self : nil
+    }
+
+    /// What the pointer shows over `point`: a resize arrow on a grip, a hand where dragging moves the area, a
+    /// crosshair where a tool draws, an arrow elsewhere (the dimmed screen, the toolbar).
+    private func cursor(at point: CGPoint) -> NSCursor {
+        if toolbarHolder.frame.contains(point) { return .arrow }
+        switch handle(at: point) {
+        case let .grip(grip): return grip.cursor
+        case .move: return .openHand
+        case nil: return state.tool != nil && area.rect.contains(point) ? .crosshair : .arrow
+        }
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        guard drag == nil else { return }
+        cursor(at: convert(event.locationInWindow, from: nil)).set()
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        guard let handle = handle(at: point) else { return }
+        drag = (handle, point, area.rect)
+        // Held while dragging: a closed hand moving it, the grip's arrow resizing it.
+        if case .move = handle { NSCursor.closedHand.set() }
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard let drag else { return }
+        let point = convert(event.locationInWindow, from: nil)
+        let delta = CGSize(width: point.x - drag.start.x, height: point.y - drag.start.y)
+        sizeLabel.isHidden = false
+        switch drag.handle {
+        case .move: area.rect = moved(drag.rect, by: delta, in: bounds)
+        case let .grip(grip): area.rect = grip.resize(drag.rect, by: delta, in: bounds)
+        }
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        guard drag != nil else { return }
+        drag = nil
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        sizeLabel.isHidden = true
+        CATransaction.commit()
+        mouseMoved(with: event)
     }
 }

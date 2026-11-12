@@ -105,8 +105,9 @@ struct Mark: Identifiable {
         return path
     }
 
-    /// The capture with `marks` drawn on it, at full size.
-    static func render(_ marks: [Mark], on image: CGImage) -> CGImage? {
+    /// The capture with `marks` drawn on it, at full size. `origin`: where `image` starts in the marks' pixels, for a
+    /// part cut from a larger picture (the marks keep their place).
+    static func render(_ marks: [Mark], on image: CGImage, origin: CGPoint = .zero) -> CGImage? {
         let width = image.width, height = image.height
         guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
                                       space: image.colorSpace ?? CGColorSpace(name: CGColorSpace.sRGB)!,
@@ -114,6 +115,7 @@ struct Mark: Identifiable {
         context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
         context.translateBy(x: 0, y: CGFloat(height))
         context.scaleBy(x: 1, y: -1)
+        context.translateBy(x: -origin.x, y: -origin.y)
         for mark in marks { mark.draw(in: context) }
         return context.makeImage()
     }

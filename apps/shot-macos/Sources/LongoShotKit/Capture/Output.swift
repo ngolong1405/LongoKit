@@ -42,6 +42,17 @@ enum Output {
         return url
     }
 
+    /// The image on the clipboard at once, as a promise: the PNG is made when it's pasted (or handed over sooner by
+    /// `copy(png:file:)` once it's ready). Returns the clipboard's change count, to tell whether it's still ours later.
+    @discardableResult
+    static func promise(_ image: CGImage, scale: CGFloat, on pasteboard: NSPasteboard = .general) -> Int {
+        let item = NSPasteboardItem()
+        item.setDataProvider(PromisedPNG(image, scale: scale), forTypes: [.png])
+        pasteboard.clearContents()
+        pasteboard.writeObjects([item])
+        return pasteboard.changeCount
+    }
+
     /// The image, plus the file when there is one: apps that take images paste the picture, Finder pastes the file.
     static func copy(png: Data, file: URL?) {
         let item = NSPasteboardItem()
@@ -71,5 +82,20 @@ enum Output {
     static func copy(text: String) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
+    }
+}
+
+/// Makes a promised capture's PNG when an app pastes it.
+private final class PromisedPNG: NSObject, NSPasteboardItemDataProvider {
+    private let image: CGImage
+    private let scale: CGFloat
+
+    init(_ image: CGImage, scale: CGFloat) {
+        self.image = image
+        self.scale = scale
+    }
+
+    func pasteboard(_ pasteboard: NSPasteboard?, item: NSPasteboardItem, provideDataForType type: NSPasteboard.PasteboardType) {
+        if let png = Output.png(image, scale: scale) { item.setData(png, forType: type) }
     }
 }

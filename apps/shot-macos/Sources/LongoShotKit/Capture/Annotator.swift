@@ -52,14 +52,14 @@ enum Annotator {
         window.makeKeyAndOrderFront(nil)
     }
 
-    /// `clipboard` is Esc right after a capture: copied, never saved.
-    enum Result { case done([Mark]), copy([Mark]), clipboard([Mark]), cancel }
+    /// `back`: Esc right after a capture, to pick the area again.
+    enum Result { case done([Mark]), copy([Mark]), back, cancel }
 
     private static func finish(_ result: Result, image: CGImage, scale: CGFloat, file: URL?, model: AppModel) {
         switch result {
-        case .cancel:
+        case .cancel, .back:
             return
-        case let .copy(marks), let .clipboard(marks):
+        case let .copy(marks):
             guard let drawn = Mark.render(marks, on: image), let png = Output.png(drawn, scale: scale) else { return }
             Output.copy(png: png, file: nil)
         case let .done(marks):
@@ -76,7 +76,8 @@ final class AnnotationState: ObservableObject {
     @Published var marks: [Mark] = []
     @Published var undone: [Mark] = []
     @Published var drawing: Mark?
-    @Published var tool: Mark.Tool = .arrow
+    /// The drawing tool; none means dragging moves the area instead (in place, right after a capture).
+    @Published var tool: Mark.Tool? = .arrow
     @Published var color = AnnotationState.palette[0]
     @Published var size = 1
     let pixelsPerPoint: CGFloat
@@ -95,6 +96,7 @@ final class AnnotationState: ObservableObject {
     var lineWidth: CGFloat { Self.sizes[size] * pixelsPerPoint }
 
     func begin(at point: CGPoint) {
+        guard let tool else { return }
         drawing = Mark(tool: tool, points: [point], color: NSColor(color).cgColor, width: lineWidth)
     }
 
@@ -161,14 +163,18 @@ struct AnnotatorView: View {
 struct MarkCanvas: View {
     let image: CGImage
     @ObservedObject var state: AnnotationState
+    /// Off when the picture is shown some other way and only the marks go here (the editor shows just the area's part).
+    var showsImage = true
 
     var body: some View {
         GeometryReader { geometry in
             let factor = CGFloat(image.width) / max(geometry.size.width, 1)
             ZStack {
-                Image(decorative: image, scale: 1)
-                    .resizable()
-                    .interpolation(.high)
+                if showsImage {
+                    Image(decorative: image, scale: 1)
+                        .resizable()
+                        .interpolation(.high)
+                }
                 Canvas { context, size in
                     let scale = size.width / CGFloat(image.width)
                     context.withCGContext { cg in
@@ -270,13 +276,13 @@ struct DrawToolbar: View {
             Button { finish(.done(state.marks)) } label: { Label(L("Done"), systemImage: "checkmark") }
                 .buttonStyle(.primary)
                 .keyboardShortcut(.defaultAction)
-                .help(windowed ? L("Save over the capture and copy it") : L("Save and copy the capture (↩ or ⌘C); Esc only copies"))
-                // Right after a capture the capture is copied anyway, so there's no Copy button: ⌘C saves and copies
-                // like Done, Esc only copies (hidden buttons taking no room).
+                .help(windowed ? L("Save over the capture and copy it") : L("Save and copy the capture (↩ or ⌘C); Esc goes back to picking the area"))
+                // Right after a capture there's no Copy button: ⌘C saves and copies like Done, and Esc goes back to
+                // picking the area, as in iShot (hidden buttons taking no room).
                 .background {
                     if !windowed {
                         Button("") { finish(.copy(state.marks)) }.keyboardShortcut("c").opacity(0).accessibilityHidden(true)
-                        Button("") { finish(.clipboard(state.marks)) }.keyboardShortcut(.cancelAction).opacity(0).accessibilityHidden(true)
+                        Button("") { finish(.back) }.keyboardShortcut(.cancelAction).opacity(0).accessibilityHidden(true)
                     }
                 }
         }
@@ -312,7 +318,8 @@ struct DrawToolbar: View {
 
     private func tool(_ tool: Mark.Tool, symbol: String, title: String, key: KeyEquivalent) -> some View {
         let selected = state.tool == tool
-        return Button { state.tool = tool } label: {
+        // Picking the tool that's on again puts it down: dragging moves the area again.
+        return Button { state.tool = selected ? nil : tool } label: {
             Image(systemName: symbol)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(selected ? Color.white : Color.white.opacity(0.6))

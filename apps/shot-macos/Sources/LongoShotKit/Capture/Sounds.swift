@@ -39,6 +39,13 @@ enum Sound: CaseIterable {
         sound.play()
     }
 
+    /// Loads every sound ahead, so the first shutter doesn't read a file at the moment of the capture.
+    @MainActor static func preload() {
+        for sound in allCases where loaded[sound] == nil {
+            loaded[sound] = NSSound(contentsOfFile: sound.path, byReference: false)
+        }
+    }
+
     /// Whether macOS has the sound's file.
     var isAvailable: Bool { FileManager.default.fileExists(atPath: path) }
 }

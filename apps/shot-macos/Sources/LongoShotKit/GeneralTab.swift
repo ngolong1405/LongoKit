@@ -83,7 +83,7 @@ private struct CapturesGroup: View {
                 }
                 .disabled(!model.saveToFolder)
                 CheckChip(L("Draw on it"), isOn: model.drawAfterCapture,
-                          help: L("An area, a window or the whole screen stays put with arrows, pen, boxes and colors; Done or ⌘C saves and copies it, Esc only copies it.")) {
+                          help: L("An area, a window or the whole screen stays put with arrows, pen, boxes and colors; Done or ⌘C saves and copies it, Esc goes back to picking the area.")) {
                     model.drawAfterCapture.toggle()
                 }
                 CheckChip(L("Preview"), isOn: model.showPreview,

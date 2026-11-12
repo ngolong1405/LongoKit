@@ -50,6 +50,10 @@ final class AppModel: ObservableObject {
     @Published var playSound: Bool {
         didSet { defaults.set(playSound, forKey: Keys.sound) }
     }
+    /// The language text is read as: "auto" (any script) or one of Vision's codes. Picked in the text window.
+    @Published var ocrLanguage: String {
+        didSet { defaults.set(ocrLanguage, forKey: Keys.ocrLanguage) }
+    }
     /// The last captures, newest first, for the menu's Recent list.
     @Published private(set) var history: [HistoryItem] = [] {
         didSet { if let data = try? JSONEncoder().encode(history) { defaults.set(data, forKey: Keys.history) } }
@@ -165,6 +169,7 @@ final class AppModel: ObservableObject {
         static let copy = "copyToClipboard"
         static let preview = "showPreview"
         static let sound = "playSound"
+        static let ocrLanguage = "ocrLanguage"
         static let drawAfterCapture = "drawAfterCapture"
         static let history = "history"
         static let keepHistory = "keepHistory"
@@ -208,6 +213,7 @@ final class AppModel: ObservableObject {
         copyToClipboard = defaults.object(forKey: Keys.copy) as? Bool ?? true
         showPreview = defaults.object(forKey: Keys.preview) as? Bool ?? true
         playSound = defaults.object(forKey: Keys.sound) as? Bool ?? true
+        ocrLanguage = defaults.string(forKey: Keys.ocrLanguage) ?? "auto"
         drawAfterCapture = defaults.object(forKey: Keys.drawAfterCapture) as? Bool ?? true
         recordSystemAudio = defaults.object(forKey: Keys.systemAudio) as? Bool ?? false
         recordMicrophone = defaults.object(forKey: Keys.microphone) as? Bool ?? false
@@ -225,6 +231,8 @@ final class AppModel: ObservableObject {
         Localizer.language = language
         applyAppearance()
         guard live else { return }
+        Sound.preload()
+        InPlaceEditor.warmUp()
         registerHotKeys()
         // Screen Recording is granted in System Settings; look again whenever the app comes forward.
         activeObserver = NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification,
@@ -257,7 +265,14 @@ final class AppModel: ObservableObject {
                  allowsScreen: true, draw: drawAfterCapture, windowsOnClick: true)
         case .captureScreen:
             guard ready() else { return }
+            let clear = !Capturer.panelsShowing
+            PreviewPanel.shared.dismiss()
             let screen = Capturer.screenUnderPointer()
+            // The screen as it is, in one quick call; the capture is cut from it.
+            if let screen, clear,
+               let still = Capturer.instant(display: screen.displayID, pointWidth: screen.frame.width) {
+                frozen = [screen.displayID: still]
+            }
             run(.area(display: screen?.displayID ?? CGMainDisplayID(), rect: .null, scale: screen?.backingScaleFactor ?? 2),
                 text: false, draw: drawAfterCapture)
         case .captureText:
@@ -311,23 +326,59 @@ final class AppModel: ObservableObject {
 
     /// Screens as they were when a capture's shortcut was pressed; an area picked is cut from these.
     private var frozen: [CGDirectDisplayID: (image: CGImage, scale: CGFloat)] = [:]
+    /// The screens the area being drawn on was picked on, for picking again.
+    private var pickedOn: [CGDirectDisplayID: (image: CGImage, scale: CGFloat)] = [:]
 
-    /// A picture (or its text): the screens are frozen first, so a menu or popover open when the shortcut is pressed
-    /// is still there after the first click closes it.
+    /// Esc while drawing on a capture: back to picking the area, on the same frozen screens, as in iShot.
+    private func pickAgain() {
+        let screens = pickedOn
+        pickedOn = [:]
+        pick(.area, hint: L("Drag an area  ·  Click a window  ·  Double-click: whole screen  ·  Esc: cancel"), text: false,
+             allowsScreen: true, draw: drawAfterCapture, windowsOnClick: true, reuse: screens)
+    }
+
+    /// A picture (or its text). The overlay comes up at once; the screens are frozen meanwhile and slipped under it
+    /// (they look the same), so a menu or popover open when the shortcut is pressed is still there after the first
+    /// click closes it. A pick made before they're in is captured live.
+    /// `reuse`: screens already frozen, to pick on them again.
     private func pick(_ mode: SelectionOverlay.Mode, hint: String, text: Bool, allowsWindows: Bool = true, allowsScreen: Bool = false,
-                      draw: Bool = false, windowsOnClick: Bool = false) {
-        guard ready(), !isFreezing else { return }
-        isFreezing = true
-        Task { @MainActor in
-            frozen = await Capturer.freeze()
-            isFreezing = false
+                      draw: Bool = false, windowsOnClick: Bool = false,
+                      reuse: [CGDirectDisplayID: (image: CGImage, scale: CGFloat)] = [:]) {
+        guard ready(), !SelectionOverlay.isPicking else { return }
+        if !reuse.isEmpty {
+            frozen = reuse
             pick(mode, hint: hint, allowsWindows: allowsWindows, allowsScreen: allowsScreen, windowsOnClick: windowsOnClick,
-                 frozen: frozen) { [weak self] selection in
+                 frozen: reuse) { [weak self] selection in
                 self?.run(selection, text: text, draw: draw)
             }
+            return
+        }
+        // A panel of Shot's on screen (the last capture's preview) could still be in a quick capture taken right after
+        // it's put away: then ScreenCaptureKit, which leaves it out.
+        let clear = !Capturer.panelsShowing
+        PreviewPanel.shared.dismiss()
+        // As iShot does: the screens as they are, in one quick call each, then the overlay on them.
+        if clear, let still = Capturer.freezeNow() {
+            frozen = still
+            pick(mode, hint: hint, allowsWindows: allowsWindows, allowsScreen: allowsScreen, windowsOnClick: windowsOnClick,
+                 frozen: still) { [weak self] selection in
+                self?.run(selection, text: text, draw: draw)
+            }
+            return
+        }
+        frozen = [:]
+        pick(mode, hint: hint, allowsWindows: allowsWindows, allowsScreen: allowsScreen, windowsOnClick: windowsOnClick) { [weak self] selection in
+            self?.run(selection, text: text, draw: draw)
+        }
+        guard SelectionOverlay.isPicking else { return }
+        Task { @MainActor in
+            let still = await Capturer.freeze()
+            // Only for the pick still under way.
+            guard SelectionOverlay.isPicking else { return }
+            frozen = still
+            SelectionOverlay.supply(still)
         }
     }
-    private var isFreezing = false
 
     private func pick(_ mode: SelectionOverlay.Mode, hint: String, allowsWindows: Bool = true, allowsScreen: Bool = false,
                       adjusting: SelectionOverlay.Adjusting? = nil, windowsOnClick: Bool = false,
@@ -344,6 +395,10 @@ final class AppModel: ObservableObject {
     /// Takes the picture, then saves and copies it, or reads its text.
     /// `draw`: an area, the screen or a window is drawn on in place first, and only saved and copied when that's done.
     private func run(_ selection: Selection, text: Bool, draw: Bool = false) {
+        // The shutter (not for copying text); nothing on screen, it's quick.
+        if !text { Sound.shutter.play(if: playSound) }
+        // No editor takes the overlay's place: it goes now (it's left out of captures either way).
+        if !draw || text { SelectionOverlay.dismissLingering() }
         isBusy = true
         Task { @MainActor in
             defer { isBusy = false }
@@ -352,6 +407,8 @@ final class AppModel: ObservableObject {
                 if draw, !text, case let .area(display, rect, scale) = selection,
                    let screen = NSScreen.screens.first(where: { $0.displayID == display }) {
                     let still = frozen[display]
+                    // Kept for Esc, which goes back to picking on the same screens.
+                    if !frozen.isEmpty { pickedOn = frozen }
                     frozen = [:]
                     let full: CGImage
                     if let still { full = still.image } else { full = try await Capturer.image(display: display, rect: nil, scale: scale) }
@@ -368,7 +425,7 @@ final class AppModel: ObservableObject {
                 frozen = [:]
                 if case let .area(_, rect, _) = selection, let screen { place = (screen, rect) }
                 if text {
-                    await recognize(image, on: screen)
+                    recognize(image, scale: scale, on: screen)
                 } else if draw, let (screen, rect) = place {
                     InPlaceEditor.open(image, scale: scale, on: screen, area: rect) { [weak self] outcome in
                         self?.finishDrawing(outcome, scale: scale, on: screen)
@@ -387,7 +444,7 @@ final class AppModel: ObservableObject {
         switch outcome {
         case let .save(drawn): deliver(drawn, scale: scale, on: screen)
         case let .saveAndCopy(drawn): deliver(drawn, scale: scale, on: screen, copy: true)
-        case let .copy(drawn): deliver(drawn, scale: scale, on: screen, save: false)
+        case .pickAgain: pickAgain()
         case .discard: break
         }
     }
@@ -403,6 +460,9 @@ final class AppModel: ObservableObject {
             let image = try await Capturer.image(display: display, rect: rect.isNull ? nil : rect, scale: scale)
             return (image, scale, screen)
         case let .window(id):
+            if let (image, scale) = Capturer.instant(window: id, shadow: shadow) {
+                return (image, scale, Capturer.screenUnderPointer())
+            }
             let (image, scale) = try await Capturer.image(window: id, shadow: shadow)
             return (image, scale, Capturer.screenUnderPointer())
         }
@@ -411,21 +471,37 @@ final class AppModel: ObservableObject {
     /// Saves (when saving is on and `save`) and copies a capture, then shows it in the corner. `save: false` is the
     /// clipboard only, whatever the setting; `copy: true` copies even with copying off.
     private func deliver(_ image: CGImage, scale: CGFloat, on screen: NSScreen?, save: Bool = true, copy: Bool = false) {
-        guard let png = Output.png(image, scale: scale) else { return }
-        var file: URL?
-        if saveToFolder && save {
-            do {
-                file = try Output.save(png, in: saveFolder, at: Date())
-            } catch {
-                message(L("Couldn't save"), detail: error.localizedDescription, symbol: "exclamationmark.triangle.fill", tint: Theme.amber)
+        // Encoding a Retina screen as PNG takes a few hundred ms and the file is megabytes: that happens off the main
+        // thread, so nothing on screen stutters, then the rest follows.
+        let folder = saveToFolder && save ? saveFolder : nil
+        let date = Date()
+        // On the clipboard at once (pasting right away works); the PNG and the file follow.
+        let clipboard = copyToClipboard || copy || folder == nil ? Output.promise(image, scale: scale) : nil
+        Task { @MainActor in
+            let (png, file, failure) = await Task.detached(priority: .userInitiated) { () -> (Data?, URL?, String?) in
+                guard let png = Output.png(image, scale: scale) else { return (nil, nil, nil) }
+                guard let folder else { return (png, nil, nil) }
+                do {
+                    return (png, try Output.save(png, in: folder, at: date), nil)
+                } catch {
+                    return (png, nil, error.localizedDescription)
+                }
+            }.value
+            guard let png else { return }
+            if let failure {
+                message(L("Couldn't save"), detail: failure, symbol: "exclamationmark.triangle.fill", tint: Theme.amber)
             }
+            finishDelivery(image, png: png, file: file, on: screen, copy: copy, clipboard: clipboard)
         }
+    }
+
+    private func finishDelivery(_ image: CGImage, png: Data, file: URL?, on screen: NSScreen?, copy: Bool, clipboard: Int?) {
         let copied = copyToClipboard || copy || file == nil
-        if copied { Output.copy(png: png, file: file) }
+        // The finished picture and its file take the promise's place, unless something else was copied since.
+        if copied && (clipboard == nil || NSPasteboard.general.changeCount == clipboard) { Output.copy(png: png, file: file) }
         lastFile = file
         lastPNG = file == nil ? png : nil
         remember(file: file, png: png)
-        Sound.shutter.play(if: playSound)
         if showPreview {
             PreviewPanel.shared.show(.init(thumbnail: PreviewPanel.thumbnail(image), png: png, file: file,
                                            showsInFinder: file != nil, copied: copied) { [weak self] in
@@ -435,20 +511,18 @@ final class AppModel: ObservableObject {
         }
     }
 
-    private func recognize(_ image: CGImage, on screen: NSScreen?) async {
-        do {
-            let lines = try await TextRecognizer.lines(in: image, vietnameseFirst: language == .vietnamese)
-            guard !lines.isEmpty else {
-                return message(L("No text found"), detail: L("Try a larger area, or text with more contrast."),
-                               symbol: "text.viewfinder", tint: Theme.amber, on: screen)
-            }
-            Output.copy(text: lines.joined(separator: "\n"))
+    /// The text in the picked area, in a window to check, edit and copy, as iShot does: the picture, the language it's
+    /// read as, the text, Copy (⌘↩).
+    private func recognize(_ image: CGImage, scale: CGFloat, on screen: NSScreen?) {
+        let reading = TextReading(image, language: ocrLanguage, vietnameseFirst: language == .vietnamese) { [weak self] picked in
+            self?.ocrLanguage = picked
+        }
+        TextWindow.open(reading, scale: scale, on: screen) { [weak self] text in
+            guard let self else { return }
+            Output.copy(text: text)
             Sound.text.play(if: playSound)
-            message(lines.count == 1 ? L("Copied 1 line of text") : L("Copied %d lines of text", lines.count),
-                    detail: lines.first, symbol: "text.viewfinder", tint: Theme.emerald, on: screen)
-        } catch {
-            message(L("Couldn't read the text"), detail: error.localizedDescription, symbol: "exclamationmark.triangle.fill",
-                    tint: Theme.amber, on: screen)
+            message(L("Text copied"), detail: text.components(separatedBy: "\n").first, symbol: "text.viewfinder",
+                    tint: Theme.emerald, on: screen)
         }
     }
 

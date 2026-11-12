@@ -130,6 +130,52 @@ enum SelfTest {
         settle()
         check("…and clicking one that's off turns it on", suite.status("shot") == .running)
 
+        // Installing from the disk image: where the app runs from, the installer files, moving it into Applications.
+        check("an app on a disk image is told apart", SelfInstall.volume(of: URL(fileURLWithPath: "/Volumes/LongoKit/LongoKit.app"))
+              == "/Volumes/LongoKit" && !SelfInstall.isOnDiskImage(URL(fileURLWithPath: "/Applications/LongoKit.app")))
+        check("…and an installed one", SelfInstall.isInstalled(URL(fileURLWithPath: "/Applications/LongoKit.app"))
+              && !SelfInstall.isInstalled(URL(fileURLWithPath: "/tmp/build/LongoKit.app")))
+        let work = FileManager.default.temporaryDirectory.appendingPathComponent("LongoKit-selftest-\(getpid())")
+        try? FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
+        for file in ["LongoKit-0.1.2.dmg", "LongoKit.dmg", "LongoKit-0.1.1 (1).dmg", "LongoKitty.dmg", "LongoMouse-0.2.11.dmg", "LongoKit-0.1.2.zip"] {
+            FileManager.default.createFile(atPath: work.appendingPathComponent(file).path, contents: Data())
+        }
+        check("the app's installers in Downloads are found, and only those",
+              SelfInstall.installerFiles(named: "LongoKit", in: work).map(\.lastPathComponent)
+              == ["LongoKit-0.1.1 (1).dmg", "LongoKit-0.1.2.dmg", "LongoKit.dmg"])
+        // A stand-in app, quarantined as if downloaded, moved into a stand-in Applications.
+        let fake = work.appendingPathComponent("Disk/Fake.app/Contents")
+        try? FileManager.default.createDirectory(at: fake, withIntermediateDirectories: true)
+        try? PropertyListSerialization.data(fromPropertyList: ["CFBundleIdentifier": "com.longokit.selftest.fake", "CFBundleName": "Fake"],
+                                            format: .xml, options: 0).write(to: fake.appendingPathComponent("Info.plist"))
+        let app = work.appendingPathComponent("Disk/Fake.app")
+        _ = "0081;00000000;Safari;".withCString { setxattr(app.path, "com.apple.quarantine", $0, strlen($0), 0, 0) }
+        let applications = work.appendingPathComponent("Applications")
+        try? FileManager.default.createDirectory(at: applications, withIntermediateDirectories: true)
+        let installed = try? SelfInstall.install(app, into: applications)
+        check("moving into Applications copies the app", installed.map { FileManager.default.fileExists(atPath: $0.path + "/Contents/Info.plist") } ?? false)
+        check("…and clears the download quarantine", installed.map { getxattr($0.path, "com.apple.quarantine", nil, 0, 0, 0) < 0 } ?? false)
+        // A real disk image: hdiutil tells where it's mounted.
+        let image = work.appendingPathComponent("Fake.dmg").path
+        func hdiutil(_ arguments: [String]) -> Bool {
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
+            task.arguments = arguments + ["-quiet"]
+            guard (try? task.run()) != nil else { return false }
+            task.waitUntilExit()
+            return task.terminationStatus == 0
+        }
+        let mount = work.appendingPathComponent("Mounted").path
+        if hdiutil(["create", "-srcfolder", work.appendingPathComponent("Disk").path, "-volname", "Fake", "-format", "UDZO", image]),
+           hdiutil(["attach", image, "-nobrowse", "-readonly", "-mountpoint", mount]) {
+            check("a mounted installer is found from where it's mounted",
+                  SelfInstall.diskImage(mountedAt: mount)?.hasSuffix("Fake.dmg") ?? false)
+            _ = hdiutil(["detach", mount])
+        } else {
+            check("a test disk image could be made", false)
+        }
+        try? FileManager.default.removeItem(at: work)
+
         // Every page and menu draws
         for (id, host) in suite.hosts.sorted(by: { $0.key < $1.key }) {
             let panel = render(host.panel.frame(width: Theme.windowWidth))

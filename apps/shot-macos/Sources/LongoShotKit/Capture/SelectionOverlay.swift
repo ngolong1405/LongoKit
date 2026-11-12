@@ -27,7 +27,19 @@ final class SelectionOverlay {
 
     private static var current: SelectionOverlay?
 
+    /// The last pick's panels, kept for a moment after it's done: the drawing editor replaces them in the same frame
+    /// (no gap, nothing fading across the screen), or they go a moment later. Their views point back to the overlay,
+    /// so it's kept with them.
+    private static var lingering: (panels: [OverlayPanel], overlay: SelectionOverlay)?
+
+    /// Takes the last pick's panels off screen now.
+    static func dismissLingering() {
+        lingering?.panels.forEach { $0.orderOut(nil) }
+        lingering = nil
+    }
+
     private var panels: [OverlayPanel] = []
+    private var views: [OverlayView] = []
     private var mode: Mode
     private let hint: String
     private let allowsWindows: Bool
@@ -40,10 +52,27 @@ final class SelectionOverlay {
     /// On-screen windows of other apps, front to back, in global top-left coordinates.
     private let windows: [(id: CGWindowID, frame: CGRect)]
     /// Each screen as it was when the shortcut was pressed, shown under the overlay (empty: the live screen shows).
-    fileprivate let frozen: [CGDirectDisplayID: NSImage]
+    private var frozen: [CGDirectDisplayID: CGImage]
+    /// The layer each screen's frozen picture goes in; it can arrive after the overlay is up.
+    private var backdrops: [CGDirectDisplayID: NSView] = [:]
     /// The screen whose area is being adjusted, and the toolbar under it.
     private weak var adjustingView: OverlayView?
     private var toolbar: NSPanel?
+
+    /// Whether a pick is under way.
+    static var isPicking: Bool { current != nil }
+
+    /// The screens as frozen when the shortcut was pressed, arriving after the overlay is already up.
+    static func supply(_ frozen: [CGDirectDisplayID: (image: CGImage, scale: CGFloat)]) {
+        guard let current else { return }
+        for (display, still) in frozen {
+            current.frozen[display] = still.image
+            current.backdrops[display]?.layer?.contents = still.image
+        }
+    }
+
+    /// Cancels the pick under way (for the drawing test).
+    static func cancel() { current?.finish(nil) }
 
     /// Starts picking; `completion` gets nil when it's cancelled. Picking again while picking does nothing.
     static func pick(_ mode: Mode, hint: String, allowsWindows: Bool = true, allowsScreen: Bool = false,
@@ -60,7 +89,7 @@ final class SelectionOverlay {
                  windowsOnClick: Bool = false, frozen: [CGDirectDisplayID: (image: CGImage, scale: CGFloat)] = [:],
                  completion: @escaping (Selection?) -> Void) {
         self.windowsOnClick = windowsOnClick
-        self.frozen = frozen.mapValues { NSImage(cgImage: $0.image, size: .zero) }
+        self.frozen = frozen.mapValues(\.image)
         self.mode = mode
         self.hint = hint
         self.allowsWindows = allowsWindows
@@ -75,7 +104,17 @@ final class SelectionOverlay {
         for screen in NSScreen.screens {
             let panel = OverlayPanel(screen: screen)
             let view = OverlayView(overlay: self, screen: screen)
-            panel.contentView = view
+            // The frozen screen is a layer set once under the overlay: the overlay redraws as the pointer moves, the
+            // picture doesn't. It may come a moment after the overlay (see `supply`); until then the live screen shows,
+            // which looks the same.
+            let backdrop = NSView(frame: view.frame)
+            backdrop.wantsLayer = true
+            backdrop.layer?.contents = frozen[screen.displayID]
+            backdrop.layer?.contentsGravity = .resize
+            backdrop.addSubview(view)
+            panel.contentView = backdrop
+            backdrops[screen.displayID] = backdrop
+            views.append(view)
             panel.orderFrontRegardless()
             panels.append(panel)
             if NSMouseInRect(pointer, screen.frame, false) {
@@ -98,7 +137,7 @@ final class SelectionOverlay {
     }
 
     fileprivate func refresh() {
-        for panel in panels { panel.contentView?.needsDisplay = true }
+        for view in views { view.needsDisplay = true }
     }
 
     /// The frontmost window under a point (global top-left coordinates).
@@ -111,13 +150,15 @@ final class SelectionOverlay {
     /// An area was dragged on `view`'s screen: keep it there to adjust, with the toolbar.
     fileprivate func beginAdjusting(_ view: OverlayView, rect: CGRect) {
         guard let adjusting else { return }
-        for panel in panels { (panel.contentView as? OverlayView)?.dropArea(except: view) }
+        for other in views { other.dropArea(except: view) }
         adjustingView = view
         if toolbar == nil {
             let (content, size) = adjusting.toolbar { [weak self] command in self?.run(command) }
             let panel = NSPanel(contentRect: CGRect(origin: .zero, size: size), styleMask: [.borderless, .nonactivatingPanel],
                                 backing: .buffered, defer: false)
             panel.identifier = Capturer.panelID
+            // Up and gone at once: no zoom from macOS.
+            panel.animationBehavior = .none
             panel.isOpaque = false
             panel.backgroundColor = .clear
             panel.hasShadow = false
@@ -178,11 +219,21 @@ final class SelectionOverlay {
         guard Self.current === self else { return }
         toolbar?.orderOut(nil)
         toolbar = nil
-        for panel in panels { panel.orderOut(nil) }
+        let closing = panels
+        // The views point back here (unowned): they stop following the pointer now, and this overlay is kept with them
+        // until they're off screen.
+        for view in views { view.trackingAreas.forEach(view.removeTrackingArea) }
+        for panel in closing { panel.ignoresMouseEvents = true }
         panels.removeAll()
+        views.removeAll()
         NSCursor.pop()
         Self.current = nil
+        Self.dismissLingering()
+        Self.lingering = (closing, self)
         completion(selection)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            if let self, Self.lingering?.overlay === self { Self.dismissLingering() }
+        }
     }
 
     private static func visibleWindows() -> [(id: CGWindowID, frame: CGRect)] {
@@ -209,6 +260,8 @@ private final class OverlayPanel: NSPanel {
         super.init(contentRect: screen.frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         setFrame(screen.frame, display: false)
         identifier = Capturer.panelID
+        // Up and gone at once: no zoom from macOS.
+        animationBehavior = .none
         level = .screenSaver
         isOpaque = false
         backgroundColor = .clear
@@ -234,7 +287,10 @@ private final class OverlayView: NSView {
         case resize(Handle, original: CGRect)
     }
 
-    private unowned let overlay: SelectionOverlay
+    /// Weak: the overlay goes as soon as a pick is done, and AppKit can still draw or send an event to this view after.
+    /// Every way in (drawing, the pointer, keys) checks it's still there; inside, `overlay` is then safe to use.
+    private weak var owner: SelectionOverlay?
+    private var overlay: SelectionOverlay { owner! }
     private let screen: NSScreen
     /// Where this screen sits in global top-left coordinates (the ones window frames use).
     private let origin: CGPoint
@@ -245,7 +301,7 @@ private final class OverlayView: NSView {
     private var pointer: CGPoint?
 
     init(overlay: SelectionOverlay, screen: NSScreen) {
-        self.overlay = overlay
+        owner = overlay
         self.screen = screen
         origin = CGDisplayBounds(screen.displayID).origin
         super.init(frame: CGRect(origin: .zero, size: screen.frame.size))
@@ -346,6 +402,7 @@ private final class OverlayView: NSView {
     }
 
     override func mouseMoved(with event: NSEvent) {
+        guard owner != nil else { return }
         pointer = local(event)
         if !(window?.isKeyWindow ?? false) { window?.makeKey(); window?.makeFirstResponder(self) }
         cursor(for: pointer!).set()
@@ -353,11 +410,13 @@ private final class OverlayView: NSView {
     }
 
     override func mouseExited(with event: NSEvent) {
+        guard owner != nil else { return }
         pointer = nil
         needsDisplay = true
     }
 
     override func mouseDown(with event: NSEvent) {
+        guard owner != nil else { return }
         let point = local(event)
         if overlay.currentMode == .window {
             pointer = point
@@ -386,6 +445,7 @@ private final class OverlayView: NSView {
     }
 
     override func mouseDragged(with event: NSEvent) {
+        guard owner != nil else { return }
         let point = local(event)
         pointer = point
         switch drag {
@@ -423,6 +483,7 @@ private final class OverlayView: NSView {
     }
 
     override func mouseUp(with event: NSEvent) {
+        guard owner != nil else { return }
         defer { drag = nil }
         guard case .select = drag else {
             if let pointer { cursor(for: pointer).set() }
@@ -444,9 +505,10 @@ private final class OverlayView: NSView {
         }
     }
 
-    override func rightMouseDown(with event: NSEvent) { overlay.finish(nil) }
+    override func rightMouseDown(with event: NSEvent) { owner?.finish(nil) }
 
     override func keyDown(with event: NSEvent) {
+        guard owner != nil else { return }
         switch Int(event.keyCode) {
         case 53: overlay.finish(nil) // Esc
         case 49: // Space
@@ -468,8 +530,7 @@ private final class OverlayView: NSView {
     private static let solar = NSColor(red: 1, green: 0.42, blue: 0.21, alpha: 1)
 
     override func draw(_ dirtyRect: NSRect) {
-        // The screen as it was when the shortcut was pressed, so menus that have closed since still show.
-        overlay.frozen[screen.displayID]?.draw(in: bounds, from: .zero, operation: .copy, fraction: 1, respectFlipped: true, hints: nil)
+        guard owner != nil else { return }
         // A little darker while adjusting, so the area stands out.
         let dim = NSColor.black.withAlphaComponent(adjusting ? 0.45 : 0.32)
         let cutout = area ?? hoveredWindow?.rect

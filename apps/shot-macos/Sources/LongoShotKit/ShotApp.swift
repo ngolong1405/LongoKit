@@ -51,7 +51,9 @@ public final class ShotAppDelegate: NSObject, NSApplicationDelegate {
     override public init() { super.init() }
 
     public func applicationWillFinishLaunching(_ notification: Notification) {
-        if Snapshot.isRequested || SelfTest.isRequested || SelfTest.isRecordTestRequested || SelfTest.isDrawTestRequested {
+        if SelfTest.isTextDemoRequested {
+            NSApp.setActivationPolicy(.accessory)
+        } else if Snapshot.isRequested || SelfTest.isRequested || SelfTest.isRecordTestRequested || SelfTest.isDrawTestRequested {
             AppLaunch.runInBackground()
         } else if !AppLaunch.claimSingleInstance() {
             exit(0)
@@ -63,9 +65,12 @@ public final class ShotAppDelegate: NSObject, NSApplicationDelegate {
         if SelfTest.isRequested { MainActor.assumeIsolated { SelfTest.runAndExit() } }
         if SelfTest.isRecordTestRequested { MainActor.assumeIsolated { SelfTest.recordAndExit() } }
         if SelfTest.isDrawTestRequested { MainActor.assumeIsolated { SelfTest.drawAndExit() } }
+        if SelfTest.isTextDemoRequested { MainActor.assumeIsolated { SelfTest.textDemoAndExit() } }
         closeShortcutMonitor = MainWindowRef.interceptCloseShortcut()
         if !Snapshot.isRequested && !SelfTest.isRequested && !SelfTest.isRecordTestRequested && !SelfTest.isDrawTestRequested {
             MainActor.assumeIsolated {
+                // Opened from the disk image: offer to move to Applications; installed: offer to delete the installer.
+                SelfInstall.check()
                 let model = Self.model
                 StatusItemMenu.install(doubleClick: model.showWindow) {
                     StatusItemMenu.standard(name: AppInfo.name, icon: ShotModule.image("Logo.png"), isOn: model.isEnabled,

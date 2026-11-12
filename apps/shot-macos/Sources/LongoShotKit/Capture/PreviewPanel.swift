@@ -55,6 +55,8 @@ final class PreviewPanel {
         let frame = CGRect(x: visible.maxX - size.width - 6, y: visible.minY + 6, width: size.width, height: size.height)
         let panel = NSPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.identifier = Capturer.panelID
+        // Up and gone at once: no zoom from macOS.
+        panel.animationBehavior = .none
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false

@@ -40,11 +40,7 @@ enum Vietnamese {
 
         // Overlay & results
         "Drag over text to copy it  ·  Esc: cancel": "Kéo chọn vùng có chữ để copy  ·  Esc: huỷ",
-        "Copied 1 line of text": "Đã copy 1 dòng chữ",
-        "Copied %d lines of text": "Đã copy %d dòng chữ",
         "No text found": "Không thấy chữ",
-        "Try a larger area, or text with more contrast.": "Thử chọn vùng rộng hơn, hoặc chữ rõ nét hơn.",
-        "Couldn't read the text": "Không đọc được chữ",
         "Couldn't capture": "Không chụp được",
         "Couldn't save": "Không lưu được",
         "Nothing captured yet": "Chưa chụp ảnh nào",
@@ -205,8 +201,8 @@ enum Vietnamese {
         "Done": "Xong",
         "Save over the capture and copy it": "Lưu đè lên ảnh chụp và copy",
         "Draw right after capturing": "Vẽ ngay sau khi chụp",
-        "An area, a window or the whole screen stays put with arrows, pen, boxes and colors; Done or ⌘C saves and copies it, Esc only copies it.":
-            "Vùng, cửa sổ hoặc cả màn hình vừa chụp đứng yên kèm mũi tên, bút, khung và bảng màu; bấm Xong hoặc ⌘C để lưu và copy, Esc chỉ copy.",
+        "An area, a window or the whole screen stays put with arrows, pen, boxes and colors; Done or ⌘C saves and copies it, Esc goes back to picking the area.":
+            "Vùng, cửa sổ hoặc cả màn hình vừa chụp đứng yên kèm mũi tên, bút, khung và bảng màu; bấm Xong hoặc ⌘C để lưu và copy, Esc để quay lại chọn vùng.",
         "Capture Area or Window": "Chụp vùng / cửa sổ",
         "Drag over an area, or click a window to capture it with its shadow; double-click for the whole screen.":
             "Kéo chọn một vùng, hoặc bấm vào cửa sổ để chụp cửa sổ đó kèm bóng đổ; nhấp đúp để chụp cả màn hình.",
@@ -214,7 +210,7 @@ enum Vietnamese {
             "Kéo chọn vùng  ·  Bấm vào cửa sổ  ·  Nhấp đúp: cả màn hình  ·  Esc: huỷ",
         "Throw this capture away": "Bỏ ảnh chụp này",
         "Copy (⌘C)": "Copy (⌘C)",
-        "Save and copy the capture (↩ or ⌘C); Esc only copies": "Lưu và copy ảnh chụp (↩ hoặc ⌘C); Esc chỉ copy",
+        "Save and copy the capture (↩ or ⌘C); Esc goes back to picking the area": "Lưu và copy ảnh chụp (↩ hoặc ⌘C); Esc để quay lại chọn vùng",
         "After a capture": "Sau khi chụp",
         "Draw on it": "Vẽ ngay",
         "Preview": "Xem nhanh",
@@ -245,5 +241,23 @@ enum Vietnamese {
         "Status": "Trạng thái",
         "Your shortcuts capture and record from any app.": "Phím tắt chụp và quay màn hình từ bất kỳ app nào.",
         "Off: the shortcuts let go, so other apps can use them; the menu still captures.": "Đang tắt: phím tắt được nhả ra để app khác dùng; vẫn chụp được từ menu.",
+        // Picture to Text
+        "Picture to Text": "Ảnh sang chữ",
+        "Read as": "Đọc theo",
+        "Automatic (any script)": "Tự động (mọi loại chữ)",
+        "Join lines": "Nối dòng",
+        "Lines run into one paragraph, for text broken across lines": "Ghép các dòng thành một đoạn, cho chữ bị ngắt dòng",
+        "Try another language, a larger area, or text with more contrast.": "Thử ngôn ngữ khác, vùng lớn hơn, hoặc chữ rõ nét hơn.",
+        "1 line": "1 dòng",
+        "%d lines": "%d dòng",
+        "Copy the text and close": "Copy chữ rồi đóng cửa sổ",
+        "Reading…": "Đang đọc…",
+        "%d characters": "%d ký tự",
+        "Text": "Văn bản",
+        "Edit the text before copying": "Có thể sửa chữ trước khi copy",
+        "Search languages": "Tìm ngôn ngữ",
+        "Vietnamese marks kept on Latin text": "Giữ dấu tiếng Việt cho chữ Latin",
+        "No languages match": "Không có ngôn ngữ phù hợp",
+        "Text copied": "Đã copy chữ",
     ]
 }

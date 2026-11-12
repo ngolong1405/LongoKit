@@ -54,6 +54,8 @@ public final class DisplayAppDelegate: NSObject, NSApplicationDelegate {
         closeShortcutMonitor = MainWindowRef.interceptCloseShortcut()
         if !Snapshot.isRequested && !SelfTest.isRequested && !SelfTest.isDiagnoseRequested {
             MainActor.assumeIsolated {
+                // Opened from the disk image: offer to move to Applications; installed: offer to delete the installer.
+                SelfInstall.check()
                 let model = Self.model
                 StatusItemMenu.install(doubleClick: { MainWindowRef.show() }) {
                     StatusItemMenu.standard(name: AppInfo.name, icon: DisplayModule.image("Logo.png"), isOn: model.isEnabled, toggle: { model.isEnabled.toggle() },

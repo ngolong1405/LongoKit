@@ -63,6 +63,8 @@ final class KitAppDelegate: NSObject, NSApplicationDelegate {
         if Snapshot.isRequested { MainActor.assumeIsolated { Snapshot.renderAndExit() } }
         if SelfTest.isRequested { MainActor.assumeIsolated { SelfTest.runAndExit() } }
         MainActor.assumeIsolated {
+            // Opened from the disk image: offer to move to Applications first; installed: offer to delete the installer.
+            SelfInstall.check()
             Self.suite.start()
             // Right-click on the menu bar icon: Settings, each module's switch, About, Quit. Double-click: the window.
             StatusItemMenu.install(doubleClick: { MainWindowRef.show() }) { StatusMenu.make(Self.suite) }

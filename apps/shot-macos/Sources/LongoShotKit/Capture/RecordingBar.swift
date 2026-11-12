@@ -47,6 +47,8 @@ final class RecordingBar {
     private static func panel(_ frame: CGRect) -> NSPanel {
         let panel = NSPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.identifier = Capturer.panelID
+        // Up and gone at once: no zoom from macOS.
+        panel.animationBehavior = .none
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
@@ -164,6 +166,8 @@ final class CountdownPanel {
                                                  width: size.width, height: size.height),
                              styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.identifier = Capturer.panelID
+        // Up and gone at once: no zoom from macOS.
+        panel.animationBehavior = .none
         // The record shortcut during the countdown cancels it; so does Esc.
         panel.onEscape = { [weak model] in model?.perform(.record) }
         panel.isOpaque = false

@@ -51,6 +51,8 @@ public final class MouseAppDelegate: NSObject, NSApplicationDelegate {
         closeShortcutMonitor = MainWindowRef.interceptCloseShortcut()
         if !Snapshot.isRequested && !SelfTest.isRequested {
             MainActor.assumeIsolated {
+                // Opened from the disk image: offer to move to Applications; installed: offer to delete the installer.
+                SelfInstall.check()
                 let model = Self.model
                 StatusItemMenu.install(doubleClick: { MainWindowRef.show() }) {
                     StatusItemMenu.standard(name: AppInfo.name, icon: MouseModule.image("Logo.png"), isOn: model.isRunning, toggle: model.toggleEnabled,
