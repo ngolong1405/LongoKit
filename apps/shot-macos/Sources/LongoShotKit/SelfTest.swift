@@ -275,8 +275,9 @@ enum SelfTest {
         settle(window)
         check("…reads it again as the language picked, and remembers it", remembered == "ko-KR" && window.text.contains("안녕하세요"))
         let choices = TextReading.choices.map(\.code)
-        check("…offers Automatic first, then every language Vision reads", choices.first == "auto" && choices.contains("vi-VT")
-              && choices.contains("zh-Hans") && choices.count > 20)
+        // Which languages Vision reads depends on the macOS version (older ones have fewer, without Vietnamese).
+        check("…offers Automatic first, then every language Vision reads", choices.first == "auto"
+              && Set(choices.dropFirst()) == Set(TextRecognizer.languages) && choices.count == TextRecognizer.languages.count + 1)
 
         check("Tells Latin text from other scripts", TextRecognizer.isLatin("Phở ở Hàng Bè — 12.5%") && !TextRecognizer.isLatin("Xin chào 안녕"))
 
