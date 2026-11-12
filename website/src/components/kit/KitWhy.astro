@@ -11,24 +11,24 @@ const t = pick(lang, {
     badge: "One app instead of four", title: "Same Tools, A Quarter of the Memory",
     lead: "Every SwiftUI app pays for its frameworks just to run. Four apps pay it four times; LongoKit pays it once.",
     apps: "Four separate apps", kit: "LongoKit",
-    memory: "Memory, all four running", measured: "Measured idle on an Apple Silicon Mac. Your numbers will differ a little.",
+    memory: "Memory, all four running", measured: "Measured idle on an Apple Silicon Mac, LongoKit's window open. Your numbers will differ a little.",
     rows: [
-      { label: "Menu bar icons", apps: "4", kit: "1, with a strip for every module" },
+      { label: "Menu bar icons", apps: "4", kit: "1: click for every module's controls, double-click for settings, right-click to switch modules" },
       { label: "Settings windows", apps: "4", kit: "1, modules down a sidebar" },
       { label: "Language, appearance, login", apps: "Set in each app", kit: "Set once" },
-      { label: "A tool you don't use", apps: "Not installed", kit: "Off: not even loaded" },
+      { label: "A tool you don't use", apps: "Not installed", kit: "Off: one switch, it stops at once and isn't loaded next time" },
     ],
   },
   vi: {
     badge: "Một app thay cho bốn", title: "Vẫn Đủ Công Cụ, RAM Chỉ Còn Một Phần Tư",
     lead: "App SwiftUI nào cũng phải trả phần RAM cho framework chỉ để chạy. Bốn app trả bốn lần; LongoKit trả một lần.",
     apps: "Bốn app riêng", kit: "LongoKit",
-    memory: "RAM khi chạy đủ bốn", measured: "Đo lúc rảnh trên máy Mac Apple Silicon. Máy bạn có thể chênh một chút.",
+    memory: "RAM khi chạy đủ bốn", measured: "Đo lúc rảnh trên máy Mac Apple Silicon, cửa sổ LongoKit đang mở. Máy bạn có thể chênh một chút.",
     rows: [
-      { label: "Icon trên thanh menu", apps: "4", kit: "1, có dải chọn từng module" },
+      { label: "Icon trên thanh menu", apps: "4", kit: "1: click để điều khiển từng module, nhấp đúp mở cài đặt, chuột phải để bật/tắt module" },
       { label: "Cửa sổ cài đặt", apps: "4", kit: "1, các module xếp ở thanh bên" },
       { label: "Ngôn ngữ, giao diện, mở cùng máy", apps: "Cài trong từng app", kit: "Cài một lần" },
-      { label: "Công cụ bạn không dùng", apps: "Không cài", kit: "Tắt: không được nạp" },
+      { label: "Công cụ bạn không dùng", apps: "Không cài", kit: "Tắt: một công tắc, dừng ngay và lần sau không được nạp" },
     ],
   },
 });
@@ -60,11 +60,11 @@ const t = pick(lang, {
         <div class="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] items-center gap-space-sm sm:grid-cols-[11rem_minmax(0,1fr)]">
           <span class="text-sm font-semibold">{t.kit}</span>
           <div class="flex h-9 items-center gap-space-sm">
-            <span class="flex h-full items-center justify-center rounded-lg bg-gradient-to-r from-primary-container to-secondary-container font-code text-[11px] font-semibold text-white" style="width: 24.1%">47</span>
+            <span class="flex h-full items-center justify-center rounded-lg bg-gradient-to-r from-primary-container to-secondary-container font-code text-[11px] font-semibold text-white" style="width: 26.7%">52</span>
             <span class="font-code text-xs text-on-surface-variant">MB</span>
           </div>
         </div>
-        <div class="flex justify-end font-code text-[11px] text-on-surface-variant"><span>≈ 195 MB → 47 MB</span></div>
+        <div class="flex justify-end font-code text-[11px] text-on-surface-variant"><span>≈ 195 MB → 52 MB</span></div>
       </div>
       <p class="mt-space-sm font-code text-[11px] text-on-surface-variant">{t.measured}</p>
     </div>
