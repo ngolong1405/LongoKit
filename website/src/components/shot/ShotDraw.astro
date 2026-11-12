@@ -11,13 +11,13 @@ const t = pick(lang, {
     badge: "Feature 02 · Draw", title: "Point at It Before You Paste It",
     lead: "Let go of the area and nothing moves: the screen stays just as it was frozen, the rest dimmed, and a drawing toolbar comes up under the capture. Add an arrow or a box, press ↩, and it's saved and copied.",
     points: [
-      "Arrow (A), pen (P), box (R) and highlighter (H), in 8 colors and 3 sizes. ⌘Z undoes, ⇧⌘Z redoes.",
+      "Arrow (A), pen (P), box (R), circle (O) and highlighter (H), in 8 colors and 3 sizes; hold ⇧ for a square or a round circle. ⌘Z undoes, ⇧⌘Z redoes.",
       "Not quite the right area? Before picking a tool, drag it anywhere on screen; resize it from its eight grips, the pointer showing which way. It's cut where it ends up, and it keeps up with the pointer as you drag.",
       "Arrows are one solid shape with a sharp head; boxes have square corners. Both stay readable on light and dark captures.",
       "↩ Done or ⌘C saves (if saving is on) and copies. Esc goes back to picking the area, copying nothing. ✕ throws the capture away.",
       "Later on, the preview's Draw button opens the same tools in a window. Turn off “Draw on it” to save right away.",
     ],
-    tools: [["arrow", "north_east", "Arrow", "A"], ["pen", "gesture", "Pen", "P"], ["box", "crop_square", "Box", "R"], ["highlighter", "ink_highlighter", "Highlighter", "H"]],
+    tools: [["arrow", "north_east", "Arrow", "A"], ["pen", "gesture", "Pen", "P"], ["box", "crop_square", "Box", "R"], ["circle", "circle", "Circle", "O"], ["highlighter", "ink_highlighter", "Highlighter", "H"]],
     sizes: ["Thin", "Medium", "Thick"], undo: "Undo (⌘Z)", redo: "Redo (⇧⌘Z)", discard: "Throw this capture away", done: "Done",
     page: { title: "Longo Café · Order", rows: ["Cà phê sữa đá", "Bánh mì pâté", "Delivery"], prices: ["35.000đ", "30.000đ", "15.000đ"], total: "Total 80.000đ", button: "Place order" },
     saved: "Saved and copied", copied: "Back to picking the area", gone: "Thrown away",
@@ -28,13 +28,13 @@ const t = pick(lang, {
     badge: "Chức năng 02 · Vẽ", title: "Chỉ Rõ Chỗ Cần Xem Trước Khi Dán",
     lead: "Thả chuột là mọi thứ đứng yên: màn hình giữ nguyên như lúc đóng băng, phần còn lại tối đi, và thanh công cụ vẽ hiện ngay dưới ảnh chụp. Thêm mũi tên hay khung, bấm ↩ là ảnh được lưu và copy.",
     points: [
-      "Mũi tên (A), bút vẽ (P), khung (R) và bút dạ quang (H), 8 màu và 3 cỡ nét. ⌘Z để hoàn tác, ⇧⌘Z để làm lại.",
+      "Mũi tên (A), bút vẽ (P), khung (R), hình tròn (O) và bút dạ quang (H), 8 màu và 3 cỡ nét; giữ ⇧ để được hình vuông hay hình tròn đều. ⌘Z để hoàn tác, ⇧⌘Z để làm lại.",
       "Chọn vùng chưa vừa? Trước khi chọn công cụ, kéo khung đi đâu trên màn hình cũng được; kéo 8 tay cầm để đổi cỡ, con trỏ chỉ đúng hướng kéo. Ảnh được cắt đúng khung cuối cùng, và khung bám theo chuột khi kéo.",
       "Mũi tên là một khối liền với đầu nhọn; khung có góc vuông. Nhìn rõ trên cả ảnh sáng lẫn ảnh tối.",
       "Bấm ↩ Xong hoặc ⌘C để lưu (nếu đang bật lưu) và copy. Esc quay lại bước chọn vùng, không copy gì. ✕ để bỏ ảnh chụp.",
       "Về sau, nút Vẽ trên ảnh xem nhanh mở cùng bộ công cụ trong một cửa sổ. Tắt “Vẽ ngay” để lưu luôn sau khi chụp.",
     ],
-    tools: [["arrow", "north_east", "Mũi tên", "A"], ["pen", "gesture", "Bút vẽ", "P"], ["box", "crop_square", "Khung", "R"], ["highlighter", "ink_highlighter", "Bút dạ quang", "H"]],
+    tools: [["arrow", "north_east", "Mũi tên", "A"], ["pen", "gesture", "Bút vẽ", "P"], ["box", "crop_square", "Khung", "R"], ["circle", "circle", "Hình tròn", "O"], ["highlighter", "ink_highlighter", "Bút dạ quang", "H"]],
     sizes: ["Mảnh", "Vừa", "Dày"], undo: "Hoàn tác (⌘Z)", redo: "Làm lại (⇧⌘Z)", discard: "Bỏ ảnh chụp này", done: "Xong",
     page: { title: "Longo Café · Đặt món", rows: ["Cà phê sữa đá", "Bánh mì pâté", "Phí giao hàng"], prices: ["35.000đ", "30.000đ", "15.000đ"], total: "Tổng 80.000đ", button: "Đặt món" },
     saved: "Đã lưu ảnh đã vẽ và copy", copied: "Quay lại chọn vùng", gone: "Đã bỏ ảnh chụp",
@@ -84,27 +84,27 @@ const colors = ["#ef4444", "#ff6b35", "#facc15", "#22c55e", "#3b82f6", "#8b5cf6"
         <div class="relative z-10 mx-auto -mt-[7%] flex w-fit max-w-full flex-wrap items-center justify-center gap-x-1 gap-y-1 rounded-2xl border border-white/15 bg-[#111216]/95 px-2 py-1.5 text-white shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
           <div class="flex gap-0.5 rounded-[10px] bg-white/[0.06] p-0.5">
             {t.tools.map(([id, icon, name, key]) => (
-              <button type="button" data-tool={id} title={`${name} (${key})`} aria-label={name} class="flex h-7 w-7 items-center justify-center rounded-[7px] text-white/60 transition-colors"><span class="material-symbols-outlined text-[17px]">{icon}</span></button>
+              <button type="button" data-tool={id} title={`${name} (${key})`} aria-label={name} class="flex h-7 w-6 items-center justify-center rounded-[7px] hover:bg-white/15 text-white/60 transition-colors"><span class="material-symbols-outlined text-[17px]">{icon}</span></button>
             ))}
           </div>
           <span class="hidden h-6 w-px bg-white/[0.12] xl:block"></span>
           <div class="flex gap-0.5">
             {colors.map((c) => (
-              <button type="button" data-color={c} aria-label={c} class="flex h-5 w-5 items-center justify-center rounded-full border-2 border-transparent"><span class="h-3 w-3 rounded-full border border-white/25" style={`background:${c}`}></span></button>
+              <button type="button" data-color={c} aria-label={c} class="flex h-5 w-5 items-center justify-center rounded-full border-2 border-transparent hover:border-white/50"><span class="h-3 w-3 rounded-full border border-white/25" style={`background:${c}`}></span></button>
             ))}
           </div>
           <span class="hidden h-6 w-px bg-white/[0.12] xl:block"></span>
           <div class="flex items-center gap-0.5">
             {t.sizes.map((name, i) => (
-              <button type="button" data-size={i} title={name} aria-label={name} class="flex h-7 w-7 items-center justify-center rounded-[7px]"><span class="rounded-full bg-white" style={`width:${4 + i * 4}px;height:${4 + i * 4}px`}></span></button>
+              <button type="button" data-size={i} title={name} aria-label={name} class="flex h-7 w-6 items-center justify-center rounded-[7px] hover:bg-white/15"><span class="rounded-full bg-white" style={`width:${4 + i * 4}px;height:${4 + i * 4}px`}></span></button>
             ))}
-            <button type="button" data-undo title={t.undo} aria-label={t.undo} class="flex h-7 w-7 items-center justify-center rounded-[7px] text-white/70 disabled:opacity-30"><span class="material-symbols-outlined text-[17px]">undo</span></button>
-            <button type="button" data-redo title={t.redo} aria-label={t.redo} class="flex h-7 w-7 items-center justify-center rounded-[7px] text-white/70 disabled:opacity-30"><span class="material-symbols-outlined text-[17px]">redo</span></button>
+            <button type="button" data-undo title={t.undo} aria-label={t.undo} class="flex h-7 w-6 items-center justify-center rounded-[7px] hover:bg-white/15 text-white/70 disabled:opacity-30"><span class="material-symbols-outlined text-[17px]">undo</span></button>
+            <button type="button" data-redo title={t.redo} aria-label={t.redo} class="flex h-7 w-6 items-center justify-center rounded-[7px] hover:bg-white/15 text-white/70 disabled:opacity-30"><span class="material-symbols-outlined text-[17px]">redo</span></button>
           </div>
           <span class="hidden h-6 w-px bg-white/[0.12] xl:block"></span>
           <div class="flex items-center gap-1">
-            <button type="button" data-discard title={t.discard} aria-label={t.discard} class="flex h-7 w-7 items-center justify-center rounded-[7px] text-white/70"><span class="material-symbols-outlined text-[17px]">close</span></button>
-            <button type="button" data-done class="flex items-center gap-1 rounded-lg bg-[#d04509] px-2 py-1 font-display text-xs font-semibold"><span class="material-symbols-outlined text-[15px]">check</span>{t.done}</button>
+            <button type="button" data-discard title={t.discard} aria-label={t.discard} class="flex h-7 w-6 items-center justify-center rounded-[7px] hover:bg-white/15 text-white/70"><span class="material-symbols-outlined text-[17px]">close</span></button>
+            <button type="button" data-done class="flex items-center gap-1 rounded-lg bg-[#d04509] px-2 py-1 hover:brightness-110 font-display text-xs font-semibold"><span class="material-symbols-outlined text-[15px]">check</span>{t.done}</button>
           </div>
         </div>
       </div>
@@ -157,6 +157,7 @@ const colors = ["#ef4444", "#ff6b35", "#facc15", "#22c55e", "#3b82f6", "#8b5cf6"
     const style = "filter:drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.4))";
     if (m.tool === "arrow") return el("polygon", { points: arrow(a, b, m.width), fill: m.color, style });
     if (m.tool === "box") return el("rect", { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.abs(b.x - a.x), height: Math.abs(b.y - a.y), fill: "none", stroke: m.color, "stroke-width": m.width, "stroke-linejoin": "miter", style });
+    if (m.tool === "circle") return el("ellipse", { cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, rx: Math.abs(b.x - a.x) / 2, ry: Math.abs(b.y - a.y) / 2, fill: "none", stroke: m.color, "stroke-width": m.width, style });
     if (m.tool === "pen") return el("path", { d: smooth(m.points), fill: "none", stroke: m.color, "stroke-width": m.width, "stroke-linecap": "round", "stroke-linejoin": "round", style });
     return el("path", { d: smooth(m.points), fill: "none", stroke: m.color, "stroke-opacity": 0.4, "stroke-width": m.width * 3.5, "stroke-linecap": "butt", "stroke-linejoin": "round", style: "mix-blend-mode:multiply" });
   };
@@ -220,7 +221,7 @@ const colors = ["#ef4444", "#ff6b35", "#facc15", "#22c55e", "#3b82f6", "#8b5cf6"
     if (cmd && k === "z") { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
     if (cmd && k === "c") { e.preventDefault(); finish("check_circle", "#22c55e", t.saved); return; }
     if (cmd || e.altKey) return;
-    const keyTool = { a: "arrow", p: "pen", r: "box", h: "highlighter" }[k];
+    const keyTool = { a: "arrow", p: "pen", r: "box", o: "circle", h: "highlighter" }[k];
     if (keyTool) { tool = keyTool; select(); }
     else if (e.key === "Enter") { e.preventDefault(); finish("check_circle", "#22c55e", t.saved); }
     else if (e.key === "Escape") finish("undo", "#4cd7f6", t.copied);

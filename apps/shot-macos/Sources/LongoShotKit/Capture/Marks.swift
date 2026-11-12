@@ -1,11 +1,11 @@
 import CoreGraphics
 import Foundation
 
-/// Something drawn on a capture: an arrow, a pen stroke, a box or a highlight. Points are in the image's pixels,
+/// Something drawn on a capture: an arrow, a pen stroke, a box, an ellipse or a highlight. Points are in the image's pixels,
 /// from its top-left, so the same marks draw on screen (scaled) and into the saved picture (as they are).
 struct Mark: Identifiable {
     enum Tool: String, CaseIterable, Identifiable {
-        case arrow, pen, rectangle, highlighter
+        case arrow, pen, rectangle, ellipse, highlighter
 
         var id: String { rawValue }
     }
@@ -47,6 +47,10 @@ struct Mark: Identifiable {
             context.setLineJoin(.miter)
             context.setLineWidth(width)
             context.stroke(rect)
+        case .ellipse:
+            let rect = CGRect(x: min(first.x, last.x), y: min(first.y, last.y), width: abs(last.x - first.x), height: abs(last.y - first.y))
+            context.setLineWidth(width)
+            context.strokeEllipse(in: rect)
         case .pen:
             context.setLineWidth(width)
             context.addPath(smoothPath())

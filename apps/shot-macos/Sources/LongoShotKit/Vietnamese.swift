@@ -192,6 +192,7 @@ enum Vietnamese {
         "Arrow": "Mũi tên",
         "Pen": "Bút vẽ",
         "Box": "Khung",
+        "Circle": "Hình tròn",
         "Highlighter": "Bút dạ quang",
         "Thin": "Mảnh",
         "Medium": "Vừa",

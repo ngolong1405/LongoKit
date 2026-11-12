@@ -99,6 +99,32 @@ enum SelfTest {
         let after = Capturer.cut(screenShot, scale: 2, to: partArea).flatMap { Mark.render(marked, on: $0, origin: CGPoint(x: 50, y: 30)) }
         check("Drawing on just the area matches drawing on the whole screen", samePixels(before, after))
 
+        // An ellipse: its outline drawn, its middle left as it was.
+        let blank = drawText([" "])
+        let ring = Mark(tool: .ellipse, points: [CGPoint(x: 100, y: 20), CGPoint(x: 300, y: 130)],
+                        color: CGColor(red: 1, green: 0, blue: 0, alpha: 1), width: 8)
+        let circled = Mark.render([ring], on: blank)
+        func redness(_ image: CGImage?, _ x: Int, _ y: Int) -> Int {
+            guard let image, let pixel = image.cropping(to: CGRect(x: x, y: y, width: 1, height: 1)),
+                  let context = CGContext(data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+                                          space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+            else { return -1 }
+            context.draw(pixel, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+            let bytes = context.data!.assumingMemoryBound(to: UInt8.self)
+            return Int(bytes[0]) - Int(bytes[1])
+        }
+        // Its top (200, 20), its left (100, 75) and its middle (200, 75).
+        check("An ellipse is drawn as its outline", redness(circled, 200, 20) > 100 && redness(circled, 100, 75) > 100
+              && redness(circled, 200, 75) < 20)
+        // ⇧ makes it round: the end point moves to the square's corner.
+        let round = AnnotationState(pixelsPerPoint: 1)
+        round.tool = .ellipse
+        round.begin(at: CGPoint(x: 0, y: 0))
+        round.extend(to: CGPoint(x: 100, y: 40))
+        let free = round.drawing?.points.last
+        round.end()
+        check("An ellipse follows the pointer (⇧ makes it round)", free == CGPoint(x: 100, y: 40) && round.marks.count == 1)
+
         // On the clipboard at once: the PNG is made when it's pasted.
         let board = NSPasteboard(name: NSPasteboard.Name("LongoShot.selftest"))
         Output.promise(screenShot, scale: 2, on: board)

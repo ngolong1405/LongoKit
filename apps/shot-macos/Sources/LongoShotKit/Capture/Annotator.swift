@@ -105,7 +105,14 @@ final class AnnotationState: ObservableObject {
         if mark.tool == .pen || mark.tool == .highlighter {
             mark.points.append(point)
         } else {
-            mark.points = [mark.points[0], point]
+            let start = mark.points[0]
+            var end = point
+            // ⇧: a box is square, an ellipse round.
+            if mark.tool == .rectangle || mark.tool == .ellipse, NSEvent.modifierFlags.contains(.shift) {
+                let side = max(abs(point.x - start.x), abs(point.y - start.y))
+                end = CGPoint(x: start.x + (point.x >= start.x ? side : -side), y: start.y + (point.y >= start.y ? side : -side))
+            }
+            mark.points = [start, end]
         }
         drawing = mark
     }
@@ -211,6 +218,7 @@ struct DrawToolbar: View {
                 tool(.arrow, symbol: "line.diagonal.arrow", title: L("Arrow"), key: "a")
                 tool(.pen, symbol: "scribble", title: L("Pen"), key: "p")
                 tool(.rectangle, symbol: "rectangle", title: L("Box"), key: "r")
+                tool(.ellipse, symbol: "circle", title: L("Circle"), key: "o")
                 tool(.highlighter, symbol: "highlighter", title: L("Highlighter"), key: "h")
             }
             .padding(3)
@@ -226,6 +234,7 @@ struct DrawToolbar: View {
                             .overlay(Circle().strokeBorder(Color.white.opacity(0.25)))
                             .padding(3)
                             .overlay(Circle().strokeBorder(selected ? Color.white : .clear, lineWidth: 2))
+                            .modifier(HoverRing(selected: selected))
                     }
                     .buttonStyle(.plain)
                 }
@@ -240,6 +249,7 @@ struct DrawToolbar: View {
                             .frame(width: 4 + CGFloat(index) * 4, height: 4 + CGFloat(index) * 4)
                             .frame(width: 30, height: 30)
                             .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(selected ? Color.white.opacity(0.14) : .clear))
+                            .modifier(Hover(selected: selected))
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -262,7 +272,9 @@ struct DrawToolbar: View {
                 // Right after a capture nothing is lost by accident: Esc copies (without saving); only ✕ throws it away.
                 Button { finish(.cancel) } label: {
                     Image(systemName: "xmark").font(.system(size: 12, weight: .bold)).foregroundStyle(Color.white.opacity(0.7))
-                        .frame(width: 30, height: 30).contentShape(Rectangle())
+                        .frame(width: 30, height: 30)
+                        .modifier(Hover(tint: Theme.danger))
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .help(L("Throw this capture away"))
@@ -312,6 +324,33 @@ struct DrawToolbar: View {
         }
     }
 
+    /// A button lighting up under the pointer (not the one picked, nor one that's off).
+    private struct Hover: ViewModifier {
+        var selected = false
+        var tint: Color = .white
+        @State private var hovering = false
+        @Environment(\.isEnabled) private var enabled
+
+        func body(content: Content) -> some View {
+            content
+                .background(RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(tint.opacity(hovering && enabled && !selected ? 0.16 : 0)))
+                .onHover { hovering = $0 }
+        }
+    }
+
+    /// A color swatch ringed under the pointer.
+    private struct HoverRing: ViewModifier {
+        let selected: Bool
+        @State private var hovering = false
+
+        func body(content: Content) -> some View {
+            content
+                .overlay(Circle().strokeBorder(Color.white.opacity(hovering && !selected ? 0.5 : 0), lineWidth: 2))
+                .onHover { hovering = $0 }
+        }
+    }
+
     private var divider: some View {
         Rectangle().fill(Color.white.opacity(0.12)).frame(width: 1, height: 24)
     }
@@ -325,6 +364,7 @@ struct DrawToolbar: View {
                 .foregroundStyle(selected ? Color.white : Color.white.opacity(0.6))
                 .frame(width: 34, height: 30)
                 .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(selected ? Theme.solar : .clear))
+                .modifier(Hover(selected: selected))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -338,6 +378,7 @@ struct DrawToolbar: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(Color.white.opacity(disabled ? 0.3 : 0.85))
                 .frame(width: 30, height: 30)
+                .modifier(Hover())
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
