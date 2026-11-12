@@ -15,12 +15,12 @@ export const keysVersion: string | null = "0.1.3";
 export const keysDownload = keysVersion ? `${repo}/releases/download/keys-macos/v${keysVersion}/LongoKeys-${keysVersion}.dmg` : null;
 export const keysReleaseNotes = keysVersion ? `${repo}/releases/tag/keys-macos/v${keysVersion}` : null;
 export const keysBuildFromSource = "git clone https://github.com/ngolong1405/LongoKit && cd LongoKit/apps/keys-macos && ./scripts/build-app.sh";
-export const shotVersion = "0.2.2";
+export const shotVersion = "0.2.3";
 // Same for Longo Shot: bump shotVersion and upload LongoShot-<version>.dmg to tag shot-macos/v<version>.
 export const shotDownload = `${repo}/releases/download/shot-macos/v${shotVersion}/LongoShot-${shotVersion}.dmg`;
 export const shotReleaseNotes = `${repo}/releases/tag/shot-macos/v${shotVersion}`;
 export const shotBuildFromSource = "git clone https://github.com/ngolong1405/LongoKit && cd LongoKit/apps/shot-macos && ./scripts/build-app.sh";
-export const kitVersion = "0.1.0";
+export const kitVersion = "0.1.1";
 // LongoKit, the four apps as modules of one: bump kitVersion and upload LongoKit-<version>.dmg to tag kit-macos/v<version>.
 export const kitDownload = `${repo}/releases/download/kit-macos/v${kitVersion}/LongoKit-${kitVersion}.dmg`;
 export const kitReleaseNotes = `${repo}/releases/tag/kit-macos/v${kitVersion}`;
