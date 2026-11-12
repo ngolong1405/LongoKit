@@ -9,35 +9,35 @@ const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
     badge: "Feature 02 · Draw", title: "Point at It Before You Paste It",
-    lead: "After an area, a window or the whole screen, the capture stays right where it was, the rest of the screen dimmed, with a drawing toolbar under it. Add an arrow or a box, press ↩, and it's saved and copied.",
+    lead: "Let go of the area and nothing moves: the screen stays just as it was frozen, the rest dimmed, and a drawing toolbar comes up under the capture. Add an arrow or a box, press ↩, and it's saved and copied.",
     points: [
       "Arrow (A), pen (P), box (R) and highlighter (H), in 8 colors and 3 sizes. ⌘Z undoes, ⇧⌘Z redoes.",
-      "Not quite the right area? Resize it from its eight grips, or move it by its edges, while you draw: it's cut where it ends up.",
+      "Not quite the right area? Before picking a tool, drag it anywhere on screen; resize it from its eight grips, the pointer showing which way. It's cut where it ends up, and it keeps up with the pointer as you drag.",
       "Arrows are one solid shape with a sharp head; boxes have square corners. Both stay readable on light and dark captures.",
-      "↩ Done or ⌘C saves (if saving is on) and copies. Esc only copies, without saving. ✕ throws the capture away.",
+      "↩ Done or ⌘C saves (if saving is on) and copies. Esc goes back to picking the area, copying nothing. ✕ throws the capture away.",
       "Later on, the preview's Draw button opens the same tools in a window. Turn off “Draw on it” to save right away.",
     ],
     tools: [["arrow", "north_east", "Arrow", "A"], ["pen", "gesture", "Pen", "P"], ["box", "crop_square", "Box", "R"], ["highlighter", "ink_highlighter", "Highlighter", "H"]],
     sizes: ["Thin", "Medium", "Thick"], undo: "Undo (⌘Z)", redo: "Redo (⇧⌘Z)", discard: "Throw this capture away", done: "Done",
     page: { title: "Longo Café · Order", rows: ["Cà phê sữa đá", "Bánh mì pâté", "Delivery"], prices: ["35.000đ", "30.000đ", "15.000đ"], total: "Total 80.000đ", button: "Place order" },
-    saved: "Saved and copied", copied: "Copied, not saved", gone: "Thrown away",
+    saved: "Saved and copied", copied: "Back to picking the area", gone: "Thrown away",
     hint: "Demo: drag on the capture to draw. Pick a tool, a color and a size; A P R H and ⌘Z work too.",
     hintPhone: "Demo: draw on the capture with your finger.",
   },
   vi: {
     badge: "Chức năng 02 · Vẽ", title: "Chỉ Rõ Chỗ Cần Xem Trước Khi Dán",
-    lead: "Chụp vùng, cửa sổ hay cả màn hình xong, ảnh chụp đứng yên ngay tại chỗ, phần còn lại của màn hình tối đi, kèm thanh công cụ vẽ ngay bên dưới. Thêm mũi tên hay khung, bấm ↩ là ảnh được lưu và copy.",
+    lead: "Thả chuột là mọi thứ đứng yên: màn hình giữ nguyên như lúc đóng băng, phần còn lại tối đi, và thanh công cụ vẽ hiện ngay dưới ảnh chụp. Thêm mũi tên hay khung, bấm ↩ là ảnh được lưu và copy.",
     points: [
       "Mũi tên (A), bút vẽ (P), khung (R) và bút dạ quang (H), 8 màu và 3 cỡ nét. ⌘Z để hoàn tác, ⇧⌘Z để làm lại.",
-      "Chọn vùng chưa vừa? Kéo 8 tay cầm để đổi cỡ, hoặc kéo viền để dời khung, ngay trong lúc vẽ: ảnh được cắt đúng khung cuối cùng.",
+      "Chọn vùng chưa vừa? Trước khi chọn công cụ, kéo khung đi đâu trên màn hình cũng được; kéo 8 tay cầm để đổi cỡ, con trỏ chỉ đúng hướng kéo. Ảnh được cắt đúng khung cuối cùng, và khung bám theo chuột khi kéo.",
       "Mũi tên là một khối liền với đầu nhọn; khung có góc vuông. Nhìn rõ trên cả ảnh sáng lẫn ảnh tối.",
-      "Bấm ↩ Xong hoặc ⌘C để lưu (nếu đang bật lưu) và copy. Esc chỉ copy, không lưu. ✕ để bỏ ảnh chụp.",
+      "Bấm ↩ Xong hoặc ⌘C để lưu (nếu đang bật lưu) và copy. Esc quay lại bước chọn vùng, không copy gì. ✕ để bỏ ảnh chụp.",
       "Về sau, nút Vẽ trên ảnh xem nhanh mở cùng bộ công cụ trong một cửa sổ. Tắt “Vẽ ngay” để lưu luôn sau khi chụp.",
     ],
     tools: [["arrow", "north_east", "Mũi tên", "A"], ["pen", "gesture", "Bút vẽ", "P"], ["box", "crop_square", "Khung", "R"], ["highlighter", "ink_highlighter", "Bút dạ quang", "H"]],
     sizes: ["Mảnh", "Vừa", "Dày"], undo: "Hoàn tác (⌘Z)", redo: "Làm lại (⇧⌘Z)", discard: "Bỏ ảnh chụp này", done: "Xong",
     page: { title: "Longo Café · Đặt món", rows: ["Cà phê sữa đá", "Bánh mì pâté", "Phí giao hàng"], prices: ["35.000đ", "30.000đ", "15.000đ"], total: "Tổng 80.000đ", button: "Đặt món" },
-    saved: "Đã lưu ảnh đã vẽ và copy", copied: "Đã copy, không lưu", gone: "Đã bỏ ảnh chụp",
+    saved: "Đã lưu ảnh đã vẽ và copy", copied: "Quay lại chọn vùng", gone: "Đã bỏ ảnh chụp",
     hint: "Minh hoạ: kéo trên ảnh chụp để vẽ. Chọn công cụ, màu và cỡ nét; phím A P R H và ⌘Z cũng dùng được.",
     hintPhone: "Minh hoạ: dùng ngón tay vẽ lên ảnh chụp.",
   },
@@ -223,7 +223,7 @@ const colors = ["#ef4444", "#ff6b35", "#facc15", "#22c55e", "#3b82f6", "#8b5cf6"
     const keyTool = { a: "arrow", p: "pen", r: "box", h: "highlighter" }[k];
     if (keyTool) { tool = keyTool; select(); }
     else if (e.key === "Enter") { e.preventDefault(); finish("check_circle", "#22c55e", t.saved); }
-    else if (e.key === "Escape") finish("content_paste", "#4cd7f6", t.copied);
+    else if (e.key === "Escape") finish("undo", "#4cd7f6", t.copied);
   });
   select();
   render();

@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import SuiteHero from "../components/suite/SuiteHero.astro";
 import SuitePillars from "../components/suite/SuitePillars.astro";
+import KitWhy from "../components/kit/KitWhy.astro";
 import NativeStacks from "../components/suite/NativeStacks.astro";
 import SuiteDownloads from "../components/suite/SuiteDownloads.astro";
 import Footer from "../components/Footer.astro";
@@ -15,12 +16,12 @@ interface Props {
 const { lang } = Astro.props;
 const meta = pick(lang, {
   en: {
-    title: "LongoKit · Mouse, Keys, Display & Screenshot tools",
-    description: "LongoKit: small native tools for your mouse, keyboard, displays and screenshots on macOS, with Windows planned. LongoMouse, LongoKeys, LongoDisplay and LongoShot are out for macOS, each on its own or all four in one app, LongoKit.",
+    title: "LongoKit · Mouse, Displays, Keys & Screenshots in one Mac app",
+    description: "LongoKit: one native macOS menu bar app for your mouse, displays, keyboard and screenshots, with Windows planned. Turn on the modules you need, at about a quarter of the memory; each is also its own app: LongoMouse, LongoDisplay, LongoKeys and LongoShot.",
   },
   vi: {
-    title: "LongoKit · Công cụ cho chuột, bàn phím, màn hình & chụp màn hình",
-    description: "LongoKit: bộ công cụ native nhỏ gọn cho chuột, bàn phím, màn hình và chụp màn hình trên macOS, Windows đang lên kế hoạch. LongoMouse, LongoKeys, LongoDisplay và LongoShot đã có cho macOS, dùng riêng từng app hoặc cả bốn trong một app, LongoKit.",
+    title: "LongoKit · Chuột, màn hình, bàn phím & chụp màn hình trong một app Mac",
+    description: "LongoKit: một app native trên thanh menu macOS cho chuột, màn hình, bàn phím và chụp màn hình, Windows đang lên kế hoạch. Bật module bạn cần, chỉ tốn khoảng một phần tư RAM; mỗi module cũng là một app riêng: LongoMouse, LongoDisplay, LongoKeys và LongoShot.",
   },
 });
 ---
@@ -30,6 +31,7 @@ const meta = pick(lang, {
   <main class="relative w-full overflow-x-hidden pt-20">
     <SuiteHero lang={lang} />
     <SuitePillars lang={lang} />
+    <KitWhy lang={lang} />
     <NativeStacks lang={lang} />
     <SuiteDownloads lang={lang} />
   </main>

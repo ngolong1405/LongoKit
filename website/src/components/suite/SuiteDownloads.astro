@@ -10,30 +10,32 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    title: "Download What You Need.",
-    lead: "Each tool is a small, standalone app.",
+    title: "Download LongoKit.",
+    lead: "All four tools in one app. Rather have just one? Each is also a small app of its own.",
+    single: "Or Just One, as Its Own App",
     soon: "Coming soon",
     mouse: "Smooth scrolling and gestures for any mouse.",
     keys: "Remap keys and build shortcut layers.",
     display: "Brightness and volume for every display, with Sync to your MacBook.",
     shot: "Screenshots, screen recordings and on-screen text from your shortcuts.",
-    suiteTitle: "All Four in One App: LongoKit",
+    suiteTitle: "LongoKit: All Four in One App",
     suiteBody: "LongoKit runs all four as modules of one menu bar app: one window, one menu bar icon, and about a quarter of the memory. Turn on just the ones you need.",
     getKit: "Download LongoKit for macOS", aboutKit: "What's in LongoKit", follow: "Follow on GitHub",
-    noTelemetry: "No telemetry", notarize: "Beta isn't notarized yet: if blocked, System Settings › Privacy & Security › Open Anyway",
+    noTelemetry: "No telemetry", notarize: "Opened from the disk image, it offers to move itself to Applications, then to delete the installer. Beta isn't notarized yet: if blocked, System Settings › Privacy & Security › Open Anyway",
   },
   vi: {
-    title: "Tải Về Thứ Bạn Cần.",
-    lead: "Mỗi công cụ là một app nhỏ, độc lập.",
+    title: "Tải LongoKit.",
+    lead: "Cả bốn công cụ trong một app. Chỉ cần một? Mỗi công cụ cũng là một app nhỏ riêng.",
+    single: "Hoặc Chỉ Một, Thành App Riêng",
     soon: "Sắp có",
     mouse: "Cuộn mượt và cử chỉ cho mọi con chuột.",
     keys: "Đổi phím và tạo lớp phím tắt.",
     display: "Độ sáng và âm lượng cho mọi màn hình, đồng bộ theo MacBook.",
     shot: "Chụp màn hình, quay màn hình và copy chữ trên màn hình bằng phím tắt.",
-    suiteTitle: "Cả Bốn Trong Một App: LongoKit",
+    suiteTitle: "LongoKit: Cả Bốn Trong Một App",
     suiteBody: "LongoKit chạy cả bốn như các module của một app trên thanh menu: một cửa sổ, một icon trên thanh menu, và chỉ tốn khoảng một phần tư RAM. Chỉ bật module bạn cần.",
     getKit: "Tải LongoKit cho macOS", aboutKit: "LongoKit có gì", follow: "Theo dõi trên GitHub",
-    noTelemetry: "Không telemetry", notarize: "Bản beta chưa notarize: nếu bị chặn, Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Vẫn mở",
+    noTelemetry: "Không telemetry", notarize: "Mở ngay trong file cài đặt, app tự đề nghị chuyển vào Applications rồi xoá file cài đặt. Bản beta chưa notarize: nếu bị chặn, Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Vẫn mở",
   },
 });
 
@@ -73,7 +75,38 @@ const kits = [
     <p class="mt-4 max-w-2xl text-body-lg text-on-surface-variant">{t.lead}</p>
   </div>
 
-  <div class="mb-12 grid grid-cols-1 gap-gutter-lg md:grid-cols-2 xl:grid-cols-4">
+  <div class="relative flex flex-col items-center overflow-hidden rounded-3xl bg-surface-container-lowest p-8 text-center shadow-2xl md:p-12">
+    <div class="pointer-events-none absolute inset-0 bg-gradient-to-tr from-primary-container/20 via-secondary-container/25 to-tertiary/15 blur-3xl"></div>
+    <div class="relative z-10 flex max-w-4xl flex-col items-center">
+      <ProductIcon product="kit" class="mb-6 h-20 w-20" />
+      <h3 class="font-display text-headline-xl tracking-tight md:text-[2.75rem]">{t.suiteTitle}</h3>
+      <p class="mt-3 max-w-xl text-body-md text-on-surface-variant">{t.suiteBody}</p>
+      <div class="mt-8 flex w-full flex-col flex-wrap items-center justify-center gap-space-md sm:flex-row">
+        <a href={kitDownload} class="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-6 py-4 font-display text-sm font-semibold text-white shadow-[0_12px_32px_rgba(255,107,53,0.4)] transition-all hover:opacity-95 sm:w-auto">
+          <span class="material-symbols-outlined text-[20px]">download</span>
+          {t.getKit}
+          <span class="rounded bg-white/20 px-1.5 font-code text-[11px]">v{kitVersion}</span>
+        </a>
+        <a href={localize(lang, "/kit")} class="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-tertiary-container to-secondary-container px-6 py-4 font-display text-sm font-semibold text-white shadow-[0_12px_32px_rgba(0,168,196,0.35)] transition-all hover:opacity-95 sm:w-auto">
+          <span class="material-symbols-outlined text-[20px]">apps</span>
+          {t.aboutKit}
+        </a>
+        <a href={repo} class="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-surface-container-high px-6 py-4 font-display text-sm font-medium transition-all hover:bg-surface-bright sm:w-auto">
+          <span class="material-symbols-outlined text-[20px] text-tertiary">notifications</span>
+          {t.follow}
+        </a>
+      </div>
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-4 font-code text-xs text-on-surface-variant">
+        <a class="hover:text-primary" href={licenseURL}>Source-available</a>
+        <span>•</span>
+        <span>{t.noTelemetry}</span>
+        <span>•</span>
+        <span>{t.notarize}</span>
+      </div>
+    </div>
+  </div>
+  <h3 class="mt-16 mb-8 text-center font-display text-headline-md tracking-tight">{t.single}</h3>
+  <div class="grid grid-cols-1 gap-gutter-lg md:grid-cols-2 xl:grid-cols-4">
     {
       kits.map((k) => (
         <div class="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-surface-container-low p-8 shadow-xl transition-all hover:bg-surface-container">
@@ -110,34 +143,4 @@ const kits = [
     }
   </div>
 
-  <div class="relative flex flex-col items-center overflow-hidden rounded-3xl bg-surface-container-lowest p-8 text-center shadow-2xl md:p-12">
-    <div class="pointer-events-none absolute inset-0 bg-gradient-to-tr from-primary-container/20 via-secondary-container/25 to-tertiary/15 blur-3xl"></div>
-    <div class="relative z-10 flex max-w-4xl flex-col items-center">
-      <ProductIcon product="kit" class="mb-6 h-20 w-20" />
-      <h3 class="font-display text-headline-xl tracking-tight md:text-[2.75rem]">{t.suiteTitle}</h3>
-      <p class="mt-3 max-w-xl text-body-md text-on-surface-variant">{t.suiteBody}</p>
-      <div class="mt-8 flex w-full flex-col flex-wrap items-center justify-center gap-space-md sm:flex-row">
-        <a href={kitDownload} class="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-6 py-4 font-display text-sm font-semibold text-white shadow-[0_12px_32px_rgba(255,107,53,0.4)] transition-all hover:opacity-95 sm:w-auto">
-          <span class="material-symbols-outlined text-[20px]">download</span>
-          {t.getKit}
-          <span class="rounded bg-white/20 px-1.5 font-code text-[11px]">v{kitVersion}</span>
-        </a>
-        <a href={localize(lang, "/kit")} class="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-tertiary-container to-secondary-container px-6 py-4 font-display text-sm font-semibold text-white shadow-[0_12px_32px_rgba(0,168,196,0.35)] transition-all hover:opacity-95 sm:w-auto">
-          <span class="material-symbols-outlined text-[20px]">apps</span>
-          {t.aboutKit}
-        </a>
-        <a href={repo} class="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-surface-container-high px-6 py-4 font-display text-sm font-medium transition-all hover:bg-surface-bright sm:w-auto">
-          <span class="material-symbols-outlined text-[20px] text-tertiary">notifications</span>
-          {t.follow}
-        </a>
-      </div>
-      <div class="mt-6 flex flex-wrap items-center justify-center gap-4 font-code text-xs text-on-surface-variant">
-        <a class="hover:text-primary" href={licenseURL}>Source-available</a>
-        <span>•</span>
-        <span>{t.noTelemetry}</span>
-        <span>•</span>
-        <span>{t.notarize}</span>
-      </div>
-    </div>
-  </div>
 </section>

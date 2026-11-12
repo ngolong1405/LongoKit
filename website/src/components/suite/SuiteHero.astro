@@ -1,5 +1,5 @@
 ---
-import { mouseVersion, mouseDownload, buildFromSource, keysVersion, shotVersion } from "../../data/site";
+import { kitVersion, kitDownload, kitBuildFromSource, keysVersion, shotVersion } from "../../data/site";
 import { pick, type Lang } from "../../i18n";
 
 interface Props {
@@ -9,10 +9,10 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    title: "One Suite to Master All Your Hardware.",
-    platforms: "macOS 13+ · Windows coming soon",
-    lead: ["Smooth scrolling and custom gestures for any mouse on", "— and soon on"],
-    download: "Download LongoMouse", select: "Select Individual Kit", windowsSoon: "Windows 11: coming soon",
+    title: "One App, Four Tools for Your Mac.",
+    platforms: "macOS 14+ · Windows coming soon",
+    lead: ["LongoKit puts four small native tools in one menu bar app: smooth scrolling, display brightness, key remapping and screenshots. Turn on the ones you need, at about a quarter of the memory, on", "— and soon on"],
+    download: "Download LongoKit", select: "Or just one, as its own app", windowsSoon: "Windows 11: coming soon",
     copy: "copy", copied: "copied!",
     running: "Running", curve: "Each wheel notch: ease-out", smooth: "Smooth scrolling",
     smoothNote: "The mouse wheel glides like a trackpad", demo: "(demo)",
@@ -36,13 +36,13 @@ const t = pick(lang, {
     shotArea: "Capture Area", shotRecord: "Record Screen", shotText: "Copy Text", shotHint: "Drag across the screen", shotHintText: "Drag over the note's text",
     shotSaved: "Saved & copied to the clipboard", shotCopied: "Text copied", shotNone: "No text there",
     shotLines: ["Meeting notes", "Ship v0.2 on Friday", "Phở at 12:30, Hàng Bè"],
-    shotNote: "✨ Text is recognized on your Mac, English and Vietnamese with diacritics. Nothing leaves the Mac.",
+    shotNote: "✨ Text is recognized on your Mac, in any script, Vietnamese marks kept. Nothing leaves the Mac.",
   },
   vi: {
-    title: "Một Bộ Công Cụ Làm Chủ Mọi Thiết Bị.",
-    platforms: "macOS 13+ · Windows sắp có",
-    lead: ["Cuộn mượt và cử chỉ tuỳ chỉnh cho mọi con chuột trên", "— sắp có trên"],
-    download: "Tải LongoMouse", select: "Chọn từng tiện ích", windowsSoon: "Windows 11: sắp có",
+    title: "Một App, Bốn Công Cụ Cho Mac.",
+    platforms: "macOS 14+ · Windows sắp có",
+    lead: ["LongoKit gom bốn công cụ native nhỏ gọn vào một app trên thanh menu: cuộn mượt, độ sáng màn hình, đổi phím và chụp màn hình. Bật đúng thứ bạn cần, chỉ tốn khoảng một phần tư RAM, trên", "— sắp có trên"],
+    download: "Tải LongoKit", select: "Hoặc chỉ một, thành app riêng", windowsSoon: "Windows 11: sắp có",
     copy: "copy", copied: "đã copy!",
     running: "Đang chạy", curve: "Mỗi nấc bánh xe: chậm dần (ease-out)", smooth: "Cuộn mượt",
     smoothNote: "Bánh xe chuột trượt mượt như trackpad", demo: "(minh hoạ)",
@@ -66,7 +66,7 @@ const t = pick(lang, {
     shotArea: "Chụp vùng", shotRecord: "Quay màn hình", shotText: "Copy chữ", shotHint: "Kéo trên màn hình", shotHintText: "Kéo qua chữ trong ghi chú",
     shotSaved: "Đã lưu & copy vào clipboard", shotCopied: "Đã copy chữ", shotNone: "Không có chữ ở đó",
     shotLines: ["Ghi chú cuộc họp", "Phát hành v0.2 thứ Sáu", "Phở lúc 12:30, Hàng Bè"],
-    shotNote: "✨ Chữ được nhận dạng ngay trên máy Mac, cả tiếng Anh lẫn tiếng Việt có dấu. Không gì rời khỏi máy.",
+    shotNote: "✨ Chữ được nhận dạng ngay trên máy Mac, chữ gì cũng đọc được, giữ đủ dấu tiếng Việt. Không gì rời khỏi máy.",
   },
 });
 
@@ -84,12 +84,12 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
   <section class="relative mx-auto flex max-w-[1440px] flex-col items-center px-margin-mobile pt-10 pb-20 text-center md:px-margin-desktop">
     <div class="mb-6 inline-flex items-center gap-space-xs rounded-full bg-surface-container-high/80 px-3.5 py-1.5 shadow-sm backdrop-blur-xl">
       <span class="h-2 w-2 animate-pulse rounded-full bg-primary-container shadow-[0_0_10px_#ff6b35]"></span>
-      <span class="font-code text-label-badge tracking-wider uppercase">⚡ LongoMouse v{mouseVersion} beta</span>
+      <span class="font-code text-label-badge tracking-wider uppercase">⚡ LongoKit v{kitVersion} beta</span>
       <span class="text-xs text-outline">•</span>
       <span class="font-code text-label-code text-tertiary">{t.platforms}</span>
     </div>
 
-    <h1 class="max-w-5xl font-display text-display-hero tracking-tight md:text-[5rem] md:leading-[5.5rem]">
+    <h1 class="max-w-5xl text-balance font-display text-display-hero tracking-tight md:text-[5rem] md:leading-[5.5rem]">
       {t.title}
     </h1>
     <p class="mt-6 max-w-3xl text-body-xl leading-relaxed text-on-surface-variant">
@@ -102,11 +102,11 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
     <div class="mt-10 flex w-full max-w-2xl flex-col items-center gap-4">
       <div class="flex w-full flex-col items-center justify-center gap-space-md sm:flex-row">
         <a
-          href={mouseDownload}
+          href={kitDownload}
           class="group flex w-full items-center justify-between gap-space-md rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-6 py-4 font-semibold shadow-[0_12px_32px_-6px_rgba(255,107,53,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-4px_rgba(255,107,53,0.5)] sm:w-auto"
         >
           <span class="flex items-center gap-space-sm">
-            <span class="material-symbols-outlined text-[28px] text-white">mouse</span>
+            <span class="material-symbols-outlined text-[28px] text-white">apps</span>
             <span class="flex flex-col text-left">
               <span class="font-display text-sm leading-tight text-white">{t.download}</span>
               <span class="font-code text-[11px] text-white/80">macOS Universal · .dmg</span>
@@ -129,7 +129,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
         </a>
       </div>
       <div class="flex flex-wrap items-center justify-center gap-3 font-code text-xs text-on-surface-variant">
-        <span class="flex items-center gap-1 text-primary"><span class="material-symbols-outlined text-xs">check_circle</span> macOS 13+ (Apple Silicon &amp; Intel)</span>
+        <span class="flex items-center gap-1 text-primary"><span class="material-symbols-outlined text-xs">check_circle</span> macOS 14+ (Apple Silicon &amp; Intel)</span>
         <span class="text-outline">•</span>
         <span class="flex items-center gap-1 text-secondary"><span class="material-symbols-outlined text-xs">schedule</span> {t.windowsSoon}</span>
       </div>
@@ -138,7 +138,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
     <div class="mt-6 flex max-w-full items-center gap-2 rounded-full bg-surface-container-lowest/80 px-4 py-2 font-code text-label-code text-on-surface-variant shadow-inner">
       <span class="text-primary-container">$</span>
       <span class="truncate">git clone … &amp;&amp; ./scripts/build-app.sh</span>
-      <button type="button" class="copy ml-2 rounded bg-surface-container-high px-2 py-0.5 text-[11px] text-tertiary transition-colors hover:bg-surface-bright" data-copy={buildFromSource} data-copied={t.copied}>{t.copy}</button>
+      <button type="button" class="copy ml-2 rounded bg-surface-container-high px-2 py-0.5 text-[11px] text-tertiary transition-colors hover:bg-surface-bright" data-copy={kitBuildFromSource} data-copied={t.copied}>{t.copy}</button>
     </div>
 
     <!-- Device center preview -->
@@ -164,7 +164,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
             <span class="material-symbols-outlined text-[15px]">screenshot_region</span><span class="hidden sm:inline">LongoShot</span>
           </button>
         </div>
-        <span class="hidden rounded-full bg-tertiary/10 px-2.5 py-0.5 font-code text-[11px] text-tertiary sm:inline">macOS 13+</span>
+        <span class="hidden rounded-full bg-tertiary/10 px-2.5 py-0.5 font-code text-[11px] text-tertiary sm:inline">macOS 14+</span>
       </div>
 
       <!-- LongoMouse -->

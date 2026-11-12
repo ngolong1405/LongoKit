@@ -10,8 +10,8 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    title: "Four Tools, One Kit",
-    lead: "Small, native apps instead of heavy vendor software.",
+    title: "Four Modules, One App",
+    lead: "Small, native tools instead of heavy vendor software. In LongoKit each is a module you turn on or off; each is also its own app.",
     available: "Available", soon: "Coming soon",
     mouse: {
       body: "Smooth scrolling and gestures for every button, set up per mouse.",
@@ -27,12 +27,12 @@ const t = pick(lang, {
     },
     shot: {
       body: "Screenshots, screen recordings and on-screen text, each from its own shortcut, saved and on your clipboard.",
-      points: ["Area, window or full screen, then draw on it", "Screen recording as MP4", "Copy text with on-device OCR"],
+      points: ["Area, window or full screen, then draw on it", "Screen recording as MP4", "Copy text in any script, on-device OCR"],
     },
   },
   vi: {
-    title: "Bốn Công Cụ, Một Bộ",
-    lead: "Các app nhỏ, native, thay cho phần mềm nặng của từng hãng.",
+    title: "Bốn Module, Một App",
+    lead: "Công cụ nhỏ, native, thay cho phần mềm nặng của từng hãng. Trong LongoKit mỗi công cụ là một module bật tắt được; mỗi cái cũng là một app riêng.",
     available: "Có thể tải", soon: "Sắp có",
     mouse: {
       body: "Cuộn mượt và cử chỉ cho từng nút, cài đặt riêng cho từng con chuột.",
@@ -48,7 +48,7 @@ const t = pick(lang, {
     },
     shot: {
       body: "Chụp màn hình, quay màn hình và copy chữ trên màn hình, mỗi việc một phím tắt, lưu sẵn và có trong clipboard.",
-      points: ["Chụp vùng, cửa sổ hoặc toàn màn hình, rồi vẽ lên", "Quay màn hình thành MP4", "Copy chữ bằng OCR ngay trên máy"],
+      points: ["Chụp vùng, cửa sổ hoặc toàn màn hình, rồi vẽ lên", "Quay màn hình thành MP4", "Copy chữ mọi ngôn ngữ, OCR ngay trên máy"],
     },
   },
 });

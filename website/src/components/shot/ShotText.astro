@@ -9,25 +9,27 @@ const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
     badge: "Feature 04 · Copy Text", title: "Text You Can't Select? Copy It Anyway",
-    lead: "Press ⌥⇧3 and drag over text anywhere on screen: in a screenshot, a video, a scanned PDF or a slide someone is sharing. A moment later it's on your clipboard, ready to paste.",
+    lead: "Press ⌥⇧3 and drag over text anywhere on screen: in a screenshot, a video, a scanned PDF or a slide someone is sharing. It opens in a Picture to Text window, the picture beside the text, to check it, fix a word and copy it (⌘↩).",
     points: [
       "Read on your Mac with Apple's Vision framework: nothing is uploaded, and it works offline.",
-      "English and Vietnamese, with every diacritic in place: ă â đ ê ô ơ ư and all five tones.",
-      "Each line on screen comes out as its own line, as plain text that pastes anywhere.",
+      "Any script, found on its own: Latin, Chinese, Japanese, Korean, Thai, Cyrillic and more, with Vietnamese marks kept: ă â đ ê ô ơ ư and all five tones.",
+      "Read as one language when you know it (searchable, about thirty); Shot remembers your choice.",
+      "Each line on screen comes out as its own line; Join lines makes text broken across lines one paragraph. Esc closes without copying.",
     ],
-    source: "On screen", clipboard: "Clipboard", toast: "Copied 3 lines of text",
+    source: "On screen", clipboard: "Picture to Text · ⌘↩ Copy", toast: "3 lines",
     lines: ["Phở Hàng Bè · Mở cửa 6:00–22:00", "Phở bò tái lăn: 65.000đ", "Đặt bàn: 024 3826 1234"],
     note: "Works on any pixels on screen. Very small or low-contrast text may need a larger area.",
   },
   vi: {
     badge: "Chức năng 04 · Copy chữ", title: "Chữ Không Bôi Đen Được? Vẫn Copy Được",
-    lead: "Bấm ⌥⇧3 rồi kéo qua chữ ở bất kỳ đâu trên màn hình: trong ảnh chụp, video, file PDF scan hay slide người khác đang chia sẻ. Chỉ một thoáng là chữ đã nằm trong clipboard, sẵn sàng để dán.",
+    lead: "Bấm ⌥⇧3 rồi kéo qua chữ ở bất kỳ đâu trên màn hình: trong ảnh chụp, video, file PDF scan hay slide người khác đang chia sẻ. Chữ hiện trong cửa sổ Ảnh sang chữ, ảnh nằm cạnh chữ, để xem lại, sửa một chữ rồi copy (⌘↩).",
     points: [
       "Đọc ngay trên máy Mac bằng Vision của Apple: không gửi gì lên mạng, không có mạng vẫn chạy.",
-      "Tiếng Anh và tiếng Việt, giữ đủ dấu: ă â đ ê ô ơ ư và cả năm thanh điệu.",
-      "Mỗi dòng trên màn hình thành một dòng chữ thường, dán vào đâu cũng được.",
+      "Chữ gì cũng tự nhận ra: Latin, Trung, Nhật, Hàn, Thái, Kirin và nhiều nữa, giữ đủ dấu tiếng Việt: ă â đ ê ô ơ ư và cả năm thanh điệu.",
+      "Biết chữ thuộc ngôn ngữ nào thì chọn để đọc theo (tìm được, khoảng ba mươi ngôn ngữ); Shot nhớ lựa chọn của bạn.",
+      "Mỗi dòng trên màn hình thành một dòng; Nối dòng ghép chữ bị ngắt dòng thành một đoạn. Esc đóng mà không copy.",
     ],
-    source: "Trên màn hình", clipboard: "Clipboard", toast: "Đã copy 3 dòng chữ",
+    source: "Trên màn hình", clipboard: "Ảnh sang chữ · ⌘↩ Copy", toast: "3 dòng",
     lines: ["Phở Hàng Bè · Mở cửa 6:00–22:00", "Phở bò tái lăn: 65.000đ", "Đặt bàn: 024 3826 1234"],
     note: "Chạy với mọi điểm ảnh trên màn hình. Chữ quá nhỏ hoặc mờ thì nên chọn vùng rộng hơn.",
   },
@@ -66,7 +68,7 @@ const t = pick(lang, {
             <span class="h-1.5 w-1.5 rounded-full bg-tertiary shadow-[0_0_6px_var(--c-tertiary)]"></span>
             <span class="font-code text-[10px] uppercase tracking-wider text-on-surface-variant">{t.clipboard}</span>
           </span>
-          <span class="flex items-center gap-1 rounded bg-tertiary/15 px-2 py-0.5 font-code text-[11px] text-tertiary"><span class="material-symbols-outlined text-[14px]">check</span>{t.toast}</span>
+          <span class="flex items-center gap-1 rounded bg-tertiary/15 px-2 py-0.5 font-code text-[11px] text-tertiary"><span class="material-symbols-outlined text-[14px]">notes</span>{t.toast}</span>
         </div>
         <div class="flex flex-col gap-0.5 rounded-xl bg-surface-container px-3 py-2 font-code text-xs text-on-surface">
           {t.lines.map((line) => <span class="break-words">{line}</span>)}
