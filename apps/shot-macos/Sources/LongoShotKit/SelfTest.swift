@@ -472,7 +472,12 @@ enum SelfTest {
             let still = canvas.makeImage()!
             let opening = Date()
             InPlaceEditor.open(screen: still, scale: 2, on: screen, area: area) { _ in }
-            print(String(format: "      the editor opened in %.0f ms", Date().timeIntervalSince(opening) * 1000))
+            // Until it's on screen: the window server has taken it.
+            CATransaction.flush()
+            let openTime = Date().timeIntervalSince(opening)
+            // With several screens, drawing their dimming used to wait 100–300 ms on the window server.
+            let quick = openTime < 0.25
+            print(String(format: "\(quick ? "PASS" : "FAIL")  the editor is up and on screen quickly (%.0f ms)", openTime * 1000))
             let adjustable = InPlaceEditor.area == area && abs((InPlaceEditor.frame ?? .zero).width - size.width) < 1
             print("\(adjustable ? "PASS" : "FAIL")  an area to draw on keeps the whole screen, so it can still be resized")
             let arrows = Grip.allCases.allSatisfy { $0.cursor != .crosshair && $0.cursor != .openHand }
@@ -547,7 +552,7 @@ enum SelfTest {
             let placed = id.flatMap { Capturer.place(of: $0) }
             let inside = placed.map { CGRect(origin: .zero, size: $0.0.frame.size).contains($0.1) } ?? (id == nil)
             print("\(inside ? "PASS" : "FAIL")  a window is found where it is on its screen\(placed.map { " (\(Int($0.1.width))×\(Int($0.1.height)))" } ?? "")")
-            exit(ok && fills && tracks && quiet && adjustable && arrows && shown && onTop && follows && back && inside && !InPlaceEditor.isOpen ? 0 : 1)
+            exit(ok && fills && tracks && quick && quiet && adjustable && arrows && shown && onTop && follows && back && inside && !InPlaceEditor.isOpen ? 0 : 1)
         }
     }
 

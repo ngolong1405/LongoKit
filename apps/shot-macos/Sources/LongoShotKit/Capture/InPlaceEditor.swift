@@ -248,13 +248,29 @@ final class InPlaceEditor {
         override var canBecomeKey: Bool { true }
     }
 
-    /// The dimmed screen around the capture; clicks on it do nothing.
+    /// The dimmed screen around the capture; clicks on it do nothing. Plain layers the GPU fills: drawing it meant a
+    /// new screen-sized backing for each screen on every capture, and waiting up to a few hundred milliseconds on the
+    /// window server for those with more than one display.
     private final class Backdrop: NSView {
-        let clear: CGRect?
-
         init(frame: CGRect, clear: CGRect?) {
-            self.clear = clear
             super.init(frame: frame)
+            wantsLayer = true
+            let bounds = CGRect(origin: .zero, size: frame.size)
+            let parts: [CGRect]
+            if let clear = clear?.intersection(bounds), !clear.isNull {
+                parts = [CGRect(x: 0, y: 0, width: bounds.width, height: clear.minY),
+                         CGRect(x: 0, y: clear.maxY, width: bounds.width, height: bounds.height - clear.maxY),
+                         CGRect(x: 0, y: clear.minY, width: clear.minX, height: clear.height),
+                         CGRect(x: clear.maxX, y: clear.minY, width: bounds.width - clear.maxX, height: clear.height)]
+            } else {
+                parts = [bounds]
+            }
+            for part in parts {
+                let dim = CALayer()
+                dim.frame = part
+                dim.backgroundColor = NSColor.black.withAlphaComponent(InPlaceEditor.dim).cgColor
+                layer?.addSublayer(dim)
+            }
         }
 
         required init?(coder: NSCoder) { fatalError() }
@@ -262,16 +278,6 @@ final class InPlaceEditor {
         override var isFlipped: Bool { true }
         override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
         override func mouseDown(with event: NSEvent) {}
-
-        override func draw(_ dirtyRect: NSRect) {
-            let path = NSBezierPath(rect: bounds)
-            if let clear {
-                path.append(NSBezierPath(rect: clear))
-                path.windingRule = .evenOdd
-            }
-            NSColor.black.withAlphaComponent(InPlaceEditor.dim).setFill()
-            path.fill()
-        }
     }
 }
 
