@@ -20,7 +20,7 @@ export const shotVersion = "0.2.5";
 export const shotDownload = `${repo}/releases/download/shot-macos/v${shotVersion}/LongoShot-${shotVersion}.dmg`;
 export const shotReleaseNotes = `${repo}/releases/tag/shot-macos/v${shotVersion}`;
 export const shotBuildFromSource = "git clone https://github.com/ngolong1405/LongoKit && cd LongoKit/apps/shot-macos && ./scripts/build-app.sh";
-export const kitVersion = "0.1.3";
+export const kitVersion = "0.1.4";
 // LongoKit, the four apps as modules of one: bump kitVersion and upload LongoKit-<version>.dmg to tag kit-macos/v<version>.
 export const kitDownload = `${repo}/releases/download/kit-macos/v${kitVersion}/LongoKit-${kitVersion}.dmg`;
 export const kitReleaseNotes = `${repo}/releases/tag/kit-macos/v${kitVersion}`;
