@@ -36,6 +36,8 @@ const apps = [
   { id: "keys", name: "LongoKeys" },
   { id: "shot", name: "LongoShot" },
 ] as const;
+import WindowsDownload from "../WindowsDownload.astro";
+import { kitWindows } from "../../data/site";
 ---
 
 <section id="downloads" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
@@ -47,7 +49,7 @@ const apps = [
     <p class="mt-space-xs text-body-lg text-on-surface-variant">{t.lead}</p>
   </div>
 
-  <div class="mx-auto grid max-w-4xl grid-cols-1 gap-gutter md:grid-cols-2">
+  <div class="mx-auto grid max-w-6xl grid-cols-1 gap-gutter md:grid-cols-3">
     <div class="flex min-w-0 flex-col gap-space-md rounded-2xl border-2 border-primary/40 bg-surface-container-low p-space-lg shadow-xl">
       <div class="flex items-center gap-space-sm">
         <ProductIcon product="kit" class="h-12 w-12" />
@@ -67,6 +69,7 @@ const apps = [
         <button type="button" class="kit-copy shrink-0 rounded bg-surface-container-high px-2 py-0.5 text-tertiary hover:bg-surface-bright" data-copy={kitBuildFromSource} data-copied={t.copied}>{t.copy}</button>
       </div>
     </div>
+    <WindowsDownload lang={lang} links={kitWindows} />
     <div class="flex flex-col gap-space-md rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
       <div>
         <h3 class="text-headline-sm">{t.separateTitle}</h3>

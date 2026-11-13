@@ -10,9 +10,9 @@ const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
     title: "One App, Four Tools for Your Mac.",
-    platforms: "macOS 14+ · Windows coming soon",
-    lead: ["LongoKit puts four small native tools in one menu bar app: smooth scrolling, display brightness, key remapping and screenshots. Turn on the ones you need, at about a quarter of the memory, on", "— and soon on"],
-    download: "Download LongoKit", select: "Or just one, as its own app", windowsSoon: "Windows 11: coming soon",
+    platforms: "macOS 14+ · Windows 10 & 11 (beta)",
+    lead: ["LongoKit puts four small native tools in one menu bar app: smooth scrolling, display brightness, key remapping and screenshots. Turn on the ones you need, at about a quarter of the memory, on", "— and now on"],
+    download: "Download LongoKit", select: "Or just one, as its own app", windowsSoon: "Windows 10 & 11: beta",
     copy: "copy", copied: "copied!",
     running: "Running", curve: "Each wheel notch: ease-out", smooth: "Smooth scrolling",
     smoothNote: "The mouse wheel glides like a trackpad", demo: "(demo)",
@@ -40,9 +40,9 @@ const t = pick(lang, {
   },
   vi: {
     title: "Một App, Bốn Công Cụ Cho Mac.",
-    platforms: "macOS 14+ · Windows sắp có",
-    lead: ["LongoKit gom bốn công cụ native nhỏ gọn vào một app trên thanh menu: cuộn mượt, độ sáng màn hình, đổi phím và chụp màn hình. Bật đúng thứ bạn cần, chỉ tốn khoảng một phần tư RAM, trên", "— sắp có trên"],
-    download: "Tải LongoKit", select: "Hoặc chỉ một, thành app riêng", windowsSoon: "Windows 11: sắp có",
+    platforms: "macOS 14+ · Windows 10 & 11 (beta)",
+    lead: ["LongoKit gom bốn công cụ native nhỏ gọn vào một app trên thanh menu: cuộn mượt, độ sáng màn hình, đổi phím và chụp màn hình. Bật đúng thứ bạn cần, chỉ tốn khoảng một phần tư RAM, trên", "— và giờ có trên"],
+    download: "Tải LongoKit", select: "Hoặc chỉ một, thành app riêng", windowsSoon: "Windows 10 & 11: bản beta",
     copy: "copy", copied: "đã copy!",
     running: "Đang chạy", curve: "Mỗi nấc bánh xe: chậm dần (ease-out)", smooth: "Cuộn mượt",
     smoothNote: "Bánh xe chuột trượt mượt như trackpad", demo: "(minh hoạ)",
@@ -96,7 +96,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
       {t.lead[0]}{" "}
       <span class="bg-gradient-to-r from-primary via-primary-container to-secondary bg-clip-text font-semibold text-transparent">macOS</span>{" "}
       {t.lead[1]}{" "}
-      <span class="bg-gradient-to-r from-secondary to-tertiary bg-clip-text font-semibold text-transparent">Windows 11</span>.
+      <span class="bg-gradient-to-r from-secondary to-tertiary bg-clip-text font-semibold text-transparent">Windows</span> (beta).
     </p>
 
     <div class="mt-10 flex w-full max-w-2xl flex-col items-center gap-4">
@@ -131,7 +131,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
       <div class="flex flex-wrap items-center justify-center gap-3 font-code text-xs text-on-surface-variant">
         <span class="flex items-center gap-1 text-primary"><span class="material-symbols-outlined text-xs">check_circle</span> macOS 14+ (Apple Silicon &amp; Intel)</span>
         <span class="text-outline">•</span>
-        <span class="flex items-center gap-1 text-secondary"><span class="material-symbols-outlined text-xs">schedule</span> {t.windowsSoon}</span>
+        <span class="flex items-center gap-1 text-secondary"><span class="material-symbols-outlined text-xs">window</span> {t.windowsSoon}</span>
       </div>
     </div>
 

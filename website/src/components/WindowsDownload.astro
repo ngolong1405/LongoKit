@@ -1,0 +1,45 @@
+---
+import { windowsVersion } from "../data/site";
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+  links: { x64: string; arm64: string; notes: string };
+  /** The card's accent: Tailwind text color class. */
+  tint?: string;
+}
+
+const { lang, links, tint = "text-tertiary" } = Astro.props;
+const t = pick(lang, {
+  en: {
+    title: "Windows", body: "Windows 10 (2004) & 11 · one .exe, nothing to install",
+    x64: "Intel / AMD (x64)", arm64: "Arm64 (Snapdragon)", notes: "Release notes",
+    beta: "Early beta: the first Windows version, not yet tried on many PCs. Windows may warn before it opens: More info › Run anyway.",
+  },
+  vi: {
+    title: "Windows", body: "Windows 10 (2004) & 11 · một file .exe, không cần cài",
+    x64: "Intel / AMD (x64)", arm64: "Arm64 (Snapdragon)", notes: "Ghi chú phát hành",
+    beta: "Bản beta sớm: bản Windows đầu tiên, chưa được thử trên nhiều máy. Windows có thể cảnh báo trước khi mở: Thông tin thêm › Vẫn chạy.",
+  },
+});
+---
+
+<div class="flex flex-col gap-space-md rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+  <div class="flex items-center gap-space-sm">
+    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-tertiary/15"><span class:list={["material-symbols-outlined text-[28px]", tint]}>desktop_windows</span></div>
+    <div>
+      <h3 class="text-headline-sm">{t.title} <span class="rounded bg-secondary-container/30 px-1.5 align-middle font-code text-[11px] text-secondary">beta · v{windowsVersion}</span></h3>
+      <span class:list={["font-code text-xs", tint]}>{t.body}</span>
+    </div>
+  </div>
+  <a href={links.x64} class="flex items-center justify-between gap-2 rounded-xl bg-surface-container-high px-4 py-3 text-sm font-semibold transition-colors hover:bg-surface-bright">
+    <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">download</span>{t.x64}</span>
+    <span class="font-code text-[11px] text-on-surface-variant">.exe</span>
+  </a>
+  <a href={links.arm64} class="flex items-center justify-between gap-2 rounded-xl bg-surface-container-high px-4 py-3 text-sm font-semibold transition-colors hover:bg-surface-bright">
+    <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">download</span>{t.arm64}</span>
+    <span class="font-code text-[11px] text-on-surface-variant">.exe</span>
+  </a>
+  <a href={links.notes} class="text-center font-code text-xs text-on-surface-variant hover:text-tertiary">{t.notes} · v{windowsVersion}</a>
+  <p class="font-code text-[11px] text-on-surface-variant">{t.beta}</p>
+</div>

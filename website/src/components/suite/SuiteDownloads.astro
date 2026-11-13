@@ -1,5 +1,6 @@
 ---
 import ProductIcon from "../ProductIcon.astro";
+import { mouseWindows, displayWindows, shotWindows } from "../../data/site";
 import { repo, mouseDownload, mouseVersion, displayDownload, displayVersion, licenseURL, keysVersion, keysDownload, shotDownload, shotVersion, kitDownload, kitVersion } from "../../data/site";
 import { localize, pick, type Lang } from "../../i18n";
 
@@ -13,7 +14,7 @@ const t = pick(lang, {
     title: "Download LongoKit.",
     lead: "All four tools in one app. Rather have just one? Each is also a small app of its own.",
     single: "Or Just One, as Its Own App",
-    soon: "Coming soon",
+    soon: "Coming soon", notPlanned: "Not planned",
     mouse: "Smooth scrolling and gestures for any mouse.",
     keys: "Remap keys and build shortcut layers.",
     display: "Brightness and volume for every display, with Sync to your MacBook.",
@@ -27,7 +28,7 @@ const t = pick(lang, {
     title: "Tải LongoKit.",
     lead: "Cả bốn công cụ trong một app. Chỉ cần một? Mỗi công cụ cũng là một app nhỏ riêng.",
     single: "Hoặc Chỉ Một, Thành App Riêng",
-    soon: "Sắp có",
+    soon: "Sắp có", notPlanned: "Chưa có kế hoạch",
     mouse: "Cuộn mượt và cử chỉ cho mọi con chuột.",
     keys: "Đổi phím và tạo lớp phím tắt.",
     display: "Độ sáng và âm lượng cho mọi màn hình, đồng bộ theo MacBook.",
@@ -41,24 +42,24 @@ const t = pick(lang, {
 
 const kits = [
   {
-    name: "LongoMouse", product: "mouse" as const, version: `v${mouseVersion}`, available: true, download: mouseDownload,
+    name: "LongoMouse", product: "mouse" as const, version: `v${mouseVersion}`, available: true, download: mouseDownload, windows: mouseWindows.x64,
     tint: "text-primary", badgeBg: "bg-primary-container/15",
     mac: "bg-primary-container/20 text-primary hover:bg-primary-container hover:text-on-primary-container",
     tagline: "Smooth Scrolling & Gesture Engine", body: t.mouse,
   },
   {
-    name: "LongoKeys", product: "keys" as const, version: keysVersion ? `v${keysVersion}` : t.soon,
+    name: "LongoKeys", product: "keys" as const, version: keysVersion ? `v${keysVersion}` : t.soon, windows: null as string | null,
     available: !!keysDownload, download: keysDownload ?? "",
     tint: "text-secondary", badgeBg: "bg-secondary-container/25",
     mac: "bg-secondary-container/25 text-secondary hover:bg-secondary-container/40", tagline: "Layer & Hyperkey Engine", body: t.keys,
   },
   {
-    name: "LongoDisplay", product: "display" as const, version: `v${displayVersion}`, available: true, download: displayDownload,
+    name: "LongoDisplay", product: "display" as const, version: `v${displayVersion}`, available: true, download: displayDownload, windows: displayWindows.x64,
     tint: "text-tertiary", badgeBg: "bg-tertiary/20",
     mac: "bg-tertiary/15 text-tertiary hover:bg-tertiary/30", tagline: "DDC/CI Hardware Luminance", body: t.display,
   },
   {
-    name: "LongoShot", product: "shot" as const, version: `v${shotVersion}`, available: true, download: shotDownload,
+    name: "LongoShot", product: "shot" as const, version: `v${shotVersion}`, available: true, download: shotDownload, windows: shotWindows.x64,
     tint: "text-primary-container", badgeBg: "bg-primary-container/15",
     mac: "bg-primary-container/15 text-primary-container hover:bg-primary-container/30", tagline: "Capture, Record & On-Device OCR", body: t.shot,
   },
@@ -133,10 +134,17 @@ const kits = [
                 <span class="font-code text-[11px] text-on-surface-variant">{t.soon}</span>
               </span>
             )}
-            <span class="flex w-full cursor-not-allowed items-center justify-between rounded-xl bg-surface-container-high px-4 py-3 text-xs font-medium opacity-70">
-              <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-tertiary">window</span>Windows 11</span>
-              <span class="font-code text-[11px] text-on-surface-variant">{t.soon}</span>
-            </span>
+            {k.windows ? (
+              <a href={k.windows} class="flex w-full items-center justify-between rounded-xl bg-surface-container-high px-4 py-3 text-xs font-semibold transition-colors hover:bg-surface-bright">
+                <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-tertiary">window</span>Windows 10 &amp; 11 (.exe)</span>
+                <span class="font-code text-[11px] text-on-surface-variant">beta</span>
+              </a>
+            ) : (
+              <span class="flex w-full cursor-not-allowed items-center justify-between rounded-xl bg-surface-container-high px-4 py-3 text-xs font-medium opacity-70">
+                <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-tertiary">window</span>Windows</span>
+                <span class="font-code text-[11px] text-on-surface-variant">{t.notPlanned}</span>
+              </span>
+            )}
           </div>
         </div>
       ))

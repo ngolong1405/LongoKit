@@ -46,6 +46,8 @@ const roadmap = [
   { icon: "desktop_windows", tint: "text-tertiary", name: t.roadmap[1][0], body: t.roadmap[1][1], href: localize(lang, "/display") },
   { icon: "screenshot_region", tint: "text-primary-container", name: t.roadmap[2][0], body: t.roadmap[2][1], href: localize(lang, "/shot") },
 ];
+import WindowsDownload from "./WindowsDownload.astro";
+import { mouseWindows } from "../data/site";
 ---
 
 <section id="downloads" class="relative w-full px-margin-mobile py-space-3xl md:px-margin-desktop">
@@ -92,30 +94,7 @@ const roadmap = [
         </div>
       </div>
 
-      <div class="flex flex-col justify-between gap-space-lg rounded-2xl bg-surface-container p-space-xl opacity-80 shadow-xl">
-        <div class="flex flex-col gap-space-md">
-          <div class="flex items-center justify-between">
-            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-container-lowest shadow-md">
-              <span class="material-symbols-outlined text-[36px] text-secondary">desktop_windows</span>
-            </div>
-            <span class="rounded-full bg-secondary-container/30 px-2.5 py-1 font-code text-label-badge text-secondary">Windows 10 &amp; 11</span>
-          </div>
-          <div class="flex flex-col gap-1">
-            <h3 class="text-headline-md">{t.winTitle}</h3>
-            <p class="text-body-sm text-on-surface-variant">{t.winBody}</p>
-          </div>
-          <div class="flex flex-col gap-1.5 rounded-xl bg-surface-container-lowest p-3 font-code text-[11px] text-on-surface-variant">
-            <div class="flex justify-between"><span>{t.status}</span><span class="text-secondary">{t.soon}</span></div>
-          </div>
-        </div>
-        <a
-          href={repo}
-          class="flex items-center justify-center gap-space-xs rounded-xl bg-surface-container-high px-6 py-3.5 text-center font-semibold shadow-md transition-all hover:bg-surface-bright"
-        >
-          <span class="material-symbols-outlined text-[20px] text-secondary">notifications</span>
-          {t.follow}
-        </a>
-      </div>
+      <WindowsDownload lang={lang} links={mouseWindows} tint="text-secondary" />
     </div>
 
     <div id="roadmap" class="mx-auto grid w-full max-w-4xl grid-cols-1 gap-gutter md:grid-cols-3">
