@@ -37,7 +37,12 @@ public static class ScrollMath
         carry += move;
         var whole = (int)Math.Truncate(carry);
         carry -= whole;
-        if (remaining == 0 && Math.Abs(carry) < 1) carry = 0;
+        if (remaining == 0)
+        {
+            // The last frame sends what's left, so a notch scrolls all of its 120 units.
+            whole += (int)Math.Round(carry);
+            carry = 0;
+        }
         return whole;
     }
 }
