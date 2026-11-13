@@ -113,6 +113,7 @@ internal sealed class SettingsWindow : Window
             Content = Ui.Row(10, new Image { Source = Icons.App(shell.Info.IconName, 32), Width = 24, Height = 24 },
                              Ui.Text(shell.Info.Name, 13, FontWeights.SemiBold)),
             HorizontalContentAlignment = HorizontalAlignment.Left,
+            Padding = new Thickness(10, 0, 10, 0),
             Height = 44, Width = 196,
         };
         home.SetResourceReference(StyleProperty, "LongoIconButton");
@@ -128,6 +129,7 @@ internal sealed class SettingsWindow : Window
                 Content = Ui.Row(10, new Image { Source = Icons.App(each.IconName, 32), Width = 24, Height = 24 },
                                  Ui.Column(1, Ui.Text(each.Title, 13, FontWeights.Medium), MenuWindow.PowerLabel(each.IsOn))),
                 HorizontalContentAlignment = HorizontalAlignment.Left,
+                Padding = new Thickness(10, 0, 10, 0),
                 Height = 48, Width = 196,
             };
             row.SetResourceReference(StyleProperty, "LongoIconButton");
