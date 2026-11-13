@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\LongoKitUI\LongoKitUI.csproj" />
     <ProjectReference Include="..\..\..\apps\display-windows\LongoDisplayKit\LongoDisplayKit.csproj" />
+    <ProjectReference Include="..\..\..\apps\mouse-windows\LongoMouseKit\LongoMouseKit.csproj" />
   </ItemGroup>
 
 </Project>

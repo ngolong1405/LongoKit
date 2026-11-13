@@ -17,6 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\mouse-windows\LongoMouseKit\LongoMouseKit.csproj" />
     <ProjectReference Include="..\..\display-windows\LongoDisplayKit\LongoDisplayKit.csproj" />
   </ItemGroup>
 

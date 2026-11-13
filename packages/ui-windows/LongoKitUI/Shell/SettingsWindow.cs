@@ -41,6 +41,15 @@ internal sealed class SettingsWindow : Window
             TitleBar.Match(this);
             if (IsVisible) Refresh();
         };
+        foreach (var each in shell.Modules)
+        {
+            each.OpenTab += index =>
+            {
+                module = each;
+                tab = index;
+                Refresh();
+            };
+        }
         IsVisibleChanged += (_, _) =>
         {
             if (IsVisible) Refresh();

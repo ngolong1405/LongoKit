@@ -10,7 +10,7 @@ on:
 
 env:
   # Each app: its project, and the .exe it makes.
-  APPS: "display-windows/LongoDisplay/LongoDisplay kit-windows/LongoKit/LongoKit"
+  APPS: "mouse-windows/LongoMouse/LongoMouse display-windows/LongoDisplay/LongoDisplay kit-windows/LongoKit/LongoKit"
 
 jobs:
   build:

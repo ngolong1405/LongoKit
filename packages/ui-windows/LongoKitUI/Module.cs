@@ -26,6 +26,8 @@ public interface ILongoModule
     void SetOn(bool on);
     /// <summary>Something shown in the menu or the window changed.</summary>
     event Action? Changed;
+    /// <summary>The module wants its window on one of its tabs (a mouse's Customize goes to its buttons).</summary>
+    event Action<int>? OpenTab;
 
     /// <summary>Starts its work (once, at launch or when LongoKit turns it on).</summary>
     void Start();

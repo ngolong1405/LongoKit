@@ -21,6 +21,7 @@ public sealed class DisplayModule : ILongoModule, ISampleData
     public string IconName => "display.ico";
     public bool IsOn => model.IsEnabled;
     public event Action? Changed;
+    public event Action<int>? OpenTab { add { } remove { } }
 
     public DisplayModule() => Localizer.Register(Strings.Vietnamese);
 

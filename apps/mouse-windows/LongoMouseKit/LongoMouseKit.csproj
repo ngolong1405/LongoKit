@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>LongoMouse</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\packages\ui-windows\LongoKitUI\LongoKitUI.csproj" />
+    <InternalsVisibleTo Include="LongoKit.Windows.Tests" />
+    <!-- WPF projects leave System.IO out (its Path would clash with WPF's shape); nothing here draws shapes. -->
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+</Project>
