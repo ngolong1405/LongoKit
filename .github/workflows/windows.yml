@@ -1,0 +1,49 @@
+name: windows
+
+on:
+  push:
+    branches: [main, windows]
+    paths: ["apps/*-windows/**", "packages/ui-windows/**", ".github/workflows/windows.yml"]
+  pull_request:
+    paths: ["apps/*-windows/**", "packages/ui-windows/**", ".github/workflows/windows.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Tests
+        run: dotnet test packages/ui-windows/Tests/LongoKit.Windows.Tests.csproj -c Release --logger "console;verbosity=normal"
+      - name: Build
+        run: dotnet build apps/display-windows/LongoDisplay/LongoDisplay.csproj -c Release
+      - name: Snapshots (every page, dark and light, English and Vietnamese)
+        shell: pwsh
+        run: |
+          $out = Join-Path $PWD "snapshots/display"
+          $app = Start-Process -FilePath "apps/display-windows/LongoDisplay/bin/Release/net8.0-windows/LongoDisplay.exe" `
+                              -ArgumentList "--snapshot", "`"$out`"" -Wait -PassThru
+          if (Test-Path "$out/error.txt") { Get-Content "$out/error.txt" }
+          Get-ChildItem $out | Format-Table Name, Length
+          if ($app.ExitCode -ne 0) { exit $app.ExitCode }
+      - name: Publish (one self-contained .exe each for x64 and Arm64)
+        shell: pwsh
+        run: |
+          foreach ($runtime in "win-x64", "win-arm64") {
+            dotnet publish apps/display-windows/LongoDisplay/LongoDisplay.csproj -c Release -r $runtime --self-contained `
+              -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
+              -o "out/$runtime"
+          }
+          Get-ChildItem out -Recurse -Filter *.exe | Format-Table FullName, Length
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snapshots
+          path: snapshots
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LongoDisplay-windows
+          path: out/*/LongoDisplay.exe

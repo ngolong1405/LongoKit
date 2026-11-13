@@ -3,9 +3,9 @@ name: kit-macos
 on:
   push:
     branches: [main]
-    paths: ["apps/**", "packages/ui-macos/**", ".github/workflows/kit-macos.yml"]
+    paths: ["apps/**", "!apps/*-windows/**", "packages/ui-macos/**", ".github/workflows/kit-macos.yml"]
   pull_request:
-    paths: ["apps/**", "packages/ui-macos/**", ".github/workflows/kit-macos.yml"]
+    paths: ["apps/**", "!apps/*-windows/**", "packages/ui-macos/**", ".github/workflows/kit-macos.yml"]
 
 jobs:
   build:
