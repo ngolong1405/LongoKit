@@ -19,8 +19,12 @@ public static class Localizer
     {
         AppLanguage.Vietnamese => true,
         AppLanguage.English => false,
-        _ => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "vi",
+        // Windows' display language (0x2A: Vietnamese), not .NET's culture: the apps run without ICU's language data.
+        _ => (GetUserDefaultUILanguage() & 0x3FF) == 0x2A,
     };
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    private static extern ushort GetUserDefaultUILanguage();
 
     /// <summary>Adds a table of Vietnamese strings (English → Vietnamese); a later table wins on the same key.</summary>
     public static void Register(IReadOnlyDictionary<string, string> vietnamese)

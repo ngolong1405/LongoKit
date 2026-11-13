@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Windows 10 2004 or later: Windows' own text recognition (Windows.Media.Ocr). -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>LongoShot</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\packages\ui-windows\LongoKitUI\LongoKitUI.csproj" />
+    <InternalsVisibleTo Include="LongoKit.Windows.Tests" />
+    <!-- WPF projects leave System.IO out (its Path would clash with WPF's shape); here Path means the file one. -->
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+</Project>

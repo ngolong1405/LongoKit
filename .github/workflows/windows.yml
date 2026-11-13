@@ -10,7 +10,7 @@ on:
 
 env:
   # Each app: its project, and the .exe it makes.
-  APPS: "mouse-windows/LongoMouse/LongoMouse display-windows/LongoDisplay/LongoDisplay kit-windows/LongoKit/LongoKit"
+  APPS: "shot-windows/LongoShot/LongoShot mouse-windows/LongoMouse/LongoMouse display-windows/LongoDisplay/LongoDisplay kit-windows/LongoKit/LongoKit"
 
 jobs:
   build:
@@ -33,7 +33,7 @@ jobs:
             $name = Split-Path $app -Leaf
             $folder = Split-Path (Split-Path $app -Parent) -Parent
             $out = Join-Path $PWD "snapshots/$name"
-            $run = Start-Process -FilePath "apps/$folder/$name/bin/Release/net8.0-windows/$name.exe" `
+            $run = Start-Process -FilePath "$((Get-ChildItem "apps/$folder/$name/bin/Release" -Recurse -Filter "$name.exe" | Select-Object -First 1).FullName)" `
                                  -ArgumentList "--snapshot", "`"$out`"" -Wait -PassThru
             if (Test-Path "$out/error.txt") { Get-Content "$out/error.txt" }
             Get-ChildItem $out | Format-Table Name, Length

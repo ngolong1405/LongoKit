@@ -1,0 +1,15 @@
+<Project>
+  <!-- Light and quick, for every Windows app (imported by each .exe's project). -->
+  <PropertyGroup>
+    <!-- Compiled ahead: opening the app and the first capture don't wait on the JIT. -->
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <TieredPGO>true</TieredPGO>
+    <!-- No ICU language data: tens of MB less. The apps translate with their own tables. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- A small background app: no garbage collection running alongside, less memory kept. -->
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <ServerGarbageCollector>false</ServerGarbageCollector>
+    <AutoreleasePoolSupport>false</AutoreleasePoolSupport>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+  </PropertyGroup>
+</Project>

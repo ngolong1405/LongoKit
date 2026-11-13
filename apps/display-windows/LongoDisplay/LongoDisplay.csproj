@@ -16,6 +16,8 @@
     <ApplicationManifest>..\..\..\packages\ui-windows\app.manifest</ApplicationManifest>
   </PropertyGroup>
 
+  <Import Project="..\..\..\packages\ui-windows\App.props" />
+
   <ItemGroup>
     <ProjectReference Include="..\LongoDisplayKit\LongoDisplayKit.csproj" />
   </ItemGroup>

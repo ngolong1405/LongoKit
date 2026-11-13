@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <UseWPF>true</UseWPF>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <Nullable>enable</Nullable>
@@ -16,8 +17,11 @@
     <ApplicationManifest>..\..\..\packages\ui-windows\app.manifest</ApplicationManifest>
   </PropertyGroup>
 
+  <Import Project="..\..\..\packages\ui-windows\App.props" />
+
   <ItemGroup>
     <ProjectReference Include="..\..\mouse-windows\LongoMouseKit\LongoMouseKit.csproj" />
+    <ProjectReference Include="..\..\shot-windows\LongoShotKit\LongoShotKit.csproj" />
     <ProjectReference Include="..\..\display-windows\LongoDisplayKit\LongoDisplayKit.csproj" />
   </ItemGroup>
 

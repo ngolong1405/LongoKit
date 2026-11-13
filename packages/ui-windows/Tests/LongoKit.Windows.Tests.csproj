@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <UseWPF>true</UseWPF>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <Nullable>enable</Nullable>
@@ -22,6 +23,7 @@
     <ProjectReference Include="..\LongoKitUI\LongoKitUI.csproj" />
     <ProjectReference Include="..\..\..\apps\display-windows\LongoDisplayKit\LongoDisplayKit.csproj" />
     <ProjectReference Include="..\..\..\apps\mouse-windows\LongoMouseKit\LongoMouseKit.csproj" />
+    <ProjectReference Include="..\..\..\apps\shot-windows\LongoShotKit\LongoShotKit.csproj" />
   </ItemGroup>
 
 </Project>
