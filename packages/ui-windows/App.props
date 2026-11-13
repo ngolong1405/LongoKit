@@ -4,12 +4,14 @@
     <!-- Compiled ahead: opening the app and the first capture don't wait on the JIT. -->
     <PublishReadyToRun>true</PublishReadyToRun>
     <TieredPGO>true</TieredPGO>
-    <!-- No ICU language data: tens of MB less. The apps translate with their own tables. -->
-    <InvariantGlobalization>true</InvariantGlobalization>
     <!-- A small background app: no garbage collection running alongside, less memory kept. -->
     <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
     <ServerGarbageCollector>false</ServerGarbageCollector>
     <AutoreleasePoolSupport>false</AutoreleasePoolSupport>
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Windows' own culture data (NLS) instead of loading ICU's: tens of MB less, and WPF still has every culture it asks for. -->
+    <RuntimeHostConfigurationOption Include="System.Globalization.UseNls" Value="true" />
+  </ItemGroup>
 </Project>
