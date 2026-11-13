@@ -9,6 +9,8 @@ namespace LongoKit.UI;
 public interface ISampleData
 {
     void UseSampleData();
+    /// <summary>More pages worth a picture: a name, the tab, and how to get there (a display's own page...).</summary>
+    IReadOnlyList<(string Name, int Tab, Action Open)> SamplePages { get; }
 }
 
 /// <summary>
@@ -52,6 +54,12 @@ internal static class Snapshot
                 }
                 Save(Framed(MenuWindow.Build(shell, module), 404, "Canvas", 12), Path.Combine(folder, $"{prefix}-{name}menu.png"));
                 count++;
+                foreach (var (page, tab, open) in (module as ISampleData)?.SamplePages ?? Array.Empty<(string, int, Action)>())
+                {
+                    open();
+                    Save(Framed(SettingsWindow.Build(shell, module, tab), 760, "Canvas"), Path.Combine(folder, $"{prefix}-{name}{page}.png"));
+                    count++;
+                }
             }
         }
         File.WriteAllText(Path.Combine(folder, "done.txt"), $"{count} pictures");

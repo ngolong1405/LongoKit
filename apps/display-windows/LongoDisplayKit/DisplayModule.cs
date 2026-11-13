@@ -52,6 +52,13 @@ public sealed class DisplayModule : ILongoModule, ISampleData
         });
     }
 
+    public IReadOnlyList<(string Name, int Tab, Action Open)> SamplePages => new (string, int, Action)[]
+    {
+        ("dell", 1, () => Open("dell")),
+        ("laptop", 1, () => Open("builtin")),
+        ("list", 1, () => Open(null)),
+    };
+
     private void Use(DisplayModel next)
     {
         model.Changed -= OnChanged;

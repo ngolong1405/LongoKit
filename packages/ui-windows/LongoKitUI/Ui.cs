@@ -198,7 +198,16 @@ public static class Ui
     public static FrameworkElement Setting(string title, string? help, UIElement? control, string? glyph = null)
     {
         var text = Column(2, Text(title, 13, FontWeights.Medium), help == null ? null : Text(help, 11.5, color: "TextMuted", wrap: true));
-        UIElement leading = glyph == null ? text : Row(12, Glyph(glyph, 16, "VioletLight"), text);
+        text.VerticalAlignment = VerticalAlignment.Center;
+        // A dock, not a row: the text gets the width that's left, so its help wraps.
+        var leading = new DockPanel { VerticalAlignment = VerticalAlignment.Center };
+        if (glyph != null)
+        {
+            var icon = Glyph(glyph, 16, "VioletLight").Margin(0, 0, 12, 0);
+            DockPanel.SetDock(icon, Dock.Left);
+            leading.Children.Add(icon);
+        }
+        leading.Children.Add(text);
         if (control is FrameworkElement element) element.VerticalAlignment = VerticalAlignment.Center;
         var row = Spread(leading, control);
         if (control is FrameworkElement trailing) trailing.Margin = new Thickness(16, 0, 0, 0);
