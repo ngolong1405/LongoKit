@@ -54,7 +54,7 @@ internal sealed class TrayIcon : IDisposable
         menu.Items.Add(new Separator());
         foreach (var module in shell.Modules)
         {
-            var item = Item(shell.Modules.Count > 1 ? module.Title : (module.IsOn ? Localizer.L("{0} is on", module.Title) : Localizer.L("{0} is off", module.Title)),
+            var item = Item(shell.IsSuite ? module.Title : (module.IsOn ? Localizer.L("{0} is on", module.Title) : Localizer.L("{0} is off", module.Title)),
                             () => module.SetOn(!module.IsOn));
             item.IsCheckable = true;
             item.IsChecked = module.IsOn;

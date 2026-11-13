@@ -34,6 +34,11 @@ internal static class Strings
         ["Restore Defaults"] = "Khôi phục mặc định",
         ["Reset"] = "Đặt lại",
         ["Open {0}"] = "Mở {0}",
+        ["Open"] = "Mở",
+        ["MODULES"] = "MODULE",
+        ["Modules"] = "Các module",
+        ["A module that's off stops at once and leaves your settings as they are."] = "Module nào tắt thì dừng ngay, cài đặt của nó vẫn giữ nguyên.",
+        ["Mouse, Display & Shot in one app"] = "Mouse, Display & Shot trong một app",
         ["Beta. Not signed yet: Windows may warn before the first launch (More info › Run anyway)."] =
             "Bản beta, chưa ký số: Windows có thể cảnh báo khi mở lần đầu (Thông tin thêm › Vẫn chạy).",
     };

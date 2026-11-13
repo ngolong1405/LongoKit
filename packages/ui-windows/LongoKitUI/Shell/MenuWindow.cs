@@ -69,7 +69,7 @@ internal sealed class MenuWindow : Window
     public static Border Build(LongoShell shell, ILongoModule module, Action<ILongoModule>? pick = null)
     {
         var body = Ui.Column(12);
-        if (shell.Modules.Count > 1)
+        if (shell.IsSuite)
         {
             // LongoKit: a tab per module, the one shown raised.
             var tabs = Ui.Row(4);

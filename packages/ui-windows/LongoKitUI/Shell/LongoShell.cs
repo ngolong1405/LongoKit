@@ -13,7 +13,8 @@ public sealed class ShellSettings
 }
 
 /// <summary>What the shell shows about the app it runs.</summary>
-public sealed record AppInfo(string Id, string Name, string IconName, string Website, string ReleaseNotes);
+/// <param name="Suite">LongoKit: several modules, down a sidebar, with a page of its own.</param>
+public sealed record AppInfo(string Id, string Name, string IconName, string Website, string ReleaseNotes, bool Suite = false);
 
 /// <summary>
 /// Runs one module as its own app (Longo Display), or several as LongoKit: the notification area icon and its menu,
@@ -24,6 +25,8 @@ public sealed class LongoShell
     public AppInfo Info { get; }
     public IReadOnlyList<ILongoModule> Modules { get; }
     public ShellSettings Settings { get; }
+    /// <summary>LongoKit (several modules) rather than one module's own app.</summary>
+    public bool IsSuite => Info.Suite;
     public event Action? Changed;
 
     private TrayIcon? tray;

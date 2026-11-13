@@ -44,12 +44,19 @@ internal static class Snapshot
             Theme.Apply(appearance);
             Localizer.Language = language;
             var prefix = $"{appearance.ToString().ToLowerInvariant()}-{(language == AppLanguage.English ? "en" : "vi")}";
+            if (shell.IsSuite)
+            {
+                // LongoKit's own pages: its modules and the app settings, and About.
+                Save(Framed(SettingsWindow.Build(shell, null, 0), 980, "Canvas"), Path.Combine(folder, $"{prefix}-kit-1.png"));
+                Save(Framed(SettingsWindow.Build(shell, null, 1), 980, "Canvas"), Path.Combine(folder, $"{prefix}-kit-2.png"));
+                count += 2;
+            }
             foreach (var module in shell.Modules)
             {
-                var name = shell.Modules.Count == 1 ? "" : module.Id + "-";
+                var name = !shell.IsSuite ? "" : module.Id + "-";
                 for (var tab = 0; tab <= module.Tabs.Count; tab++)
                 {
-                    Save(Framed(SettingsWindow.Build(shell, module, tab), 760, "Canvas"), Path.Combine(folder, $"{prefix}-{name}{tab + 1}.png"));
+                    Save(Framed(SettingsWindow.Build(shell, module, tab), Width(shell), "Canvas"), Path.Combine(folder, $"{prefix}-{name}{tab + 1}.png"));
                     count++;
                 }
                 Save(Framed(MenuWindow.Build(shell, module), 404, "Canvas", 12), Path.Combine(folder, $"{prefix}-{name}menu.png"));
@@ -57,7 +64,7 @@ internal static class Snapshot
                 foreach (var (page, tab, open) in (module as ISampleData)?.SamplePages ?? Array.Empty<(string, int, Action)>())
                 {
                     open();
-                    Save(Framed(SettingsWindow.Build(shell, module, tab), 760, "Canvas"), Path.Combine(folder, $"{prefix}-{name}{page}.png"));
+                    Save(Framed(SettingsWindow.Build(shell, module, tab), Width(shell), "Canvas"), Path.Combine(folder, $"{prefix}-{name}{page}.png"));
                     count++;
                 }
             }
@@ -65,6 +72,9 @@ internal static class Snapshot
         File.WriteAllText(Path.Combine(folder, "done.txt"), $"{count} pictures");
         return 0;
     }
+
+    /// <summary>The window's width: LongoKit's has the sidebar too.</summary>
+    private static double Width(LongoShell shell) => shell.IsSuite ? 980 : 760;
 
     private static Border Framed(FrameworkElement content, double width, string background, double padding = 0) =>
         new Border { Child = content, Width = width, Padding = new Thickness(padding) }.Res(Border.BackgroundProperty, background);

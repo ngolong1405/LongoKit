@@ -13,15 +13,16 @@ namespace LongoKit.UI;
 internal sealed class SettingsWindow : Window
 {
     private readonly LongoShell shell;
-    private ILongoModule module;
+    /// <summary>The module shown; null for LongoKit's own pages (its modules, the app settings).</summary>
+    private ILongoModule? module;
     private int tab;
 
     public SettingsWindow(LongoShell shell)
     {
         this.shell = shell;
-        module = shell.Modules[0];
+        module = !shell.IsSuite ? shell.Modules[0] : null;
         Title = shell.Info.Name;
-        Width = 760;
+        Width = shell.IsSuite ? 980 : 760;
         Height = 780;
         MinWidth = 640;
         MinHeight = 520;
@@ -62,9 +63,9 @@ internal sealed class SettingsWindow : Window
     });
 
     /// <summary>The window's content (also drawn on its own for snapshots).</summary>
-    public static FrameworkElement Build(LongoShell shell, ILongoModule module, int tab, Action<ILongoModule, int>? go = null)
+    public static FrameworkElement Build(LongoShell shell, ILongoModule? module, int tab, Action<ILongoModule?, int>? go = null)
     {
-        var tabs = module.Tabs.ToList();
+        var tabs = module?.Tabs.ToList() ?? new List<ModuleTab> { new(Localizer.L("General"), "\uE713", () => Pages.KitGeneral(shell)) };
         tabs.Add(new ModuleTab(Localizer.L("About"), "\uE946", () => Pages.About(shell, module)));
         tab = Math.Clamp(tab, 0, tabs.Count - 1);
 
@@ -87,27 +88,39 @@ internal sealed class SettingsWindow : Window
         }
         picker.HorizontalAlignment = HorizontalAlignment.Center;
 
-        var header = Ui.Column(14,
-            Ui.Spread(Ui.Row(10, new Image { Source = Icons.App(module.IconName, 64), Width = 30, Height = 30 },
-                              Ui.Text(module.Title, 18, FontWeights.SemiBold, font: "DisplayFont")),
-                      new LiveView(() => MenuWindow.PowerLabel(module.IsOn, module.Status),
-                                   refresh => module.Changed += refresh, refresh => module.Changed -= refresh)),
-            picker);
+        var title = Ui.Row(10, new Image { Source = Icons.App(module?.IconName ?? shell.Info.IconName, 64), Width = 30, Height = 30 },
+                           Ui.Text(module?.Title ?? shell.Info.Name, 18, FontWeights.SemiBold, font: "DisplayFont"));
+        var state = module == null ? null : new LiveView(() => MenuWindow.PowerLabel(module.IsOn, module.Status),
+                                                         refresh => module.Changed += refresh, refresh => module.Changed -= refresh);
+        var header = Ui.Column(14, Ui.Spread(title, state), picker);
         var top = new Border { Child = header, Padding = new Thickness(24, 16, 24, 12), BorderThickness = new Thickness(0, 0, 0, 1) }
             .Res(Border.BackgroundProperty, "Chrome").Res(Border.BorderBrushProperty, "Hairline");
 
         var page = tabs[tab].Create();
-        if (tab == 0 && shell.Modules.Count == 1) page = Ui.Column(16, page, Ui.Section(Localizer.L("App")), Pages.AppCard(shell));
+        if (tab == 0 && !shell.IsSuite) page = Ui.Column(16, page, Ui.Section(Localizer.L("App")), Pages.AppCard(shell));
         var body = Ui.Scroll(new Border { Child = page, Padding = new Thickness(24, 20, 24, 24) });
 
         var content = new DockPanel();
         DockPanel.SetDock(top, Dock.Top);
         content.Children.Add(top);
         content.Children.Add(body);
-        if (shell.Modules.Count == 1) return content;
+        if (!shell.IsSuite) return content;
 
-        // LongoKit: the modules down a sidebar, each with its state.
+        // LongoKit: its own page, then the modules down a sidebar, each with its state.
         var sidebar = Ui.Column(4);
+        var home = new Button
+        {
+            Content = Ui.Row(10, new Image { Source = Icons.App(shell.Info.IconName, 32), Width = 24, Height = 24 },
+                             Ui.Text(shell.Info.Name, 13, FontWeights.SemiBold)),
+            HorizontalContentAlignment = HorizontalAlignment.Left,
+            Height = 44, Width = 196,
+        };
+        home.SetResourceReference(StyleProperty, "LongoIconButton");
+        home.Click += (_, _) => go?.Invoke(null, 0);
+        var homeBox = new Border { Child = home, CornerRadius = new CornerRadius(9), Margin = new Thickness(0, 0, 0, 8) };
+        if (module == null) homeBox.Res(Border.BackgroundProperty, "Hover");
+        sidebar.Children.Add(homeBox);
+        sidebar.Children.Add(Ui.Text(Localizer.L("MODULES"), 10.5, FontWeights.SemiBold, "TextFaint", "MonoFont").Margin(10, 0, 0, 4));
         foreach (var each in shell.Modules)
         {
             var row = new Button
@@ -119,6 +132,7 @@ internal sealed class SettingsWindow : Window
             };
             row.SetResourceReference(StyleProperty, "LongoIconButton");
             row.Click += (_, _) => go?.Invoke(each, 0);
+            row.Opacity = each.IsOn ? 1 : 0.6;
             var box = new Border { Child = row, CornerRadius = new CornerRadius(9) };
             if (each == module) box.Res(Border.BackgroundProperty, "Hover");
             sidebar.Children.Add(box);

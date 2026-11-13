@@ -8,6 +8,10 @@ on:
     paths: ["apps/*-windows/**", "packages/ui-windows/**", ".github/workflows/windows.yml"]
   workflow_dispatch:
 
+env:
+  # Each app: its project, and the .exe it makes.
+  APPS: "display-windows/LongoDisplay/LongoDisplay kit-windows/LongoKit/LongoKit"
+
 jobs:
   build:
     runs-on: windows-latest
@@ -19,23 +23,32 @@ jobs:
       - name: Tests
         run: dotnet test packages/ui-windows/Tests/LongoKit.Windows.Tests.csproj -c Release --logger "console;verbosity=normal"
       - name: Build
-        run: dotnet build apps/display-windows/LongoDisplay/LongoDisplay.csproj -c Release
+        shell: pwsh
+        run: |
+          foreach ($app in $env:APPS.Split(" ")) { dotnet build "apps/$app.csproj" -c Release; if ($LASTEXITCODE) { exit 1 } }
       - name: Snapshots (every page, dark and light, English and Vietnamese)
         shell: pwsh
         run: |
-          $out = Join-Path $PWD "snapshots/display"
-          $app = Start-Process -FilePath "apps/display-windows/LongoDisplay/bin/Release/net8.0-windows/LongoDisplay.exe" `
-                              -ArgumentList "--snapshot", "`"$out`"" -Wait -PassThru
-          if (Test-Path "$out/error.txt") { Get-Content "$out/error.txt" }
-          Get-ChildItem $out | Format-Table Name, Length
-          if ($app.ExitCode -ne 0) { exit $app.ExitCode }
-      - name: Publish (one self-contained .exe each for x64 and Arm64)
+          foreach ($app in $env:APPS.Split(" ")) {
+            $name = Split-Path $app -Leaf
+            $folder = Split-Path (Split-Path $app -Parent) -Parent
+            $out = Join-Path $PWD "snapshots/$name"
+            $run = Start-Process -FilePath "apps/$folder/$name/bin/Release/net8.0-windows/$name.exe" `
+                                 -ArgumentList "--snapshot", "`"$out`"" -Wait -PassThru
+            if (Test-Path "$out/error.txt") { Get-Content "$out/error.txt" }
+            Get-ChildItem $out | Format-Table Name, Length
+            if ($run.ExitCode -ne 0) { exit $run.ExitCode }
+          }
+      - name: Publish (one self-contained .exe per app, for x64 and Arm64)
         shell: pwsh
         run: |
-          foreach ($runtime in "win-x64", "win-arm64") {
-            dotnet publish apps/display-windows/LongoDisplay/LongoDisplay.csproj -c Release -r $runtime --self-contained `
-              -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
-              -o "out/$runtime"
+          foreach ($app in $env:APPS.Split(" ")) {
+            foreach ($runtime in "win-x64", "win-arm64") {
+              dotnet publish "apps/$app.csproj" -c Release -r $runtime --self-contained `
+                -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
+                -o "out/$runtime"
+              if ($LASTEXITCODE) { exit 1 }
+            }
           }
           Get-ChildItem out -Recurse -Filter *.exe | Format-Table FullName, Length
       - uses: actions/upload-artifact@v4
@@ -45,5 +58,5 @@ jobs:
           path: snapshots
       - uses: actions/upload-artifact@v4
         with:
-          name: LongoDisplay-windows
-          path: out/*/LongoDisplay.exe
+          name: windows-apps
+          path: out/*/*.exe
