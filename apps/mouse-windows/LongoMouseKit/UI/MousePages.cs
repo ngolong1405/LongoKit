@@ -5,6 +5,9 @@ using System.Windows.Input;
 using LongoMouse.Model;
 using LongoKit.UI;
 using static LongoKit.UI.Localizer;
+// WPF names a MouseButton and a MouseAction too: these are Longo Mouse's.
+using MouseAction = LongoMouse.Model.MouseAction;
+using MouseButton = LongoMouse.Model.MouseButton;
 
 namespace LongoMouse.UI;
 
