@@ -13,6 +13,8 @@
     <ProjectReference Include="..\..\..\packages\ui-windows\LongoKitUI\LongoKitUI.csproj" />
     <PackageReference Include="System.Management" Version="8.0.0" />
     <InternalsVisibleTo Include="LongoKit.Windows.Tests" />
+    <!-- WPF projects leave System.IO out (its Path would clash with WPF's shape); nothing here draws shapes. -->
+    <Using Include="System.IO" />
   </ItemGroup>
 
 </Project>

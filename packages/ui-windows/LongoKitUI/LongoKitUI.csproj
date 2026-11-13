@@ -16,6 +16,8 @@
     <!-- WPF and Windows Forms both name an Application, a Button...: WPF's are the ones meant. -->
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />
+    <!-- WPF projects leave System.IO out (its Path would clash with WPF's shape); nothing here draws shapes. -->
+    <Using Include="System.IO" />
     <Resource Include="Fonts\*.ttf" />
     <Resource Include="..\Icons\*.ico" Link="Icons\%(Filename)%(Extension)" />
   </ItemGroup>
