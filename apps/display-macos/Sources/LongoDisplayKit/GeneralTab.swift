@@ -38,7 +38,7 @@ struct GeneralTab: View {
     private var modeHelp: String {
         guard model.mode == .sync else { return L("Each display keeps the brightness you set.") }
         return model.builtin == nil
-            ? L("Sync needs a built-in display. On this Mac, external displays keep their own brightness.")
-            : L("External displays follow the built-in display, each within its own Sync range (set on its page).")
+            ? L("No MacBook display now (closed, or none): external displays follow the time of day, brighter by day and dimmer in the evening.")
+            : L("External displays follow the built-in display, each within its own Sync range (set on its page), gliding to each change.")
     }
 }

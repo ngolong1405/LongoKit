@@ -125,7 +125,11 @@ final class AppModel: ObservableObject {
     private var emergencyKey: GlobalHotKey?
     private var syncTimer: Timer?
     private var permissionTimer: Timer?
+    /// The last brightness Sync followed (the MacBook's, or the time of day's).
     private var lastBuiltin: Double?
+    /// Sync: where each following display is gliding to, and the timer moving them.
+    private var glideTargets: [String: Double] = [:]
+    private var glideTimer: Timer?
     /// Displays first seen this session: they keep whatever brightness they have until you change it.
     private var freshDisplays: Set<String> = []
 
@@ -229,15 +233,53 @@ final class AppModel: ObservableObject {
     func setSyncRange(_ minimum: Double, _ maximum: Double, for display: Display) {
         settings[display.key, default: DisplaySettings()].minimum = min(minimum, maximum)
         settings[display.key, default: DisplaySettings()].maximum = max(minimum, maximum)
-        guard followsBuiltin(display), isEnabled, isOn(display), let builtinValue = builtin.map({ settings(for: $0).brightness }) else { return }
-        let value = settings(for: display)
-        setBrightness(SyncMath.map(builtin: builtinValue, minimum: value.minimum, maximum: value.maximum), for: display)
+        lineUp(display)
+    }
+
+    /// What Sync follows: the MacBook's brightness, or without its display (lid closed, or a Mac without one) the
+    /// time of day.
+    var syncSource: Double {
+        if let builtin { return settings(for: builtin).brightness }
+        return SyncMath.daylight(hour: SyncMath.hour(of: Date()))
+    }
+
+    /// Where a display following in Sync goes now, without the person's adjustment (`withOffset` false) or with it.
+    func syncTarget(for display: Display, withOffset: Bool = true) -> Double {
+        var value = settings(for: display)
+        if !withOffset { value.syncOffset = 0 }
+        return SyncMath.target(source: syncSource, settings: value, method: display.method, lowest: levelRange(for: display).lowerBound)
+    }
+
+    /// Forgets the person's adjustment to a following display: it goes back to its range.
+    func resetSyncOffset(for display: Display) {
+        settings[display.key, default: DisplaySettings()].syncOffset = 0
+        lineUp(display)
+    }
+
+    /// A following display, put where Sync says at once (its range just changed, it just joined).
+    private func lineUp(_ display: Display) {
+        guard followsBuiltin(display), isEnabled, isOn(display) else { return }
+        glideTargets[display.key] = nil
+        let target = syncTarget(for: display)
+        update(display) { $0.setLevel(target) }
     }
 
     /// Brightness and extra dimming as one level (see `DisplaySettings.level`).
     func setLevel(_ value: Double, for display: Display) {
         let range = levelRange(for: display)
-        update(display) { $0.setLevel(min(max(value, range.lowerBound), range.upperBound)) }
+        let value = min(max(value, range.lowerBound), range.upperBound)
+        // A display following in Sync, set by hand (its slider, or the brightness keys on it): it keeps following,
+        // this much brighter or darker than its range says.
+        if followsBuiltin(display) {
+            glideTargets[display.key] = nil
+            let base = syncTarget(for: display, withOffset: false)
+            update(display) {
+                $0.syncOffset = value - base
+                $0.setLevel(value)
+            }
+            return
+        }
+        update(display) { $0.setLevel(value) }
         // In Sync the external displays follow right away, not at the next check of the built-in display.
         if display.isBuiltin, mode == .sync {
             lastBuiltin = nil
@@ -302,12 +344,11 @@ final class AppModel: ObservableObject {
         } else if isOn(display) {
             engine?.apply(fresh, to: display)
         }
-        if followsBuiltin(display), isEnabled, isOn(display), let builtin {
-            setBrightness(SyncMath.map(builtin: settings(for: builtin).brightness, minimum: fresh.minimum, maximum: fresh.maximum), for: display)
-        }
+        lineUp(display)
     }
 
-    /// Whether an external display's brightness is following the built-in one (Sync), so it can't be set by hand.
+    /// Whether an external display's brightness is following the built-in one (Sync). Set by hand, it keeps
+    /// following, adjusted by that much.
     func followsBuiltin(_ display: Display) -> Bool {
         mode == .sync && !display.isBuiltin && settings(for: display).syncs
     }
@@ -316,15 +357,12 @@ final class AppModel: ObservableObject {
     /// it was off); off, it keeps its own brightness while the others stay in Sync.
     func setSyncs(_ on: Bool, for display: Display) {
         settings[display.key, default: DisplaySettings()].syncs = on
+        // Following again starts from its range.
+        if on { settings[display.key, default: DisplaySettings()].syncOffset = 0 }
         if on && mode != .sync {
             mode = .sync
         } else if on {
-            lastBuiltin = nil
-            followBuiltin()
-            if let builtin {
-                let value = settings(for: display)
-                setBrightness(SyncMath.map(builtin: settings(for: builtin).brightness, minimum: value.minimum, maximum: value.maximum), for: display)
-            }
+            lineUp(display)
         }
     }
 
@@ -527,7 +565,15 @@ final class AppModel: ObservableObject {
     }
 
     private func followBuiltin() {
-        guard needsBuiltinBrightness, let engine, let builtin, let builtinValue = engine.builtinBrightness(),
+        guard let builtin else {
+            // No MacBook display to follow (its lid closed, or a Mac without one): the time of day instead.
+            guard mode == .sync, isEnabled, externals.contains(where: { isOn($0) && settings(for: $0).syncs }) else { return }
+            let daylight = syncSource
+            guard lastBuiltin.map({ abs($0 - daylight) > 0.004 }) ?? true else { return }
+            lastBuiltin = daylight
+            return follow()
+        }
+        guard needsBuiltinBrightness, let engine, let builtinValue = engine.builtinBrightness(),
               lastBuiltin.map({ abs($0 - builtinValue) > 0.004 }) ?? true else { return }
         lastBuiltin = builtinValue
         if builtinValue > 0, settings(for: builtin).extraDim > 0 {
@@ -537,9 +583,37 @@ final class AppModel: ObservableObject {
             settings[builtin.key]?.brightness = builtinValue
         }
         guard mode == .sync, isEnabled else { return }
+        follow()
+    }
+
+    /// Sends every following display gliding to where Sync now puts it. A change smaller than a monitor's step is
+    /// left alone, so the light sensor's small wobbles don't keep the monitors changing.
+    private func follow() {
         for display in externals where isOn(display) && settings(for: display).syncs {
-            let value = settings(for: display)
-            setBrightness(SyncMath.map(builtin: builtinValue, minimum: value.minimum, maximum: value.maximum), for: display)
+            let target = syncTarget(for: display)
+            guard glideTargets[display.key] != nil || abs(target - settings(for: display).level) >= SyncMath.deadband else { continue }
+            glideTargets[display.key] = target
+        }
+        guard !glideTargets.isEmpty, glideTimer == nil else { return }
+        glideTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 15, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.glideStep() }
+        }
+    }
+
+    /// One step of every glide; the timer stops once they've all arrived.
+    private func glideStep() {
+        for (key, target) in glideTargets {
+            guard isEnabled, let display = displays.first(where: { $0.key == key }), isOn(display), followsBuiltin(display) else {
+                glideTargets[key] = nil
+                continue
+            }
+            let next = SyncMath.glide(from: settings(for: display).level, to: target)
+            update(display) { $0.setLevel(next) }
+            if next == target { glideTargets[key] = nil }
+        }
+        if glideTargets.isEmpty {
+            glideTimer?.invalidate()
+            glideTimer = nil
         }
     }
 

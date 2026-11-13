@@ -136,7 +136,7 @@ private struct DisplayRow: View {
     }
 }
 
-/// Brightness right in the list. Locked for external displays in Sync, where they follow the built-in one.
+/// Brightness right in the list. In Sync, moving an external display's sets how much brighter or darker it follows.
 private struct QuickBrightness: View {
     @EnvironmentObject private var model: AppModel
     let display: Display
@@ -156,13 +156,11 @@ struct DisplayLevels: View {
     let columns: Bool
 
     var body: some View {
-        let locked = model.followsBuiltin(display)
+        let following = model.followsBuiltin(display)
         let layout = columns ? AnyLayout(HStackLayout(alignment: .top, spacing: 24)) : AnyLayout(VStackLayout(spacing: 8))
         layout {
             BrightnessLevel(display: display)
-                .disabled(locked)
-                .opacity(locked ? 0.5 : 1)
-                .help(locked ? L("Follows the built-in display in Sync mode") : L("Brightness"))
+                .help(following ? L("Follows the MacBook in Sync; move it to keep this display brighter or darker than that") : L("Brightness"))
             if display.method == .ddc {
                 VolumeSlider(value: model.volume(for: display), help: L("Speaker volume"), playing: model.isPlaying(display),
                              playHere: { model.playThrough(display) }) { model.setVolume($0, for: display) }
@@ -499,7 +497,6 @@ private struct SyncSourceCard: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
-        let builtinValue = model.builtin.map { model.settings(for: $0).brightness } ?? 0
         VStack(alignment: .leading, spacing: 12) {
             CardHeader(symbol: "link", title: L("Drives Sync"),
                        subtitle: L("In Sync, external displays follow this display's brightness, each within its own range."),
@@ -523,7 +520,7 @@ private struct SyncSourceCard: View {
                     Text("\(Int((value.minimum * 100).rounded()))–\(Int((value.maximum * 100).rounded()))%")
                         .font(.mono(11)).foregroundStyle(Theme.textMuted)
                     Image(systemName: "arrow.right").font(.system(size: 9, weight: .bold)).foregroundStyle(Theme.textFaint)
-                    Text("\(Int((SyncMath.map(builtin: builtinValue, minimum: value.minimum, maximum: value.maximum) * 100).rounded()))%")
+                    Text("\(Int((model.syncTarget(for: display) * 100).rounded()))%")
                         .font(.mono(11, .semibold)).foregroundStyle(Theme.solar)
                         .frame(width: 40, alignment: .trailing)
                     Button { model.openDisplayKey = display.key } label: {
@@ -575,10 +572,7 @@ private struct ScreenCard: View {
             // The name and kind are in the page header; the screen holds the levels.
             VStack(spacing: 14) {
                 BrightnessLevel(display: display)
-                    // In Sync an external display follows the built-in one, as in the menu.
-                    .disabled(model.followsBuiltin(display))
-                    .opacity(model.followsBuiltin(display) ? 0.5 : 1)
-                    .help(model.followsBuiltin(display) ? L("Follows the built-in display in Sync mode") : "")
+                    .help(model.followsBuiltin(display) ? L("Follows the MacBook in Sync; move it to keep this display brighter or darker than that") : "")
                 if display.method == .ddc {
                     VolumeSlider(value: model.volume(for: display), help: L("Speaker volume"), playing: model.isPlaying(display),
                                  playHere: { model.playThrough(display) }) { model.setVolume($0, for: display) }
@@ -608,8 +602,8 @@ private struct SyncRangeCard: View {
 
     var body: some View {
         let value = model.settings(for: display)
-        let builtinValue = model.builtin.map { model.settings(for: $0).brightness } ?? 0.5
-        let mapped = SyncMath.map(builtin: builtinValue, minimum: value.minimum, maximum: value.maximum)
+        let source = model.syncSource
+        let mapped = model.syncTarget(for: display)
         let syncing = model.followsBuiltin(display)
         VStack(alignment: .leading, spacing: 14) {
             CardHeader(symbol: "link", title: L("Sync with the MacBook"),
@@ -622,8 +616,13 @@ private struct SyncRangeCard: View {
                 model.setSyncRange(low, high, for: display)
             }
             HStack(spacing: 6) {
-                Image(systemName: "laptopcomputer").foregroundStyle(Theme.textMuted)
-                Text("MacBook \(Int((builtinValue * 100).rounded()))%")
+                if model.builtin != nil {
+                    Image(systemName: "laptopcomputer").foregroundStyle(Theme.textMuted)
+                    Text("MacBook \(Int((source * 100).rounded()))%")
+                } else {
+                    Image(systemName: "sun.and.horizon").foregroundStyle(Theme.textMuted)
+                    Text(L("Time of day") + " \(Int((source * 100).rounded()))%")
+                }
                 Image(systemName: "arrow.right").font(.system(size: 9, weight: .bold)).foregroundStyle(Theme.textFaint)
                 Image(systemName: "display").foregroundStyle(Theme.textMuted)
                 Text("\(model.displayName(display)) \(Int((mapped * 100).rounded()))%").foregroundStyle(Theme.solar)
@@ -632,7 +631,18 @@ private struct SyncRangeCard: View {
             }
             .font(.mono(11, .semibold))
             .foregroundStyle(Theme.textSecondary)
-            Text(L("MacBook at 0% puts this display at the lowest; at 100%, at the highest."))
+            if abs(value.syncOffset) >= 0.005 {
+                HStack(spacing: 8) {
+                    Image(systemName: "slider.horizontal.3").font(.system(size: 11)).foregroundStyle(Theme.violetLight)
+                    Text(L("Your adjustment: %@", (value.syncOffset > 0 ? "+" : "−") + "\(Int((abs(value.syncOffset) * 100).rounded()))%"))
+                        .font(.ui(12, .medium)).foregroundStyle(Theme.textSecondary)
+                    Spacer(minLength: 0)
+                    Button(L("Reset")) { model.resetSyncOffset(for: display) }
+                        .buttonStyle(GhostButtonStyle(compact: true))
+                        .help(L("Follow the range again, without the adjustment"))
+                }
+            }
+            Text(L("MacBook at 0% puts this display at the lowest; at 100%, at the highest, matching how bright the two look. Move its brightness to keep it brighter or darker. With the MacBook closed, it follows the time of day."))
                 .font(.ui(11)).foregroundStyle(Theme.textFaint)
                 .fixedSize(horizontal: false, vertical: true)
         }

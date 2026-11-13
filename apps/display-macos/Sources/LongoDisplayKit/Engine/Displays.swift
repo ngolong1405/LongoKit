@@ -47,6 +47,9 @@ struct DisplaySettings: Codable, Equatable {
     var volume: Double?
     /// An external display follows the built-in one while Sync is on; off, it keeps its own brightness.
     var syncs = true
+    /// In Sync, how much brighter (or darker) than its range says the person keeps this display: set by moving its
+    /// slider or pressing the brightness keys on it while it follows.
+    var syncOffset = 0.0
 
     init() {}
 
@@ -60,6 +63,7 @@ struct DisplaySettings: Codable, Equatable {
         control = (try? c.decodeIfPresent(ControlChoice.self, forKey: .control)) ?? d.control
         volume = try c.decodeIfPresent(Double.self, forKey: .volume)
         syncs = try c.decodeIfPresent(Bool.self, forKey: .syncs) ?? d.syncs
+        syncOffset = try c.decodeIfPresent(Double.self, forKey: .syncOffset) ?? d.syncOffset
         // Extra dimming now only goes below 0% brightness; older versions allowed it at any brightness.
         if brightness > 0 { extraDim = 0 }
     }
@@ -79,10 +83,56 @@ struct DisplaySettings: Codable, Equatable {
 }
 
 enum SyncMath {
-    /// The external display's brightness when the built-in one is at `builtin`.
-    static func map(builtin: Double, minimum: Double, maximum: Double) -> Double {
+    /// The external display's brightness when the built-in one is at `builtin`. `curve` above 1 bends it the way
+    /// light does: lower in the middle, the same at the ends.
+    static func map(builtin: Double, minimum: Double, maximum: Double, curve: Double = 1) -> Double {
         let low = min(minimum, maximum), high = max(minimum, maximum)
-        return low + min(max(builtin, 0), 1) * (high - low)
+        return low + pow(min(max(builtin, 0), 1), curve) * (high - low)
+    }
+
+    /// The MacBook's brightness setting is perceptual (its light grows much faster near the top), while a monitor's
+    /// DDC brightness is close to linear in light: followed straight, a monitor at the same percentage looks far
+    /// brighter at the low end. Through this curve the two look alike. Software dimming already works the way the
+    /// eye does, and Apple's displays like the MacBook's, so those follow straight.
+    static func curve(for method: ControlMethod) -> Double { method == .ddc ? 2 : 1 }
+
+    /// Where a following display goes for `source` (the MacBook's brightness, or the time of day): its range,
+    /// through its curve, plus the person's own adjustment, kept within `lowest`…1.
+    static func target(source: Double, settings: DisplaySettings, method: ControlMethod, lowest: Double = 0) -> Double {
+        let mapped = map(builtin: source, minimum: settings.minimum, maximum: settings.maximum, curve: curve(for: method))
+        return min(max(mapped + settings.syncOffset, lowest), 1)
+    }
+
+    /// Without the MacBook's display to follow (its lid closed, or a Mac without one), the time of day stands in
+    /// for it: 0 at night, brightening from 6 to 8, 1 through the day, dimming from 17 to 21.
+    static func daylight(hour: Double) -> Double {
+        func ease(_ x: Double) -> Double { (1 - cos(.pi * min(max(x, 0), 1))) / 2 }
+        switch hour {
+        case ..<6: return 0
+        case ..<8: return ease((hour - 6) / 2)
+        case ..<17: return 1
+        case ..<21: return 1 - ease((hour - 17) / 4)
+        default: return 0
+        }
+    }
+
+    /// The hour of `date` with its minutes, like 18.5 for half past six in the evening.
+    static func hour(of date: Date, calendar: Calendar = .current) -> Double {
+        let parts = calendar.dateComponents([.hour, .minute], from: date)
+        return Double(parts.hour ?? 12) + Double(parts.minute ?? 0) / 60
+    }
+
+    /// Less than this (a step of a monitor's 0–100 brightness) isn't worth a change: the light sensor's small
+    /// wobbles don't make the monitors flicker.
+    static let deadband = 0.01
+
+    /// One step of a display gliding to `target`: a quarter of the way there, at least a little, landing on it
+    /// once close. About a second from end to end, at 15 steps a second.
+    static func glide(from current: Double, to target: Double) -> Double {
+        let gap = target - current
+        if abs(gap) <= 0.008 { return target }
+        let step = gap * 0.25
+        return current + (abs(step) < 0.006 ? (gap > 0 ? 0.006 : -0.006) : step)
     }
 
     /// Brightness keys move in 16 steps, like macOS.

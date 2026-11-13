@@ -22,6 +22,30 @@ enum SelfTest {
         check("Sync: built-in 0% → minimum", SyncMath.map(builtin: 0, minimum: 0.3, maximum: 1) == 0.3)
         check("Sync: built-in 100% → maximum", SyncMath.map(builtin: 1, minimum: 0, maximum: 0.6) == 0.6)
         check("Sync: swapped limits still map inside them", SyncMath.map(builtin: 1, minimum: 0.9, maximum: 0.1) == 0.9)
+        // A monitor over DDC follows how bright the MacBook looks: lower in the middle, the same at the ends.
+        var full = DisplaySettings()
+        full.minimum = 0
+        full.maximum = 1
+        check("Sync: a DDC monitor follows the MacBook's look (50% → 25%), its ends unchanged",
+              abs(SyncMath.target(source: 0.5, settings: full, method: .ddc) - 0.25) < 0.0001
+              && SyncMath.target(source: 0, settings: full, method: .ddc) == 0 && SyncMath.target(source: 1, settings: full, method: .ddc) == 1)
+        check("Sync: software dimming follows straight", abs(SyncMath.target(source: 0.5, settings: full, method: .software) - 0.5) < 0.0001)
+        var adjusted = full
+        adjusted.syncOffset = 0.2
+        check("Sync: the person's adjustment adds on, within 0–100%", abs(SyncMath.target(source: 0.5, settings: adjusted, method: .ddc) - 0.45) < 0.0001
+              && SyncMath.target(source: 1, settings: adjusted, method: .ddc) == 1)
+        // The time of day, when there's no MacBook display to follow.
+        check("Time of day: dark at night, full by day", SyncMath.daylight(hour: 3) == 0 && SyncMath.daylight(hour: 12) == 1 && SyncMath.daylight(hour: 23) == 0)
+        check("Time of day: halfway at 7 and at 19", abs(SyncMath.daylight(hour: 7) - 0.5) < 0.0001 && abs(SyncMath.daylight(hour: 19) - 0.5) < 0.0001)
+        check("Time of day: brightens through the morning", SyncMath.daylight(hour: 6.5) < SyncMath.daylight(hour: 7.5))
+        // Gliding: steady steps to the target, never past it, there in about a second.
+        var glided = 0.0, steps = 0, overshoot = false
+        while glided != 1 && steps < 100 {
+            glided = SyncMath.glide(from: glided, to: 1)
+            overshoot = overshoot || glided > 1
+            steps += 1
+        }
+        check("Gliding gets there without overshooting (\(steps) steps)", glided == 1 && !overshoot && steps <= 30)
 
         // Brightness keys.
         check("Key up from 50% → 9/16", SyncMath.stepped(0.5, up: true) == 9.0 / 16)
@@ -76,6 +100,24 @@ enum SelfTest {
         check("The last display on can't be turned off", !model.canTurnOff(screens[0]))
         let reloaded = AppModel(live: false, defaults: UserDefaults(suiteName: suite)!)
         check("Turned-off displays are saved, to turn them back on after a crash", reloaded.powerOff == ["b": .disabled, "c": .blackout])
+
+        // Sync with a hand on it: a following display set by hand keeps that much on top of its range.
+        let syncSuite = "LongoDisplay.selftest.sync"
+        UserDefaults().removePersistentDomain(forName: syncSuite)
+        let syncing = AppModel(live: false, defaults: UserDefaults(suiteName: syncSuite)!)
+        let mac = Display(id: 1, key: "mac", name: "Built-in", isBuiltin: true, method: .native, pixelSize: .zero)
+        let monitor = Display(id: 2, key: "lg", name: "LG", isBuiltin: false, method: .ddc, pixelSize: .zero)
+        var macSettings = DisplaySettings()
+        macSettings.brightness = 0.5
+        syncing.simulate(displays: [mac, monitor], settings: ["mac": macSettings, "lg": DisplaySettings()])
+        syncing.mode = .sync
+        syncing.setLevel(0.6, for: monitor)
+        check("In Sync, a display set by hand keeps following, adjusted by that much",
+              abs(syncing.settings(for: monitor).syncOffset - 0.35) < 0.0001 && abs(syncing.syncTarget(for: monitor) - 0.6) < 0.0001
+              && abs(syncing.settings(for: monitor).level - 0.6) < 0.0001)
+        syncing.resetSyncOffset(for: monitor)
+        check("…until the adjustment is reset", syncing.settings(for: monitor).syncOffset == 0 && abs(syncing.syncTarget(for: monitor) - 0.25) < 0.0001)
+        UserDefaults().removePersistentDomain(forName: syncSuite)
 
         // Sound outputs: macOS plays through one device at a time; each display is matched to its own.
         let lg = Display(id: 10, key: "lg", name: "LG ULTRAGEAR", isBuiltin: false, method: .ddc, pixelSize: .zero, hasDDC: true)

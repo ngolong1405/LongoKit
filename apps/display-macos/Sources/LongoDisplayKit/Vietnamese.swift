@@ -25,8 +25,8 @@ enum Vietnamese {
         // General tab
         "Brightness Mode": "Chế độ độ sáng",
         "How external displays get their brightness.": "Cách màn hình ngoài lấy độ sáng.",
-        "Sync needs a built-in display. On this Mac, external displays keep their own brightness.":
-            "Đồng bộ cần màn hình tích hợp. Trên máy này, màn hình ngoài giữ độ sáng riêng.",
+        "No MacBook display now (closed, or none): external displays follow the time of day, brighter by day and dimmer in the evening.":
+            "Không có màn MacBook (đang gập, hoặc máy không có): các màn ngoài đổi theo giờ trong ngày, sáng hơn ban ngày và tối dần buổi tối.",
         "External displays follow the built-in display, within each display's minimum and maximum.":
             "Màn hình ngoài sáng/tối theo màn hình MacBook, trong khoảng tối thiểu – tối đa của từng màn.",
         "Each display keeps the brightness you set.": "Mỗi màn hình giữ độ sáng bạn đặt.",
@@ -127,14 +127,20 @@ enum Vietnamese {
             "Đang bật: khi chuột nằm trên màn ngoài, phím độ sáng chỉnh màn đó và hiện mức độ sáng. Trên màn MacBook, phím vẫn hoạt động như bình thường.",
         "Off: the brightness keys only change the MacBook screen, as macOS does by itself.":
             "Đang tắt: phím độ sáng chỉ chỉnh màn MacBook, như macOS vốn làm.",
-        "External displays follow the built-in display, each within its own Sync range (set on its page).":
-            "Các màn ngoài đổi độ sáng theo màn MacBook, mỗi màn trong khoảng Đồng bộ riêng (đặt trong trang của màn đó).",
+        "External displays follow the built-in display, each within its own Sync range (set on its page), gliding to each change.":
+            "Các màn ngoài đổi độ sáng theo màn MacBook, mỗi màn trong khoảng Đồng bộ riêng (đặt trong trang của màn đó), chuyển mượt mỗi lần đổi.",
         "Manual: each display keeps its own brightness. Sync: external displays follow the MacBook.":
             "Thủ công: mỗi màn giữ độ sáng riêng. Đồng bộ: các màn ngoài đổi độ sáng theo MacBook.",
         "This display follows the MacBook's brightness, moving within this range. The MacBook itself doesn't change.":
             "Màn này đổi độ sáng theo MacBook, trong khoảng bên dưới. Độ sáng MacBook không bị thay đổi.",
-        "MacBook at 0% puts this display at the lowest; at 100%, at the highest.":
-            "MacBook 0% thì màn này ở mức Thấp nhất; MacBook 100% thì ở mức Cao nhất.",
+        "MacBook at 0% puts this display at the lowest; at 100%, at the highest, matching how bright the two look. Move its brightness to keep it brighter or darker. With the MacBook closed, it follows the time of day.":
+            "MacBook 0% thì màn này ở mức Thấp nhất; 100% thì ở mức Cao nhất, sao cho hai màn trông sáng như nhau. Kéo độ sáng của màn này để giữ nó sáng hơn hay tối hơn. Khi gập MacBook, màn này đổi theo giờ trong ngày.",
+        "Follows the MacBook in Sync; move it to keep this display brighter or darker than that":
+            "Đổi theo MacBook khi Đồng bộ; kéo để giữ màn này sáng hơn hay tối hơn mức đó",
+        "Your adjustment: %@": "Bạn chỉnh thêm: %@",
+        "Follow the range again, without the adjustment": "Đi theo khoảng Đồng bộ như cũ, bỏ phần chỉnh thêm",
+        "Time of day": "Giờ trong ngày",
+        "Reset": "Đặt lại",
         "Stop following the MacBook; set this display by hand": "Thôi đi theo MacBook; chỉnh tay màn này",
         "Follow the MacBook's brightness": "Đi theo độ sáng MacBook",
         "Used only in Sync mode": "Chỉ dùng ở chế độ Đồng bộ",
