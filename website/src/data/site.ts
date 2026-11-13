@@ -5,7 +5,7 @@ export const mouseVersion = "0.2.12";
 // When releasing a new version, bump mouseVersion and upload LongoMouse-<version>.dmg to tag mouse-macos/v<version>.
 export const mouseDownload = `${repo}/releases/download/mouse-macos/v${mouseVersion}/LongoMouse-${mouseVersion}.dmg`;
 export const mouseReleaseNotes = `${repo}/releases/tag/mouse-macos/v${mouseVersion}`;
-export const displayVersion = "0.1.6";
+export const displayVersion = "0.1.7";
 // Same for Longo Display: bump displayVersion and upload LongoDisplay-<version>.dmg to tag display-macos/v<version>.
 export const displayDownload = `${repo}/releases/download/display-macos/v${displayVersion}/LongoDisplay-${displayVersion}.dmg`;
 export const displayReleaseNotes = `${repo}/releases/tag/display-macos/v${displayVersion}`;
@@ -20,7 +20,7 @@ export const shotVersion = "0.2.8";
 export const shotDownload = `${repo}/releases/download/shot-macos/v${shotVersion}/LongoShot-${shotVersion}.dmg`;
 export const shotReleaseNotes = `${repo}/releases/tag/shot-macos/v${shotVersion}`;
 export const shotBuildFromSource = "git clone https://github.com/ngolong1405/LongoKit && cd LongoKit/apps/shot-macos && ./scripts/build-app.sh";
-export const kitVersion = "0.1.7";
+export const kitVersion = "0.1.8";
 // LongoKit, the four apps as modules of one: bump kitVersion and upload LongoKit-<version>.dmg to tag kit-macos/v<version>.
 export const kitDownload = `${repo}/releases/download/kit-macos/v${kitVersion}/LongoKit-${kitVersion}.dmg`;
 export const kitReleaseNotes = `${repo}/releases/tag/kit-macos/v${kitVersion}`;

@@ -12,6 +12,9 @@ const t = pick(lang, {
     lead: "Turn on Sync and the external displays follow the MacBook's brightness: when you press its keys, or when macOS adjusts it to the room with the ambient light sensor.",
     points: [
       "Each display moves within its own range, say 20–90%, so a bright monitor never blinds you.",
+      "A monitor follows how bright the MacBook looks, not its percentage, so the two match even when dim; each change glides in, and the light sensor's small wobbles are left alone.",
+      "Move a following display's slider (or press the brightness keys on it) and it keeps following, that much brighter or darker.",
+      "Lid closed? The displays follow the time of day instead: brighter by day, dimmer in the evening.",
       "Any display can step out with its own Sync switch and keep the brightness you set.",
       "One \"All displays\" slider and 0–100% presets move everything at once.",
     ],
@@ -23,6 +26,9 @@ const t = pick(lang, {
     lead: "Bật Đồng bộ là các màn ngoài đổi độ sáng theo MacBook: khi bạn bấm phím độ sáng, hoặc khi macOS tự chỉnh MacBook theo ánh sáng phòng bằng cảm biến.",
     points: [
       "Mỗi màn đi theo trong khoảng riêng, ví dụ 20–90%, để màn sáng không làm bạn chói mắt.",
+      "Màn ngoài đi theo độ sáng MacBook trông thấy, không theo con số %, nên hai màn khớp nhau cả khi tối; mỗi lần đổi đều chuyển mượt, và cảm biến dao động nhẹ thì bỏ qua.",
+      "Kéo thanh độ sáng của màn đang đi theo (hoặc bấm phím độ sáng trên màn đó): màn đó vẫn đi theo, nhưng sáng hơn hay tối hơn đúng phần bạn chỉnh.",
+      "Gập MacBook? Các màn đổi theo giờ trong ngày: sáng hơn ban ngày, tối dần buổi tối.",
       "Màn nào cũng có công tắc Đồng bộ riêng để đứng ngoài và giữ độ sáng bạn đặt.",
       "Một thanh \"Tất cả màn hình\" và các mức 0–100% chỉnh mọi màn cùng lúc.",
     ],
@@ -92,13 +98,13 @@ const screens = [
     demo.querySelector(`[data-value="${id}"]`).textContent = Math.round(v) + "%";
     demo.querySelector(`[data-bar="${id}"]`).style.width = v + "%";
   };
-  // The same mapping as the app: minimum + MacBook × (maximum − minimum).
+  // The same mapping as the app for a monitor over DDC: minimum + MacBook² × (maximum − minimum), how bright it looks.
   const update = () => {
     const b = +mac.value;
     set("mac", b);
     demo.querySelectorAll("[data-screen]").forEach((el) => {
       const id = el.dataset.screen, min = +el.dataset.min, max = +el.dataset.max;
-      set(id, synced[id] ? min + b / 100 * (max - min) : own[id]);
+      set(id, synced[id] ? min + (b / 100) ** 2 * (max - min) : own[id]);
     });
   };
   demo.querySelectorAll("[data-screen]").forEach((el) => {
