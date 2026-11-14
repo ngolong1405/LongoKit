@@ -226,8 +226,11 @@ private struct Arrangement: View {
                     let screen = model.localScreens[index]
                     let others = model.localScreens.enumerated().filter { $0.offset != index }.map(\.element)
                     let moved = CGPoint(x: screen.minX + by.x, y: screen.minY + by.y)
-                    landing = others.isEmpty ? screen.origin
-                        : Screens.snap([CGRect(origin: .zero, size: screen.size)], at: moved, to: others, avoiding: model.placedScreens())
+                    // Several displays: against this Mac's others, as in macOS. Only one: against the other Macs'.
+                    let against = others.isEmpty ? model.placedScreens() : others
+                    landing = against.isEmpty ? screen.origin
+                        : Screens.snap([CGRect(origin: .zero, size: screen.size)], at: moved, to: against,
+                                       avoiding: others.isEmpty ? [] : model.placedScreens())
                 case .mac(let id):
                     guard let mac = model.paired.first(where: { $0.id == id }) else { return }
                     let offset = model.offset(of: mac)
@@ -241,9 +244,13 @@ private struct Arrangement: View {
                     if let target {
                         switch what {
                         case .display(let index):
-                            var frames = model.localScreens
-                            frames[index].origin = target
-                            model.arrange(frames)
+                            if model.localScreens.count == 1 {
+                                model.move(display: target)
+                            } else {
+                                var frames = model.localScreens
+                                frames[index].origin = target
+                                model.arrange(frames)
+                            }
                         case .mac(let id):
                             if let mac = model.paired.first(where: { $0.id == id }) { model.place(mac, at: target) }
                         }

@@ -159,14 +159,15 @@ final class AppModel: ObservableObject, HostableModel {
         screenObserver = NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
                                                                 object: nil, queue: .main) { _ in
             Task { @MainActor [weak self] in
+                // The displays as they are now first: everything after goes by them.
+                self?.localScreens = Screens.all()
+                self?.screenNames = Screens.names()
+                self?.localBuiltin = Screens.builtin(in: Screens.all())
                 self?.bridge.screensChanged()
                 if let node = self?.node { self?.refreshWallpapers(node) }
                 self?.node?.sendScreens()
                 self?.arranging = false
                 self?.settle()
-                self?.localScreens = Screens.all()
-                self?.screenNames = Screens.names()
-                self?.localBuiltin = Screens.builtin(in: Screens.all())
             }
         }
     }
@@ -194,6 +195,18 @@ final class AppModel: ObservableObject, HostableModel {
     private func wallpaperArrived(_ payload: Data, from mac: String) {
         guard let index = payload.first, let picture = NSImage(data: payload.dropFirst()) else { return }
         theirWallpapers[mac, default: [:]][Int(index)] = picture
+    }
+
+    /// This Mac's only display dragged next to the other Macs' (to `origin`): nothing to move in macOS, so they move
+    /// the other way, keeping where they are to each other.
+    func move(display origin: CGPoint) {
+        guard let screen = localScreens.first else { return }
+        let by = CGPoint(x: origin.x - screen.minX, y: origin.y - screen.minY)
+        guard hypot(by.x, by.y) > 0.5 else { return }
+        for mac in paired {
+            let offset = offset(of: mac)
+            place(mac, at: CGPoint(x: offset.x - by.x, y: offset.y - by.y))
+        }
     }
 
     /// Moves this Mac's displays to `frames` (one dragged in the arrangement), as System Settings does. If the main
