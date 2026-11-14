@@ -6,7 +6,7 @@ import { keysVersion } from "../data/site";
 interface Props {
   lang: Lang;
   /** Which product page is open, to highlight it in the nav. */
-  active?: "kit" | "mouse" | "display" | "keys" | "shot" | "share";
+  active?: "kit" | "mouse" | "display" | "keys" | "shot" | "share" | "flow";
 }
 
 const { lang, active } = Astro.props;
@@ -23,6 +23,7 @@ const products = [
   { id: "display", href: localize(lang, "/display"), icon: "desktop_windows", tint: "text-tertiary", name: "LongoDisplay", soon: false },
   { id: "shot", href: localize(lang, "/shot"), icon: "screenshot_region", tint: "text-primary-container", name: "LongoShot", soon: false },
   { id: "share", href: localize(lang, "/share"), icon: "devices", tint: "text-tertiary", name: "LongoShare", soon: false },
+  { id: "flow", href: localize(lang, "/flow"), icon: "swap_horiz", tint: "text-secondary", name: "LongoFlow", soon: false },
 ];
 ---
 
@@ -38,16 +39,17 @@ const products = [
         products.map((p) => (
           <a
             href={p.href}
+            title={p.name}
             class:list={[
-              "flex items-center gap-1.5 rounded-full px-4 py-1.5 text-body-sm transition-all",
+              "flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-body-sm transition-all xl:px-3",
               active === p.id
                 ? "bg-surface-container-high font-semibold text-primary"
                 : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface",
             ]}
           >
             <span class:list={["material-symbols-outlined text-[16px]", p.tint]}>{p.icon}</span>
-            <!-- LongoKit and four apps don't fit at lg with the full names: "Longo" shows from xl up. -->
-            <span><span class="hidden xl:inline">Longo</span>{p.name.replace("Longo", "")}</span>
+            <!-- LongoKit and six apps don't fit with the full names: icons only at lg, the short names from xl, "Longo" from 2xl. -->
+            <span class="hidden xl:inline" title={p.name}><span class="hidden 2xl:inline">Longo</span>{p.name.replace("Longo", "")}</span>
             {p.soon && <span class="rounded bg-surface-container-high px-1 font-code text-[9px] uppercase text-on-surface-variant">{t.soon}</span>}
           </a>
         ))

@@ -10,11 +10,13 @@ import shotDark from "../../../brand/icons/shot-dark.png";
 import shotLight from "../../../brand/icons/shot-light.png";
 import shareDark from "../../../brand/icons/share-dark.png";
 import shareLight from "../../../brand/icons/share-light.png";
+import flowDark from "../../../brand/icons/flow-dark.png";
+import flowLight from "../../../brand/icons/flow-light.png";
 import kitDark from "../../../brand/icons/kit-dark.png";
 import kitLight from "../../../brand/icons/kit-light.png";
 
 interface Props {
-  product: "mouse" | "display" | "keys" | "shot" | "share" | "kit";
+  product: "mouse" | "display" | "keys" | "shot" | "share" | "flow" | "kit";
   class?: string;
 }
 
@@ -24,6 +26,7 @@ const icons = {
   keys: [keysLight, keysDark],
   shot: [shotLight, shotDark],
   share: [shareLight, shareDark],
+  flow: [flowLight, flowDark],
   kit: [kitLight, kitDark],
 };
 const { product, class: className = "" } = Astro.props;

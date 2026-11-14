@@ -1,0 +1,112 @@
+---
+import ProductIcon from "../ProductIcon.astro";
+import { flowDownload, flowVersion } from "../../data/site";
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Mac to Mac · Early beta",
+    title: ["One Keyboard,", "Every Mac"],
+    lead: "Push the pointer past the edge of the screen and it's on the Mac next to you: click, type, scroll, copy here and paste there. Then push it back.",
+    download: "Download for macOS (.dmg)",
+    facts: [["1", "Keyboard & mouse"], ["E2E", "Encrypted link"], ["Esc ×3", "Brings it home"]],
+    here: "This Mac", there: "Logan's MacBook Air",
+    note: "Demo: move the pointer from this Mac to the one on the right.",
+    hint: "Move the pointer across →", over: "Now on Logan's MacBook Air", home: "Back on this Mac",
+  },
+  vi: {
+    badge: "Mac sang Mac · Beta sớm",
+    title: ["Một Bàn Phím,", "Mọi Máy Mac"],
+    lead: "Đẩy con trỏ qua mép màn hình là sang máy Mac bên cạnh: click, gõ phím, cuộn, copy ở đây và dán ở kia. Rồi đẩy về là xong.",
+    download: "Tải cho macOS (.dmg)",
+    facts: [["1", "Bộ phím & chuột"], ["E2E", "Kết nối mã hoá"], ["Esc ×3", "Lấy chuột về"]],
+    here: "Máy này", there: "Logan's MacBook Air",
+    note: "Minh hoạ: rê chuột từ máy này sang máy bên phải.",
+    hint: "Rê chuột sang phải →", over: "Đang ở Logan's MacBook Air", home: "Đã về máy này",
+  },
+});
+---
+
+<section id="top" class="relative w-full overflow-hidden px-margin-mobile pt-space-xl pb-space-3xl md:px-margin-desktop">
+  <div class="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-gradient-to-b from-secondary/20 via-tertiary/10 to-transparent blur-[130px]"></div>
+  <div class="relative mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-gutter-lg lg:grid-cols-12">
+    <div class="relative z-10 flex flex-col gap-space-lg lg:col-span-5">
+      <div class="inline-flex w-fit items-center gap-space-xs rounded-full bg-surface-container-low px-3 py-1.5 shadow-sm">
+        <ProductIcon product="flow" class="h-5 w-5" />
+        <span class="font-code text-label-badge uppercase tracking-wider text-secondary">{t.badge}</span>
+      </div>
+      <h1 class="text-display-hero tracking-tight">
+        {t.title[0]}{" "}
+        <span class="bg-gradient-to-r from-secondary via-tertiary to-primary-container bg-clip-text text-transparent">{t.title[1]}</span>
+      </h1>
+      <p class="max-w-xl text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-wrap items-center gap-space-sm">
+        <a href={flowDownload} class="flex items-center gap-space-xs rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-6 py-3.5 font-display text-sm font-semibold text-white shadow-[0_8px_28px_rgba(255,107,53,0.35)] transition-all hover:opacity-95">
+          <span class="material-symbols-outlined text-[20px]">laptop_mac</span>
+          {t.download}
+          <span class="rounded bg-white/20 px-1.5 font-code text-[11px]">v{flowVersion}</span>
+        </a>
+      </div>
+      <div class="flex flex-wrap gap-gutter pt-space-sm">
+        {t.facts.map(([value, label]) => (
+          <div class="flex flex-col">
+            <span class="font-display text-headline-sm text-on-surface">{value}</span>
+            <span class="font-code text-[11px] text-on-surface-variant">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Two Macs side by side: the pointer goes over at the edge, as in the app. -->
+    <div class="relative lg:col-span-7" id="hero-flow">
+      <div class="grid grid-cols-2 gap-3 select-none" data-desk>
+        {[t.here, t.there].map((name, index) => (
+          <div class="flex flex-col items-center gap-2">
+            <div class:list={["relative aspect-[16/10] w-full overflow-hidden rounded-xl border-2 bg-surface-container-low shadow-[0_12px_40px_var(--c-shadow)] transition-colors", index === 0 ? "border-secondary" : "border-outline-variant/40"]} data-screen={index}>
+              <div class="absolute inset-x-0 top-0 flex h-5 items-center gap-1 bg-surface-container-high px-2">
+                <span class="h-1.5 w-1.5 rounded-full bg-[#ff5f57]"></span><span class="h-1.5 w-1.5 rounded-full bg-[#febc2e]"></span><span class="h-1.5 w-1.5 rounded-full bg-[#28c840]"></span>
+              </div>
+            </div>
+            <div class="h-1.5 w-[104%] rounded-full bg-surface-container-highest"></div>
+            <span class="font-code text-[11px] text-on-surface-variant">{name}</span>
+          </div>
+        ))}
+        <span class="material-symbols-outlined pointer-events-none absolute text-[26px] text-primary-container drop-shadow" style="left: 20%; top: 40%" data-pointer>near_me</span>
+      </div>
+      <p class="mt-space-sm text-center font-code text-[11px] text-on-surface-variant" data-log>{t.hint}</p>
+      <p class="mt-1 text-center font-code text-[10px] text-on-surface-variant/70">{t.note}</p>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ t }}>
+  const root = document.getElementById("hero-flow");
+  const desk = root.querySelector("[data-desk]");
+  const pointer = root.querySelector("[data-pointer]");
+  const screens = root.querySelectorAll("[data-screen]");
+  const log = root.querySelector("[data-log]");
+  desk.style.position = "relative";
+  let on = 0;
+  // The pointer follows the mouse over the two screens; past the middle it's on the other Mac.
+  desk.addEventListener("mousemove", (event) => {
+    const box = desk.getBoundingClientRect();
+    const x = Math.min(Math.max(event.clientX - box.left, 0), box.width - 16);
+    const y = Math.min(Math.max(event.clientY - box.top, 24), box.height * 0.78);
+    pointer.style.left = `${x}px`;
+    pointer.style.top = `${y}px`;
+    const now = x > box.width / 2 ? 1 : 0;
+    if (now !== on) {
+      on = now;
+      screens.forEach((screen, index) => {
+        screen.classList.toggle("border-secondary", index === on);
+        screen.classList.toggle("border-outline-variant/40", index !== on);
+      });
+      log.textContent = on ? `● ${t.over}` : `● ${t.home}`;
+    }
+  });
+</script>

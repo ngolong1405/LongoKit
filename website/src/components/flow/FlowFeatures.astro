@@ -1,0 +1,53 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "How it works", title: "Pair Once, Then Just Move the Mouse",
+    lead: "Longo Flow waits in the menu bar of each Mac. The Macs find each other on the same Wi-Fi or network.",
+    cards: [
+      ["link", "Pair with a code", "On one Mac, Pair next to the other: it shows six digits to type. After that the link between them is encrypted, and only they can use it."],
+      ["swap_horiz", "Over the edge", "Set where the other Mac sits (left, right, above, below), then push the pointer past that edge. Clicks, double clicks, dragging, scrolling and every key go over."],
+      ["content_paste", "Copy here, paste there", "What you copy goes with the pointer: text and pictures, both ways."],
+      ["keyboard_return", "Always a way back", "Push the pointer back the way it came. Esc three times brings the keyboard and mouse home at once; so does losing the connection."],
+    ],
+    beta: "Early beta, Mac to Mac. Not yet: media and brightness keys, trackpad scroll momentum, dragging files across, Windows.",
+  },
+  vi: {
+    badge: "Cách dùng", title: "Ghép Đôi Một Lần, Rồi Chỉ Việc Rê Chuột",
+    lead: "Longo Flow chờ sẵn trên thanh menu của mỗi máy Mac. Các máy tự tìm thấy nhau khi cùng Wi-Fi hoặc cùng mạng.",
+    cards: [
+      ["link", "Ghép đôi bằng mã", "Trên một máy, bấm Ghép đôi cạnh máy kia: máy kia hiện 6 chữ số để nhập. Sau đó kết nối giữa hai máy được mã hoá, chỉ hai máy dùng được."],
+      ["swap_horiz", "Qua mép màn hình", "Đặt máy kia nằm ở đâu (trái, phải, trên, dưới), rồi đẩy con trỏ qua mép đó. Click, double click, kéo thả, cuộn và mọi phím đều sang theo."],
+      ["content_paste", "Copy ở đây, dán ở kia", "Thứ bạn copy đi theo con trỏ: chữ và ảnh, cả hai chiều."],
+      ["keyboard_return", "Luôn có đường về", "Đẩy con trỏ về mép cũ. Bấm Esc 3 lần là bàn phím và chuột về máy mình ngay; mất kết nối cũng vậy."],
+    ],
+    beta: "Bản beta sớm, Mac sang Mac. Chưa có: phím media và độ sáng, quán tính khi cuộn trackpad, kéo file sang máy kia, Windows.",
+  },
+});
+---
+
+<section id="how" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto mb-space-xl max-w-2xl text-center">
+    <span class="inline-flex rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-secondary">{t.badge}</span>
+    <h2 class="mt-space-sm text-headline-xl tracking-tight">{t.title}</h2>
+    <p class="mt-space-xs text-body-lg text-on-surface-variant">{t.lead}</p>
+  </div>
+  <div class="grid grid-cols-1 gap-gutter sm:grid-cols-2 lg:grid-cols-4">
+    {t.cards.map(([icon, title, body]) => (
+      <div class="flex flex-col gap-space-xs rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/15"><span class="material-symbols-outlined text-[24px] text-secondary">{icon}</span></div>
+        <span class="mt-space-xs font-display text-headline-sm text-on-surface">{title}</span>
+        <p class="text-body-md text-on-surface-variant">{body}</p>
+      </div>
+    ))}
+  </div>
+  <div class="mt-gutter rounded-xl bg-surface-container-lowest p-space-md">
+    <span class="flex items-start gap-space-xs font-code text-xs text-on-surface-variant"><span class="material-symbols-outlined text-[18px] text-secondary">science</span>{t.beta}</span>
+  </div>
+</section>

@@ -1,0 +1,35 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import FlowHero from "../components/flow/FlowHero.astro";
+import FlowFeatures from "../components/flow/FlowFeatures.astro";
+import FlowDownloads from "../components/flow/FlowDownloads.astro";
+import Footer from "../components/Footer.astro";
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const meta = pick(lang, {
+  en: {
+    title: "LongoFlow · LongoKit",
+    description: "LongoFlow: one keyboard and mouse for your Macs. Push the pointer past the edge and it's on the next Mac, with the clipboard. Encrypted, on your own network.",
+  },
+  vi: {
+    title: "LongoFlow · LongoKit",
+    description: "LongoFlow: một bộ bàn phím và chuột cho các máy Mac. Đẩy con trỏ qua mép màn hình là sang máy bên cạnh, mang theo clipboard. Mã hoá, chỉ trong mạng của bạn.",
+  },
+});
+---
+
+<Base lang={lang} title={meta.title} description={meta.description}>
+  <Header lang={lang} active="flow" />
+  <main class="relative w-full overflow-x-hidden pt-20">
+    <FlowHero lang={lang} />
+    <FlowFeatures lang={lang} />
+    <FlowDownloads lang={lang} />
+  </main>
+  <Footer lang={lang} />
+</Base>
