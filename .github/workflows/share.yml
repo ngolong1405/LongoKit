@@ -1,0 +1,25 @@
+name: share
+
+on:
+  push:
+    branches: [main, windows]
+    paths: ["apps/share-windows/**", ".github/workflows/share.yml"]
+  pull_request:
+    paths: ["apps/share-windows/**", ".github/workflows/share.yml"]
+  workflow_dispatch:
+
+jobs:
+  core:
+    # Longo Share's engine (the LocalSend protocol) on every OS it's for.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Tests
+        run: dotnet test apps/share-windows/Tests/LongoShare.Tests.csproj -c Release --logger "console;verbosity=normal"
