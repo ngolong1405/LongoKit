@@ -18,7 +18,7 @@ public sealed class ShotState
 {
     public bool IsEnabled { get; set; } = true;
     public bool SaveToFolder { get; set; } = true;
-    public string Folder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+    public string Folder { get; set; } = AppFolder.Standard("Longo Shot");
     public bool CopyToClipboard { get; set; } = true;
     public bool DrawAfterCapture { get; set; } = true;
     public bool ShowPreview { get; set; } = true;
@@ -45,6 +45,8 @@ public sealed class ShotModel
     {
         this.live = live;
         this.state = state ?? Store.Load<ShotState>(StoreName);
+        // Its own folder in Downloads, made now (Downloads itself, the old default, moves there).
+        if (live) this.state.Folder = AppFolder.Resolve(this.state.Folder, "Longo Shot");
         saveTimer.Tick += (_, _) =>
         {
             saveTimer.Stop();

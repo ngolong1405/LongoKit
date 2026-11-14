@@ -46,6 +46,8 @@ public sealed class ShareModel
     {
         state = sample ?? Store.Load<ShareState>("share");
         isSample = sample != null;
+        // Its own folder in Downloads, made now (Downloads itself, the old default, moves there).
+        if (!isSample) state.Folder = AppFolder.Resolve(state.Folder, "Longo Share");
     }
 
     // MARK: - Settings

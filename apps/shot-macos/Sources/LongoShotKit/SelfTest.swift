@@ -30,7 +30,8 @@ enum SelfTest {
         let suite = "LongoShot.selftest"
         UserDefaults().removePersistentDomain(forName: suite)
         let model = AppModel(live: false, defaults: UserDefaults(suiteName: suite)!)
-        check("Saves to Downloads by default", model.saveFolder.lastPathComponent == "Downloads")
+        check("Saves to its own folder in Downloads by default",
+              model.saveFolder.lastPathComponent == "Longo Shot" && model.saveFolder.deletingLastPathComponent().lastPathComponent == "Downloads")
         let taken = defaults[.captureArea]!
         check("A shortcut another action has is refused", !model.setShortcut(taken, for: .captureScreen) && model.shortcutError?.action == .captureScreen)
         check("A plain letter is refused", !model.setShortcut(Shortcut(keyCode: kVK_ANSI_K, modifiers: 0), for: .copyLast))

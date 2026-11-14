@@ -213,11 +213,8 @@ final class AppModel: ObservableObject, HostableModel {
         self.live = live
         isEnabled = defaults.object(forKey: Keys.enabled) as? Bool ?? true
         alias = defaults.string(forKey: Keys.alias) ?? Host.current().localizedName ?? "Mac"
-        // Its own folder in Downloads, so what came in is easy to find (0.1.0 saved straight to Downloads).
-        let downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!
-        let savedFolder = defaults.string(forKey: Keys.folder).map { URL(fileURLWithPath: $0) }
-        folder = savedFolder == nil || savedFolder!.standardizedFileURL == downloads.standardizedFileURL
-            ? downloads.appendingPathComponent("Longo Share", isDirectory: true) : savedFolder!
+        // Its own folder in Downloads (made now), so what came in is easy to find.
+        folder = live ? AppFolder.resolve(saved: defaults.string(forKey: Keys.folder), name: "Longo Share") : AppFolder.standard("Longo Share")
         pin = defaults.string(forKey: Keys.pin)
         trusted = defaults.data(forKey: Keys.trusted).flatMap { try? JSONDecoder().decode([TrustedDevice].self, from: $0) } ?? []
         var saved = defaults.data(forKey: Keys.conversations).flatMap { try? JSONDecoder().decode([String: Conversation].self, from: $0) } ?? [:]

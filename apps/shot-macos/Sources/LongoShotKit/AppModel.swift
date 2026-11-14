@@ -30,7 +30,10 @@ final class AppModel: ObservableObject {
 
     // Where captures go.
     @Published var saveFolder: URL {
-        didSet { defaults.set(saveFolder.path, forKey: Keys.folder) }
+        didSet {
+            defaults.set(saveFolder.path, forKey: Keys.folder)
+            if live { try? FileManager.default.createDirectory(at: saveFolder, withIntermediateDirectories: true) }
+        }
     }
     @Published var saveToFolder: Bool {
         didSet {
@@ -193,10 +196,8 @@ final class AppModel: ObservableObject {
         FileManager.default.temporaryDirectory.appendingPathComponent("Longo Shot Recordings", isDirectory: true)
     }
 
-    static var defaultFolder: URL {
-        FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
-            ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Downloads")
-    }
+    /// Downloads/Longo Shot, made at launch.
+    static var defaultFolder: URL { AppFolder.standard("Longo Shot") }
 
     /// `live: false` for snapshots and the self-test: no hot keys, no captures.
     /// Where copies of clipboard-only captures are kept for the Recent list.
@@ -208,7 +209,8 @@ final class AppModel: ObservableObject {
         self.historyFolder = historyFolder
         keepHistory = defaults.object(forKey: Keys.keepHistory) as? Bool ?? true
         history = defaults.data(forKey: Keys.history).flatMap { try? JSONDecoder().decode([HistoryItem].self, from: $0) } ?? []
-        saveFolder = defaults.string(forKey: Keys.folder).map { URL(fileURLWithPath: $0) } ?? Self.defaultFolder
+        saveFolder = live ? AppFolder.resolve(saved: defaults.string(forKey: Keys.folder), name: "Longo Shot")
+            : defaults.string(forKey: Keys.folder).map { URL(fileURLWithPath: $0) } ?? Self.defaultFolder
         saveToFolder = defaults.object(forKey: Keys.save) as? Bool ?? true
         copyToClipboard = defaults.object(forKey: Keys.copy) as? Bool ?? true
         showPreview = defaults.object(forKey: Keys.preview) as? Bool ?? true
