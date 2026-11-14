@@ -87,7 +87,10 @@ internal static class Native
     [DllImport("dwmapi.dll")]
     public static extern int DwmGetWindowAttribute(IntPtr window, int attribute, out int value, int size);
 
-    public const int ExtendedFrameBounds = 9, Cloaked = 14;
+    [DllImport("dwmapi.dll")]
+    public static extern int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);
+
+    public const int ExtendedFrameBounds = 9, Cloaked = 14, TransitionsForceDisabled = 3;
 
     // Placing Shot's own windows, in pixels.
     [DllImport("user32.dll")]

@@ -87,6 +87,9 @@ internal sealed class CaptureWindow : Window
             var handle = new WindowInteropHelper(this).Handle;
             Native.SetWindowLong(handle, Native.ExStyle, Native.GetWindowLong(handle, Native.ExStyle) | Native.ToolWindow);
             Native.SetWindowDisplayAffinity(handle, Native.ExcludeFromCapture);
+            // Up and gone at once: Windows fades windows in and out, which made the screen brighten slowly after a capture.
+            var off = 1;
+            Native.DwmSetWindowAttribute(handle, Native.TransitionsForceDisabled, ref off, sizeof(int));
             Place();
         };
         // Moved onto a screen at another scale, WPF resizes it: put back where it belongs, in pixels.

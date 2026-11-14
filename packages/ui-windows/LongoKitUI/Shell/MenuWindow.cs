@@ -89,9 +89,9 @@ internal sealed class MenuWindow : Window
         body.Children.Add(Ui.Hairline());
         body.Children.Add(module.CreateMenu());
         body.Children.Add(Ui.Hairline());
-        body.Children.Add(Ui.Spread(
-            Ui.Ghost(Localizer.L("Settings…"), () => shell.ShowWindow(module), "\uE713"),
-            Ui.Ghost(Localizer.L("Quit"), shell.Quit, "\uE7E8")));
+        var settings = Ui.Ghost(Localizer.L("Settings…"), () => shell.ShowWindow(module), "\uE713");
+        settings.HorizontalAlignment = HorizontalAlignment.Left;
+        body.Children.Add(Ui.Spread(settings, Ui.Ghost(Localizer.L("Quit"), shell.Quit, "\uE7E8")));
         var card = new Border
         {
             Width = 380,

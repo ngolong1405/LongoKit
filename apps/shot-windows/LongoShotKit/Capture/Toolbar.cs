@@ -80,7 +80,7 @@ internal sealed class Toolbar : Border
                 // Picking the tool that's on puts it down: dragging moves the area again.
                 state.Tool = picked ? null : tool;
                 state.Notify();
-            }, picked ? "Solar" : null);
+            }, picked ? SolarFill : null);
             tools.Children.Add(button);
         }
         row.Children.Add(new Border { Child = tools, CornerRadius = new CornerRadius(10), Padding = new Thickness(2), Background = new SolidColorBrush(Color.FromArgb(16, 255, 255, 255)) });
@@ -106,7 +106,7 @@ internal sealed class Toolbar : Border
             {
                 state.Size = size;
                 state.Notify();
-            }, state.Size == index ? "Slate" : null));
+            }, state.Size == index ? Picked : null));
         }
         row.Children.Add(Divider());
         var undo = Square(Ui.Glyph("\uE7A7", 13, "White"), L("Undo") + " (Ctrl+Z)", state.Undo);
@@ -118,7 +118,7 @@ internal sealed class Toolbar : Border
         row.Children.Add(undo);
         row.Children.Add(redo);
         row.Children.Add(Divider());
-        row.Children.Add(Square(Ui.Glyph("\uE711", 12, "White"), L("Throw this capture away"), discard, hover: "Danger"));
+        row.Children.Add(Square(Ui.Glyph("\uE711", 12, "White"), L("Throw this capture away"), discard, danger: true));
         var done = Ui.Primary(L("Done"), () => finish(true), "\uE73E").Tip(L("Save and copy (Enter or Ctrl+C); Esc goes back to picking the area"));
         done.Margin = new Thickness(4, 0, 0, 0);
         row.Children.Add(done);
@@ -127,22 +127,42 @@ internal sealed class Toolbar : Border
 
     private static Border Divider() => new() { Width = 1, Height = 22, Margin = new Thickness(6, 0, 6, 0), Background = new SolidColorBrush(Color.FromArgb(31, 255, 255, 255)) };
 
-    /// <summary>A 30-point square button: <paramref name="fill"/> behind it when picked, lit under the pointer.</summary>
-    private static Button Square(UIElement content, string? tip, Action click, string? fill = null, string hover = "White")
+    // The toolbar is dark in light and dark appearance alike: its colors are its own, not the app's.
+    private static readonly Brush Picked = Frozen(Color.FromRgb(0x2F, 0x32, 0x42));
+    private static readonly Brush Lit = Frozen(Color.FromArgb(36, 255, 255, 255));
+    private static readonly Brush LitRed = Frozen(Color.FromArgb(90, 0xEF, 0x44, 0x44));
+    private static readonly Brush SolarFill = Frozen(Color.FromRgb(0xFF, 0x6B, 0x35));
+
+    private static Brush Frozen(Color color)
     {
-        var face = new Border { Child = content, Width = 32, Height = 30, CornerRadius = new CornerRadius(7) };
-        if (fill != null) face.Res(Border.BackgroundProperty, fill);
-        var glow = new Border { CornerRadius = new CornerRadius(7), IsHitTestVisible = false, Opacity = 0 };
-        glow.Res(Border.BackgroundProperty, hover);
-        var stack = new Grid();
-        stack.Children.Add(face);
-        stack.Children.Add(glow);
-        var button = new Button { Content = stack, Padding = new Thickness(0), Width = 32, Height = 30 }.Tip(tip);
-        button.SetResourceReference(StyleProperty, "LongoIconButton");
-        button.MouseEnter += (_, _) => glow.Opacity = fill == null ? 0.14 : 0;
-        button.MouseLeave += (_, _) => glow.Opacity = 0;
-        button.Click += (_, _) => click();
-        return button;
+        var brush = new SolidColorBrush(color);
+        brush.Freeze();
+        return brush;
+    }
+
+    /// <summary>A 32 × 30 button: <paramref name="fill"/> behind it when picked, lit under the pointer (red for ✕).</summary>
+    private static Border Square(UIElement content, string? tip, Action click, Brush? fill = null, bool danger = false)
+    {
+        var rest = fill ?? Brushes.Transparent;
+        var face = new Border
+        {
+            Child = content, Width = 32, Height = 30, CornerRadius = new CornerRadius(7), Background = rest,
+            Cursor = System.Windows.Input.Cursors.Hand, SnapsToDevicePixels = true,
+        }.Tip(tip);
+        if (content is FrameworkElement inner)
+        {
+            inner.HorizontalAlignment = HorizontalAlignment.Center;
+            inner.VerticalAlignment = VerticalAlignment.Center;
+        }
+        face.MouseEnter += (_, _) => face.Background = fill != null ? rest : danger ? LitRed : Lit;
+        face.MouseLeave += (_, _) => face.Background = rest;
+        face.MouseLeftButtonUp += (_, e) =>
+        {
+            if (!face.IsEnabled) return;
+            e.Handled = true;
+            click();
+        };
+        return face;
     }
 
     /// <summary>The tools' icons, drawn: they look the same on every Windows.</summary>
