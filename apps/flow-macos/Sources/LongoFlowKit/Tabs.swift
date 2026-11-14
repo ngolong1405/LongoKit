@@ -166,6 +166,7 @@ private struct Arrangement: View {
                         let lifted = held == .display(index)
                         let frame = layout.frame(screen).offsetBy(dx: lifted ? drag.width : 0, dy: lifted ? drag.height : 0)
                         Display(wallpaper: model.wallpapers.indices.contains(index) ? model.wallpapers[index] : nil,
+                                name: Self.title(Screens.short(model.screenNames[Screens.key(screen)] ?? "")),
                                 badge: index == own ? MacBadge(name: model.name, status: L("This Mac"), tint: Theme.violet, live: true,
                                                                laptop: model.localBuiltin != nil) : nil,
                                 main: screen.origin == .zero, tint: Theme.violet, pointer: index == own && model.controlling == nil,
@@ -190,6 +191,11 @@ private struct Arrangement: View {
                 .foregroundStyle(Theme.textMuted)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    /// A display's short name to show ("Built-in" in the app's language).
+    static func title(_ short: String) -> String {
+        short == "Built-in" ? L("Built-in") : short
     }
 
     /// The outline of where the dragged thing will land.
@@ -261,6 +267,7 @@ private struct Arrangement: View {
         ForEach(Array(mac.knownScreens.enumerated()), id: \.offset) { index, screen in
             let frame = layout.frame(screen.offsetBy(dx: offset.x, dy: offset.y)).offsetBy(dx: lifted ? drag.width : 0, dy: lifted ? drag.height : 0)
             Display(wallpaper: model.theirWallpapers[mac.id]?[index],
+                    name: Self.title(mac.names.indices.contains(index) ? mac.names[index] : ""),
                     badge: index == own ? MacBadge(name: mac.name, status: connected ? L("Connected") : L("Away"),
                                                    tint: connected ? Theme.emerald : Theme.textFaint, live: connected,
                                                    laptop: mac.builtin != nil || mac.screens.isEmpty) : nil,
@@ -349,6 +356,7 @@ private struct MacBadge: View {
 /// on its own display and the pointer where the mouse is.
 private struct Display: View {
     let wallpaper: NSImage?
+    var name = ""
     var badge: MacBadge? = nil
     let main: Bool
     let tint: Color
@@ -383,6 +391,17 @@ private struct Display: View {
                         .foregroundStyle(.white)
                         .shadow(color: .black.opacity(0.6), radius: 1.5)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                if !name.isEmpty {
+                    Text(name)
+                        .font(.ui(size.width < 120 ? 9 : 10, .semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color.black.opacity(0.45)))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                        .padding(5)
                 }
                 if settling {
                     Rectangle().fill(Color.black.opacity(0.35)).overlay(ProgressView().controlSize(.small))

@@ -139,6 +139,7 @@ struct Reader {
     }
 
     mutating func u8() -> UInt8? { take(1)?.first }
+    mutating func bytes(_ count: Int) -> Data? { take(count) }
     mutating func u16() -> UInt16? { number(take(2)) }
     mutating func u64() -> UInt64? { number(take(8)) }
     mutating func f32() -> Float? { (number(take(4)) as UInt32?).map(Float.init(bitPattern:)) }

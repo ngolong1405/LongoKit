@@ -109,5 +109,6 @@ enum Vietnamese {
             "Kéo các màn hình để sắp xếp, như trong Cài đặt hệ thống. Máy Mac đã ghép đôi hiện ra bên cạnh.",
         "Drag displays to arrange them, as in System Settings, and another Mac's to where it sits.":
             "Kéo các màn hình để sắp xếp, như trong Cài đặt hệ thống; kéo màn hình của máy kia tới chỗ nó đặt.",
+        "Built-in": "Tích hợp",
     ]
 }

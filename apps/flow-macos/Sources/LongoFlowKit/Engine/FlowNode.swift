@@ -13,6 +13,8 @@ public struct PairedMac: Codable, Hashable, Identifiable, Sendable {
     public var screens: [CGRect] = []
     /// Which of them is a laptop's own display, if one is.
     public var builtin: Int?
+    /// Their names, short, as it said.
+    public var names: [String] = []
     /// Where its coordinates sit in this Mac's: its point + offset = here. Nil until it's placed.
     public var offset: CGPoint?
 
@@ -34,6 +36,7 @@ public struct PairedMac: Codable, Hashable, Identifiable, Sendable {
         screens = try c.decodeIfPresent([CGRect].self, forKey: .screens) ?? []
         offset = try c.decodeIfPresent(CGPoint.self, forKey: .offset)
         builtin = try c.decodeIfPresent(Int.self, forKey: .builtin)
+        names = try c.decodeIfPresent([String].self, forKey: .names) ?? []
     }
 
     /// Its screens, or a laptop's when it hasn't said yet.
@@ -326,6 +329,8 @@ final class FlowNode: @unchecked Sendable {
     var localScreens: () -> [CGRect] = { [] }
     /// Their wallpapers, small (set by the app, which reads them on the main thread).
     var localWallpapers: [Data?] = []
+    /// Their names, short (set by the app, which reads them on the main thread).
+    var localNames: [String] = []
 
     /// Puts a paired Mac's screens at `offset` in this Mac's coordinates, here and there (there, the inverse).
     func place(_ mac: String, at offset: CGPoint) {
@@ -356,6 +361,12 @@ final class FlowNode: @unchecked Sendable {
         }
         // After the displays (earlier versions stop reading before it): the laptop's own, or 255.
         writer.u8(UInt8(clamping: Screens.builtin(in: screens) ?? 255))
+        // Then each display's name, short (also past what earlier versions read).
+        for index in screens.indices.prefix(255) {
+            let name = Data((localNames.indices.contains(index) ? localNames[index] : "").utf8.prefix(60))
+            writer.u8(UInt8(name.count))
+            writer.data.append(name)
+        }
         links[mac]?.send(Message(.screens, writer.data))
         for (index, picture) in localWallpapers.enumerated() {
             guard let picture else { continue }
@@ -486,6 +497,12 @@ final class FlowNode: @unchecked Sendable {
             }
             paired[mac]!.screens = screens
             if let index = reader.u8() { paired[mac]!.builtin = index == 255 ? nil : Int(index) }
+            var names: [String] = []
+            for _ in screens.indices {
+                guard let length = reader.u8(), let bytes = reader.bytes(Int(length)) else { break }
+                names.append(String(decoding: bytes, as: UTF8.self))
+            }
+            paired[mac]!.names = names
             // Not placed yet: the Mac with the smaller id places the two, from the side chosen when pairing.
             if paired[mac]!.offset == nil && id < mac {
                 let offset = paired[mac]!.placed(next: localScreens())

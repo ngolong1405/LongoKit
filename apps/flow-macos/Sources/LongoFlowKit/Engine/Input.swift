@@ -28,8 +28,36 @@ enum Screens {
             let there = CGPoint(x: target.x - offset.x, y: target.y - offset.y)
             return CGPoint(x: min(max(there.x, screen.minX + 1), screen.maxX - 2), y: min(max(there.y, screen.minY + 1), screen.maxY - 2))
         }
-        return nil
+        // Not touching: straight on the way it was pushed, across a gap, to the nearest of the other's displays that
+        // lines up with the pointer, unless one of this Mac's displays is in the way.
+        let horizontal = abs(dx) >= abs(dy)
+        var best: (screen: CGRect, gap: CGFloat)?
+        for screen in other {
+            let placed = screen.offsetBy(dx: offset.x, dy: offset.y)
+            let gap: CGFloat
+            let between: CGRect
+            if horizontal {
+                guard point.y >= placed.minY, point.y < placed.maxY else { continue }
+                gap = dx > 0 ? placed.minX - point.x : point.x - placed.maxX
+                between = CGRect(x: dx > 0 ? point.x + 1 : placed.maxX, y: point.y, width: max(gap - 1, 0), height: 1)
+            } else {
+                guard point.x >= placed.minX, point.x < placed.maxX else { continue }
+                gap = dy > 0 ? placed.minY - point.y : point.y - placed.maxY
+                between = CGRect(x: point.x, y: dy > 0 ? point.y + 1 : placed.maxY, width: 1, height: max(gap - 1, 0))
+            }
+            guard gap >= -1, gap <= maxGap, !local.contains(where: { $0.intersects(between) }) else { continue }
+            if best == nil || gap < best!.gap { best = (screen, gap) }
+        }
+        guard let screen = best?.screen else { return nil }
+        let placed = screen.offsetBy(dx: offset.x, dy: offset.y)
+        let entry = horizontal
+            ? CGPoint(x: dx > 0 ? placed.minX + 1 : placed.maxX - 2, y: point.y)
+            : CGPoint(x: point.x, y: dy > 0 ? placed.minY + 1 : placed.maxY - 2)
+        return CGPoint(x: entry.x - offset.x, y: entry.y - offset.y)
     }
+
+    /// How far across empty desk the pointer jumps to another Mac's display (in points).
+    static let maxGap: CGFloat = 2400
 
     /// Another Mac's screens, dropped at `offset` here, moved to the nearest place where they touch one of these
     /// screens edge to edge (sharing at least a stretch of it) without covering any: as macOS arranges displays.
@@ -132,6 +160,13 @@ enum Screens {
             names[key(CGRect(x: frame.minX, y: main.frame.maxY - frame.maxY, width: frame.width, height: frame.height))] = screen.localizedName
         }
         return names
+    }
+
+    /// A display's name, short: "Built-in" for a laptop's own, a monitor's as it calls itself (cut to fit).
+    static func short(_ name: String) -> String {
+        if name.localizedCaseInsensitiveContains("built-in") || name.localizedCaseInsensitiveContains("tích hợp") { return "Built-in" }
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        return trimmed.count > 18 ? String(trimmed.prefix(17)) + "…" : trimmed
     }
 
     /// A display's place as a key (CGRect is only hashable from macOS 15).

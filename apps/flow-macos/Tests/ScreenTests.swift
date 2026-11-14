@@ -60,4 +60,24 @@ final class ScreenTests: XCTestCase {
     func testKeptOnAScreen() {
         XCTAssertEqual(Screens.clamp(CGPoint(x: 3000, y: 2000), screens: [laptop]), CGPoint(x: 1511, y: 981))
     }
+
+    func testAcrossAGap() {
+        // The Air sits under the LG, a gap away from the TypeC on its right: pushed right, it jumps the gap.
+        let air = [CGRect(x: 0, y: 0, width: 1470, height: 956)]
+        let typeC = CGRect(x: 1650, y: 0, width: 1920, height: 1080)
+        let there = Screens.crossing(CGPoint(x: 1469, y: 500), dx: 4, dy: 0, local: air, into: [typeC], at: .zero)
+        XCTAssertEqual(there?.x ?? 0, 1651, accuracy: 1)
+        XCTAssertEqual(there?.y ?? 0, 500, accuracy: 1)
+        // Not lined up (below the TypeC): nothing.
+        XCTAssertNil(Screens.crossing(CGPoint(x: 1469, y: 500), dx: 4, dy: 0, local: air, into: [typeC], at: CGPoint(x: 0, y: 700)))
+        // One of this Mac's own displays in the way: it goes there instead, as macOS has it.
+        let own = CGRect(x: 1500, y: 0, width: 100, height: 956)
+        XCTAssertNil(Screens.crossing(CGPoint(x: 1469, y: 500), dx: 4, dy: 0, local: air + [own], into: [typeC], at: .zero))
+    }
+
+    func testShortNames() {
+        XCTAssertEqual(Screens.short("Built-in Retina Display"), "Built-in")
+        XCTAssertEqual(Screens.short("LG ULTRAGEAR"), "LG ULTRAGEAR")
+        XCTAssertEqual(Screens.short("A Very Long Monitor Name Indeed"), "A Very Long Monit…")
+    }
 }

@@ -184,6 +184,8 @@ final class AppModel: ObservableObject, HostableModel {
     private func refreshWallpapers(_ node: FlowNode) {
         let pictures = Screens.wallpapers()
         node.localWallpapers = pictures
+        let names = Screens.names()
+        node.localNames = Screens.all().map { Screens.short(names[Screens.key($0)] ?? "") }
         wallpapers = pictures.map { $0.flatMap(NSImage.init(data:)) }
     }
 
