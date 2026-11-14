@@ -137,11 +137,14 @@ final class AppModel: ObservableObject, HostableModel {
         node.pairingEnded = { name, ok in Task { @MainActor [weak self] in self?.pairingEnded(name, ok) } }
         // Events go straight to the bridge, off the main thread; the clipboard goes through the main one.
         node.localScreens = { Screens.all() }
+        refreshWallpapers(node)
         node.placedThere = { mac in Task { @MainActor [weak self] in self?.placing.remove(mac) } }
         let bridge = self.bridge
         node.received = { [weak self] mac, message in
             if message.kind == .clipboard {
                 Task { @MainActor in self?.clipboardArrived(message.payload) }
+            } else if message.kind == .wallpaper {
+                Task { @MainActor in self?.wallpaperArrived(message.payload, from: mac) }
             } else {
                 bridge.received(message, from: mac)
             }
@@ -157,7 +160,9 @@ final class AppModel: ObservableObject, HostableModel {
                                                                 object: nil, queue: .main) { _ in
             Task { @MainActor [weak self] in
                 self?.bridge.screensChanged()
+                if let node = self?.node { self?.refreshWallpapers(node) }
                 self?.node?.sendScreens()
+                self?.arranging = false
                 self?.localScreens = Screens.all()
                 self?.screenNames = Screens.names()
                 self?.localBuiltin = Screens.builtin(in: Screens.all())
@@ -170,6 +175,43 @@ final class AppModel: ObservableObject, HostableModel {
     @Published private(set) var localScreens = Screens.all()
     /// Their names, for the arrangement.
     @Published private(set) var screenNames: [String: String] = [:]
+    /// Each display's wallpaper here, and the other Macs' (as they sent them), for the arrangement.
+    @Published private(set) var wallpapers: [NSImage?] = []
+    @Published private(set) var theirWallpapers: [String: [Int: NSImage]] = [:]
+    /// This Mac's displays are being moved (until macOS says they have).
+    @Published private(set) var arranging = false
+
+    private func refreshWallpapers(_ node: FlowNode) {
+        let pictures = Screens.wallpapers()
+        node.localWallpapers = pictures
+        wallpapers = pictures.map { $0.flatMap(NSImage.init(data:)) }
+    }
+
+    private func wallpaperArrived(_ payload: Data, from mac: String) {
+        guard let index = payload.first, let picture = NSImage(data: payload.dropFirst()) else { return }
+        theirWallpapers[mac, default: [:]][Int(index)] = picture
+    }
+
+    /// Moves this Mac's displays to `frames` (one dragged in the arrangement), as System Settings does. If the main
+    /// display moved, everything shifted: the other Macs keep their places next to the displays.
+    func arrange(_ frames: [CGRect]) {
+        guard frames != localScreens else { return }
+        arranging = true
+        let shift = Screens.arrange(frames)
+        if shift != .zero {
+            for mac in paired {
+                guard let offset = mac.offset else { continue }
+                place(mac, at: CGPoint(x: offset.x + shift.x, y: offset.y + shift.y))
+            }
+        }
+        // macOS says when it's done; if it doesn't, the arrangement shows what it has.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            guard let self, self.arranging else { return }
+            self.arranging = false
+            self.localScreens = Screens.all()
+        }
+    }
+
     /// Which of this Mac's displays is its own (a laptop's).
     @Published private(set) var localBuiltin = Screens.builtin(in: Screens.all())
 

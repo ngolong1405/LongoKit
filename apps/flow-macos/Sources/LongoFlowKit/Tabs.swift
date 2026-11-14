@@ -128,15 +128,17 @@ private struct CodeField: View {
     }
 }
 
-/// The desk: this Mac's displays as macOS arranges them, each paired Mac's around them where it sits, each Mac's
-/// screens framed and named, and the stretches where they touch (where the pointer goes over) lit. A Mac's screens
-/// follow the hand anywhere while dragged, with an outline where they'll land: against the nearest edge, sharing a
-/// stretch of it, never on top of a display. Let go, they settle there, dimmed with a spinner until the Mac has it.
+/// The desk, as System Settings › Displays arranges displays: this Mac's displays with their wallpapers, and each
+/// paired Mac's (with theirs) where it sits. Any of them drags: one of this Mac's moves it in macOS, as there;
+/// another Mac's moves that Mac. While dragged, an outline shows where it'll land (against the nearest edge, sharing
+/// a stretch of it, on top of nothing); let go, it settles there, dimmed with a spinner until it's in place.
 private struct Arrangement: View {
     @EnvironmentObject private var model: AppModel
-    @State private var dragging: String?
+    /// What's dragged: one of this Mac's displays, or another Mac.
+    private enum Held: Equatable { case display(Int), mac(String) }
+    @State private var held: Held?
     @State private var drag = CGSize.zero
-    /// Where the Mac being dragged will land, in this Mac's points.
+    /// Where the dragged thing will land: a display's origin, or a Mac's offset, in this Mac's points.
     @State private var landing: CGPoint?
     /// The scale and place of everything, kept while dragging and settling, so nothing jumps under the hand.
     @State private var frozen: Layout?
@@ -149,125 +151,132 @@ private struct Arrangement: View {
                                               size: geometry.size)
                 ZStack(alignment: .topLeading) {
                     Desk()
-                    // This Mac.
-                    // The Mac's name goes on its own display (a laptop's), or its main one.
-                    let own = model.localBuiltin ?? 0
-                    ForEach(Array(model.localScreens.enumerated()), id: \.offset) { index, screen in
-                        let frame = layout.frame(screen)
-                        Display(label: model.screenNames[Screens.key(screen)] ?? "\(Int(screen.width)) × \(Int(screen.height))",
-                                badge: index == own ? MacBadge(name: model.name, status: L("This Mac"), tint: Theme.violet, live: true, laptop: model.localBuiltin != nil) : nil,
-                                main: index == 0, laptop: index == model.localBuiltin,
-                                tint: Theme.violet, pointer: index == 0 && model.controlling == nil, faded: false, small: frame.width < 90)
+                    // Where the dragged display or Mac will land.
+                    ForEach(Array(landingFrames.enumerated()), id: \.offset) { _, rect in
+                        let frame = layout.frame(rect)
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .strokeBorder(Theme.text.opacity(0.55), style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
+                            .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Theme.text.opacity(0.06)))
                             .frame(width: frame.width, height: frame.height)
                             .position(x: frame.midX, y: frame.midY)
-                            .help(L("This Mac's displays are arranged in System Settings › Displays"))
                     }
-                    // Where the pointer goes over.
-                    ForEach(model.paired.filter { model.connected.contains($0.id) && dragging != $0.id }) { mac in
-                        let offset = model.offset(of: mac)
-                        ForEach(Array(Screens.seams(model.localScreens, mac.knownScreens.map { $0.offsetBy(dx: offset.x, dy: offset.y) }).enumerated()),
-                                id: \.offset) { _, seam in
-                            Seam(from: layout.point(seam.0), to: layout.point(seam.1))
-                        }
-                    }
-                    // Where the dragged Mac will land.
-                    if let dragging, let landing, let mac = model.paired.first(where: { $0.id == dragging }) {
-                        ForEach(Array(mac.knownScreens.enumerated()), id: \.offset) { _, screen in
-                            let frame = layout.frame(screen.offsetBy(dx: landing.x, dy: landing.y))
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .strokeBorder(Theme.emerald, style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
-                                .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Theme.emerald.opacity(0.1)))
-                                .frame(width: frame.width, height: frame.height)
-                                .position(x: frame.midX, y: frame.midY)
-                        }
+                    // This Mac's displays.
+                    let own = model.localBuiltin ?? 0
+                    ForEach(Array(model.localScreens.enumerated()), id: \.offset) { index, screen in
+                        let lifted = held == .display(index)
+                        let frame = layout.frame(screen).offsetBy(dx: lifted ? drag.width : 0, dy: lifted ? drag.height : 0)
+                        Display(wallpaper: model.wallpapers.indices.contains(index) ? model.wallpapers[index] : nil,
+                                badge: index == own ? MacBadge(name: model.name, status: L("This Mac"), tint: Theme.violet, live: true,
+                                                               laptop: model.localBuiltin != nil) : nil,
+                                main: screen.origin == .zero, tint: Theme.violet, pointer: index == own && model.controlling == nil,
+                                faded: false, lifted: lifted, settling: model.arranging)
+                            .frame(width: frame.width, height: frame.height)
+                            .position(x: frame.midX, y: frame.midY)
+                            .zIndex(lifted ? 3 : 1)
+                            .gesture(dragging(.display(index), layout: layout))
+                            .help(model.screenNames[Screens.key(screen)] ?? "")
                     }
                     ForEach(model.paired) { mac in
-                        group(mac, layout: layout, in: geometry.size)
+                        group(mac, layout: layout)
                     }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
             .frame(height: Self.height)
             .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.hairline))
-
-            HStack(spacing: 14) {
-                Label(model.paired.isEmpty ? L("Pair a Mac below to place it here") : L("Drag a Mac to where it sits on your desk"),
-                      systemImage: "hand.draw")
-                    .font(.ui(11.5, .medium))
-                    .foregroundStyle(Theme.textSecondary)
-                if !model.paired.isEmpty {
-                    HStack(spacing: 5) {
-                        Capsule().fill(Theme.solar).frame(width: 14, height: 3).shadow(color: Theme.solar.opacity(0.8), radius: 3)
-                        Text(L("The pointer goes over here")).font(.ui(11)).foregroundStyle(Theme.textMuted)
-                    }
-                }
-                Spacer()
-                Button {
-                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Displays-Settings.extension")!)
-                } label: { Label(L("Arrange this Mac's displays…"), systemImage: "display.2") }
-                    .buttonStyle(GhostButtonStyle(compact: true))
-            }
+            Text(model.paired.isEmpty ? L("Drag displays to arrange them, as in System Settings. Paired Macs show up beside them.")
+                 : L("Drag displays to arrange them, as in System Settings, and another Mac's to where it sits."))
+                .font(.ui(11.5))
+                .foregroundStyle(Theme.textMuted)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
-    /// A paired Mac: its frame and screens, dragged together, then settled (dimmed, with a spinner, until it confirms).
-    @ViewBuilder private func group(_ mac: PairedMac, layout: Layout, in size: CGSize) -> some View {
-        let offset = model.offset(of: mac)
-        let connected = model.connected.contains(mac.id)
-        let moving = dragging == mac.id ? drag : .zero
-        let settling = model.placing.contains(mac.id)
-        let tint = connected ? Theme.emerald : Theme.textFaint
-        let frames = mac.knownScreens.map { layout.frame($0.offsetBy(dx: offset.x, dy: offset.y)).offsetBy(dx: moving.width, dy: moving.height) }
-        let gesture = DragGesture(minimumDistance: 1)
+    /// The outline of where the dragged thing will land.
+    private var landingFrames: [CGRect] {
+        guard let held, let landing else { return [] }
+        switch held {
+        case .display(let index):
+            guard model.localScreens.indices.contains(index) else { return [] }
+            return [CGRect(origin: landing, size: model.localScreens[index].size)]
+        case .mac(let id):
+            guard let mac = model.paired.first(where: { $0.id == id }) else { return [] }
+            return mac.knownScreens.map { $0.offsetBy(dx: landing.x, dy: landing.y) }
+        }
+    }
+
+    /// Dragging a display of this Mac's (against its others) or another Mac (against this Mac's displays).
+    private func dragging(_ what: Held, layout: Layout) -> some Gesture {
+        DragGesture(minimumDistance: 1)
             .onChanged { value in
-                if dragging != mac.id {
+                if held != what {
                     frozen = layout
-                    dragging = mac.id
+                    held = what
                 }
                 drag = value.translation
-                let moved = CGPoint(x: offset.x + value.translation.width / layout.scale, y: offset.y + value.translation.height / layout.scale)
-                landing = Screens.snap(mac.knownScreens, at: moved, to: model.localScreens)
+                let by = CGPoint(x: value.translation.width / layout.scale, y: value.translation.height / layout.scale)
+                switch what {
+                case .display(let index):
+                    let screen = model.localScreens[index]
+                    let others = model.localScreens.enumerated().filter { $0.offset != index }.map(\.element)
+                    let moved = CGPoint(x: screen.minX + by.x, y: screen.minY + by.y)
+                    landing = others.isEmpty ? screen.origin
+                        : Screens.snap([CGRect(origin: .zero, size: screen.size)], at: moved, to: others)
+                case .mac(let id):
+                    guard let mac = model.paired.first(where: { $0.id == id }) else { return }
+                    let offset = model.offset(of: mac)
+                    landing = Screens.snap(mac.knownScreens, at: CGPoint(x: offset.x + by.x, y: offset.y + by.y), to: model.localScreens)
+                }
             }
             .onEnded { _ in
-                let target = landing ?? offset
-                // Into place smoothly, from where it was let go.
+                let target = landing
                 withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
-                    model.place(mac, at: target)
-                    dragging = nil
+                    if let target {
+                        switch what {
+                        case .display(let index):
+                            var frames = model.localScreens
+                            frames[index].origin = target
+                            model.arrange(frames)
+                        case .mac(let id):
+                            if let mac = model.paired.first(where: { $0.id == id }) { model.place(mac, at: target) }
+                        }
+                    }
+                    held = nil
                     drag = .zero
                     landing = nil
                 }
-                // The view settles at its new scale once the move is done.
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                // The view settles at its new scale once things are in place.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                     withAnimation(.easeInOut(duration: 0.25)) { frozen = nil }
                 }
             }
-        Group {
-            ForEach(Array(frames.enumerated()), id: \.offset) { index, frame in
-                Display(label: mac.knownScreens.count > 1 ? L("Display %d", index + 1) : "\(Int(mac.knownScreens[index].width)) × \(Int(mac.knownScreens[index].height))",
-                        badge: index == (mac.builtin ?? 0) ? MacBadge(name: mac.name, status: connected ? L("Connected") : L("Away"), tint: tint, live: connected,
-                                         laptop: mac.builtin != nil || mac.screens.isEmpty) : nil,
-                        main: index == 0, laptop: index == mac.builtin || (mac.screens.isEmpty && index == 0), tint: tint, pointer: index == 0 && model.controlling == mac.id, faded: !connected, small: frame.width < 90)
-                    .overlay {
-                        if settling {
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(Theme.canvas.opacity(0.55))
-                                .overlay(ProgressView().controlSize(.small))
-                        }
-                    }
-                    .frame(width: frame.width, height: frame.height)
-                    .position(x: min(max(frame.midX, 0), size.width), y: min(max(frame.midY, 0), size.height))
-                    .shadow(color: .black.opacity(dragging == mac.id ? 0.3 : 0.12), radius: dragging == mac.id ? 12 : 4, y: dragging == mac.id ? 6 : 2)
-                    .gesture(gesture)
-                    .onHover { inside in if inside { NSCursor.openHand.push() } else { NSCursor.pop() } }
-                    .help(L("Drag to where %@ sits", mac.name))
-            }
+    }
+
+    /// A paired Mac's displays, dragged together.
+    @ViewBuilder private func group(_ mac: PairedMac, layout: Layout) -> some View {
+        let offset = model.offset(of: mac)
+        let connected = model.connected.contains(mac.id)
+        let lifted = held == .mac(mac.id)
+        let own = mac.builtin ?? 0
+        ForEach(Array(mac.knownScreens.enumerated()), id: \.offset) { index, screen in
+            let frame = layout.frame(screen.offsetBy(dx: offset.x, dy: offset.y)).offsetBy(dx: lifted ? drag.width : 0, dy: lifted ? drag.height : 0)
+            Display(wallpaper: model.theirWallpapers[mac.id]?[index],
+                    badge: index == own ? MacBadge(name: mac.name, status: connected ? L("Connected") : L("Away"),
+                                                   tint: connected ? Theme.emerald : Theme.textFaint, live: connected,
+                                                   laptop: mac.builtin != nil || mac.screens.isEmpty) : nil,
+                    main: screen.origin == .zero, tint: connected ? Theme.emerald : Theme.textFaint,
+                    pointer: index == own && model.controlling == mac.id, faded: !connected, lifted: lifted,
+                    settling: model.placing.contains(mac.id))
+                .frame(width: frame.width, height: frame.height)
+                .position(x: frame.midX, y: frame.midY)
+                .zIndex(lifted ? 3 : 2)
+                .gesture(dragging(.mac(mac.id), layout: layout))
+                .help(L("Drag to where %@ sits", mac.name))
         }
-        .zIndex(dragging == mac.id ? 2 : 1)
     }
 
     /// Points on the desk to points in the box: everything fits, centred, at one scale (fixed while dragging, so a
-    /// Mac doesn't run away from the pointer).
+    /// display doesn't run away from the pointer).
     struct Layout {
         let scale: CGFloat
         let origin: CGPoint
@@ -278,7 +287,7 @@ private struct Arrangement: View {
                 for screen in screens { all = all.union(screen.offsetBy(dx: offset.x, dy: offset.y)) }
             }
             if all.isNull { all = CGRect(x: 0, y: 0, width: 1512, height: 982) }
-            // Room around for the labels, and to drag a Mac to any side.
+            // Room around, to drag a display to any side.
             let padded = all.insetBy(dx: -all.width * 0.2, dy: -all.height * 0.2)
             scale = min(size.width / padded.width, size.height / padded.height)
             origin = CGPoint(x: (size.width - padded.width * scale) / 2 - padded.minX * scale,
@@ -290,8 +299,6 @@ private struct Arrangement: View {
             CGRect(x: origin.x + rect.minX * scale + 1.5, y: origin.y + rect.minY * scale + 1.5,
                    width: max(rect.width * scale - 3, 8), height: max(rect.height * scale - 3, 6))
         }
-
-        func point(_ point: CGPoint) -> CGPoint { CGPoint(x: origin.x + point.x * scale, y: origin.y + point.y * scale) }
     }
 }
 
@@ -338,89 +345,61 @@ private struct MacBadge: View {
     }
 }
 
-/// One display, drawn as one: a black bezel round a wallpaper of hills in its Mac's colour, the menu bar and Dock on
-/// the main display, the notch on a laptop's, its name, and the pointer where the mouse is.
+/// One display, as System Settings draws it: its wallpaper, the menu bar on the main one, and here, the Mac's name
+/// on its own display and the pointer where the mouse is.
 private struct Display: View {
-    let label: String
+    let wallpaper: NSImage?
     var badge: MacBadge? = nil
     let main: Bool
-    var laptop = false
     let tint: Color
     let pointer: Bool
     let faded: Bool
-    let small: Bool
+    var lifted = false
+    var settling = false
 
     var body: some View {
         GeometryReader { geometry in
             let size = geometry.size
-            let bezel = max(2, min(size.width, size.height) * 0.035)
-            let outer = RoundedRectangle(cornerRadius: max(4, size.height * 0.07), style: .continuous)
-            let inner = RoundedRectangle(cornerRadius: max(2, size.height * 0.05), style: .continuous)
-            ZStack {
-                outer.fill(Color(hex: 0x111216))
-                ZStack(alignment: .top) {
+            let shape = RoundedRectangle(cornerRadius: max(3, min(size.width, size.height) * 0.045), style: .continuous)
+            ZStack(alignment: .top) {
+                if let wallpaper {
+                    Image(nsImage: wallpaper).resizable().interpolation(.medium).aspectRatio(contentMode: .fill)
+                        .frame(width: size.width, height: size.height)
+                } else {
                     Wallpaper(tint: tint)
-                    if main {
-                        // The menu bar: the Apple and a few menus left, the clock right.
-                        HStack(spacing: 3) {
-                            Circle().fill(Color.white.opacity(0.85)).frame(width: 3, height: 3)
-                            ForEach(0..<3, id: \.self) { _ in Capsule().fill(Color.white.opacity(0.55)).frame(width: 6, height: 2) }
-                            Spacer(minLength: 0)
-                            Capsule().fill(Color.white.opacity(0.7)).frame(width: 10, height: 2)
-                        }
-                        .padding(.horizontal, 5)
-                        .frame(height: max(5, size.height * 0.06))
-                        .background(Color.white.opacity(0.22))
-                    }
-                    if laptop {
-                        UnevenRoundedRectangle(bottomLeadingRadius: 2, bottomTrailingRadius: 2)
-                            .fill(Color(hex: 0x111216))
-                            .frame(width: max(10, size.width * 0.13), height: max(4, size.height * 0.06))
-                    }
-                    if main {
-                        // The Dock.
-                        Capsule()
-                            .fill(Color.white.opacity(0.35))
-                            .overlay(Capsule().strokeBorder(Color.white.opacity(0.4), lineWidth: 0.5))
-                            .frame(width: size.width * 0.34, height: max(3, size.height * 0.07))
-                            .frame(maxHeight: .infinity, alignment: .bottom)
-                            .padding(.bottom, max(2, size.height * 0.04))
-                    }
-                    if pointer {
-                        Image(systemName: "cursorarrow")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(.white)
-                            .shadow(color: .black.opacity(0.6), radius: 1.5)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                    if let badge {
-                        badge
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                            .padding(.top, max(7, size.height * 0.1))
-                            .padding(.horizontal, 5)
-                    }
-                    if !small {
-                        Text(label)
-                            .font(.ui(9.5, .semibold))
-                            .foregroundStyle(.white)
-                            .shadow(color: .black.opacity(0.5), radius: 1.5)
-                            .lineLimit(1)
-                            .padding(.horizontal, 6)
-                            .padding(.bottom, main ? max(7, size.height * 0.13) : 5)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                    }
                 }
-                .clipShape(inner)
-                .padding(bezel)
+                if main {
+                    Rectangle().fill(Color.white.opacity(0.75)).frame(height: max(3, size.height * 0.05))
+                }
+                if let badge {
+                    badge
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .padding(.top, main ? max(7, size.height * 0.09) : 6)
+                        .padding(.horizontal, 5)
+                }
+                if pointer {
+                    Image(systemName: "cursorarrow")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.6), radius: 1.5)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                if settling {
+                    Rectangle().fill(Color.black.opacity(0.35)).overlay(ProgressView().controlSize(.small))
+                }
             }
+            .frame(width: size.width, height: size.height)
+            .clipShape(shape)
+            .overlay(shape.strokeBorder(lifted ? Color.accentColor : Color.black.opacity(0.18), lineWidth: lifted ? 2 : 0.5))
+            .shadow(color: .black.opacity(lifted ? 0.3 : 0.12), radius: lifted ? 12 : 3, y: lifted ? 6 : 1)
         }
-        .saturation(faded ? 0.15 : 1)
+        .saturation(faded ? 0.2 : 1)
         .opacity(faded ? 0.6 : 1)
         .contentShape(Rectangle())
     }
 }
 
-/// A wallpaper of soft hills under a sky, in a Mac's colour (so each Mac's displays read as one).
+/// When a display's wallpaper isn't known yet: soft hills under a sky, in its Mac's colour.
 private struct Wallpaper: View {
     let tint: Color
 
@@ -430,20 +409,14 @@ private struct Wallpaper: View {
             context.fill(Path(CGRect(origin: .zero, size: size)),
                          with: .linearGradient(Gradient(colors: [tint.opacity(0.55), tint.opacity(0.9)]),
                                                startPoint: .zero, endPoint: CGPoint(x: 0, y: h)))
-            // A glow, high on the right.
-            context.fill(Path(ellipseIn: CGRect(x: w * 0.55, y: -h * 0.35, width: w * 0.8, height: h * 0.9)),
-                         with: .radialGradient(Gradient(colors: [Color.white.opacity(0.35), .clear]),
-                                               center: CGPoint(x: w * 0.95, y: h * 0.1), startRadius: 0, endRadius: w * 0.5))
-            // Hills, far to near, darker as they come closer.
             for (index, (top, shade)) in [(0.55, 0.25), (0.68, 0.4), (0.8, 0.55)].enumerated() {
                 var hill = Path()
                 hill.move(to: CGPoint(x: 0, y: h * top))
                 let bumps = 3 + index
                 for step in 1...bumps {
                     let x = w * CGFloat(step) / CGFloat(bumps)
-                    let peak = h * (top - 0.08 * (step % 2 == 0 ? 1 : -0.4))
                     hill.addQuadCurve(to: CGPoint(x: x, y: h * top + (step % 2 == 0 ? -h * 0.02 : h * 0.03)),
-                                      control: CGPoint(x: x - w / CGFloat(bumps) / 2, y: peak))
+                                      control: CGPoint(x: x - w / CGFloat(bumps) / 2, y: h * (top - 0.08 * (step % 2 == 0 ? 1 : -0.4))))
                 }
                 hill.addLine(to: CGPoint(x: w, y: h))
                 hill.addLine(to: CGPoint(x: 0, y: h))
@@ -452,22 +425,6 @@ private struct Wallpaper: View {
                 context.fill(hill, with: .color(tint.opacity(0.35)))
             }
         }
-    }
-}
-
-/// A lit stretch of edge where two Macs' displays touch.
-private struct Seam: View {
-    let from: CGPoint
-    let to: CGPoint
-
-    var body: some View {
-        Path { path in
-            path.move(to: from)
-            path.addLine(to: to)
-        }
-        .stroke(Theme.solar, style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
-        .shadow(color: Theme.solar.opacity(0.9), radius: 4)
-        .allowsHitTesting(false)
     }
 }
 

@@ -324,6 +324,8 @@ final class FlowNode: @unchecked Sendable {
 
     /// This Mac's displays, for telling the others (set by the app; read on the node's queue).
     var localScreens: () -> [CGRect] = { [] }
+    /// Their wallpapers, small (set by the app, which reads them on the main thread).
+    var localWallpapers: [Data?] = []
 
     /// Puts a paired Mac's screens at `offset` in this Mac's coordinates, here and there (there, the inverse).
     func place(_ mac: String, at offset: CGPoint) {
@@ -355,6 +357,10 @@ final class FlowNode: @unchecked Sendable {
         // After the displays (earlier versions stop reading before it): the laptop's own, or 255.
         writer.u8(UInt8(clamping: Screens.builtin(in: screens) ?? 255))
         links[mac]?.send(Message(.screens, writer.data))
+        for (index, picture) in localWallpapers.enumerated() {
+            guard let picture else { continue }
+            links[mac]?.send(Message(.wallpaper, Data([UInt8(clamping: index)]) + picture))
+        }
     }
 
     // MARK: - Sessions

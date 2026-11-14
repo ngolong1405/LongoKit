@@ -33,6 +33,8 @@ enum Kind: UInt8 {
     case screens
     /// The arrangement the receiver sent is in place here.
     case placed
+    /// One of the sender's wallpapers, small: its display's place in the list, then a JPEG.
+    case wallpaper
 }
 
 struct Hello: Codable {

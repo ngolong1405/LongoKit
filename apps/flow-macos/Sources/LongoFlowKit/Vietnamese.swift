@@ -105,5 +105,9 @@ enum Vietnamese {
         "The pointer goes over here": "Chuột sang máy kia ở đây",
         "Display %d": "Màn hình %d",
         "Pair a Mac below to place it here": "Ghép đôi một máy bên dưới để đặt nó vào đây",
+        "Drag displays to arrange them, as in System Settings. Paired Macs show up beside them.":
+            "Kéo các màn hình để sắp xếp, như trong Cài đặt hệ thống. Máy Mac đã ghép đôi hiện ra bên cạnh.",
+        "Drag displays to arrange them, as in System Settings, and another Mac's to where it sits.":
+            "Kéo các màn hình để sắp xếp, như trong Cài đặt hệ thống; kéo màn hình của máy kia tới chỗ nó đặt.",
     ]
 }

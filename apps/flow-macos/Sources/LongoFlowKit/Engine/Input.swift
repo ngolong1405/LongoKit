@@ -1,6 +1,7 @@
 import AppKit
 import ApplicationServices
 import CoreGraphics
+import ImageIO
 
 /// The displays, in global coordinates (top-left origin, as events have them).
 enum Screens {
@@ -55,6 +56,61 @@ enum Screens {
         return CGPoint(x: offset.x + move.x, y: offset.y + move.y)
     }
 
+    /// The displays with their ids, in the order `all()` gives them.
+    static func displays() -> [(id: CGDirectDisplayID, frame: CGRect)] {
+        var count: UInt32 = 0
+        CGGetActiveDisplayList(0, nil, &count)
+        var ids = [CGDirectDisplayID](repeating: 0, count: Int(count))
+        CGGetActiveDisplayList(count, &ids, &count)
+        return ids.prefix(Int(count)).map { ($0, CGDisplayBounds($0)) }
+    }
+
+    /// Moves this Mac's displays, as dragging them in System Settings › Displays does. The main display stays at
+    /// (0, 0), so moving it moves the others instead; returns how far everything shifted for that (to move the
+    /// other Macs' places by as much).
+    @discardableResult
+    static func arrange(_ frames: [CGRect]) -> CGPoint {
+        let ids = displays()
+        guard ids.count == frames.count, let main = ids.firstIndex(where: { CGDisplayIsMain($0.id) != 0 }) else { return .zero }
+        let shift = frames[main].origin
+        var config: CGDisplayConfigRef?
+        guard CGBeginDisplayConfiguration(&config) == .success, let config else { return .zero }
+        for (index, display) in ids.enumerated() {
+            let origin = CGPoint(x: frames[index].minX - shift.x, y: frames[index].minY - shift.y)
+            CGConfigureDisplayOrigin(config, display.id, Int32(origin.x.rounded()), Int32(origin.y.rounded()))
+        }
+        guard CGCompleteDisplayConfiguration(config, .permanently) == .success else {
+            CGCancelDisplayConfiguration(config)
+            return .zero
+        }
+        return CGPoint(x: -shift.x, y: -shift.y)
+    }
+
+    /// Each display's wallpaper, small (a JPEG about 360 points wide), in `all()`'s order; nil where there's none to read.
+    @MainActor static func wallpapers() -> [Data?] {
+        guard let main = NSScreen.screens.first else { return [] }
+        return all().map { rect in
+            guard let screen = NSScreen.screens.first(where: {
+                abs($0.frame.minX - rect.minX) < 1 && abs((main.frame.maxY - $0.frame.maxY) - rect.minY) < 1
+            }), let url = NSWorkspace.shared.desktopImageURL(for: screen) else { return nil }
+            return thumbnail(url)
+        }
+    }
+
+    private static var thumbnails: [URL: Data] = [:]
+
+    private static func thumbnail(_ url: URL) -> Data? {
+        if let cached = thumbnails[url] { return cached }
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [kCGImageSourceCreateThumbnailFromImageAlways: true,
+                                                                         kCGImageSourceThumbnailMaxPixelSize: 720,
+                                                                         kCGImageSourceCreateThumbnailWithTransform: true] as CFDictionary)
+        else { return nil }
+        let data = NSBitmapImageRep(cgImage: image).representation(using: .jpeg, properties: [.compressionFactor: 0.72])
+        thumbnails[url] = data
+        return data
+    }
+
     /// Which of these displays is the laptop's own (nil on a desktop Mac, or with the lid closed).
     static func builtin(in screens: [CGRect]) -> Int? {
         var count: UInt32 = 0
@@ -81,26 +137,6 @@ enum Screens {
     /// A display's place as a key (CGRect is only hashable from macOS 15).
     static func key(_ rect: CGRect) -> String {
         "\(Int(rect.minX.rounded())),\(Int(rect.minY.rounded())),\(Int(rect.width.rounded())),\(Int(rect.height.rounded()))"
-    }
-
-    /// Where two Macs' displays touch: the stretches of edge the pointer goes over, in this Mac's points.
-    static func seams(_ local: [CGRect], _ other: [CGRect]) -> [(CGPoint, CGPoint)] {
-        var seams: [(CGPoint, CGPoint)] = []
-        for a in local {
-            for b in other {
-                if abs(a.maxX - b.minX) < 1.5 || abs(b.maxX - a.minX) < 1.5 {
-                    let x = abs(a.maxX - b.minX) < 1.5 ? a.maxX : a.minX
-                    let top = max(a.minY, b.minY), bottom = min(a.maxY, b.maxY)
-                    if bottom - top > 1 { seams.append((CGPoint(x: x, y: top), CGPoint(x: x, y: bottom))) }
-                }
-                if abs(a.maxY - b.minY) < 1.5 || abs(b.maxY - a.minY) < 1.5 {
-                    let y = abs(a.maxY - b.minY) < 1.5 ? a.maxY : a.minY
-                    let left = max(a.minX, b.minX), right = min(a.maxX, b.maxX)
-                    if right - left > 1 { seams.append((CGPoint(x: left, y: y), CGPoint(x: right, y: y))) }
-                }
-            }
-        }
-        return seams
     }
 
     /// `point` kept on a screen: the nearest point of the nearest one.
