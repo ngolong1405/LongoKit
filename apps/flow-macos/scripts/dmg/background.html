@@ -1,0 +1,84 @@
+<!doctype html>
+<!--
+  Background of the Longo Flow disk image window (660×484 pt: the 400 pt design plus room for Finder bars).
+  Render with scripts/dmg/render-background.sh; the icons themselves are placed by scripts/dmg/settings.py:
+  the app at (170, 190) and the Applications link at (490, 190), 112 pt icons. Keep the drawing in step with those.
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face { font-family: "Space Grotesk"; src: url("../../../../brand/fonts/SpaceGrotesk.ttf"); font-weight: 300 700; }
+      @font-face { font-family: "Geist"; src: url("../../../../brand/fonts/Geist.ttf"); font-weight: 100 900; }
+      @font-face { font-family: "JetBrains Mono"; src: url("../../../../brand/fonts/JetBrainsMono.ttf"); font-weight: 100 800; }
+
+      html, body { margin: 0; width: 660px; height: 484px; overflow: hidden; }
+      body {
+        position: relative;
+        background:
+          radial-gradient(420px 260px at 15% 10%, rgb(255 107 53 / 0.16), transparent 70%),
+          radial-gradient(440px 300px at 90% 85%, rgb(139 92 246 / 0.16), transparent 70%),
+          linear-gradient(160deg, #fbfbff 0%, #eef1fb 100%);
+        color: #141b2b;
+        font-family: "Geist", system-ui, sans-serif;
+      }
+
+      .header { position: absolute; top: 26px; left: 0; right: 0; text-align: center; }
+      .brand { display: inline-flex; align-items: center; gap: 10px; }
+      .brand img { width: 30px; height: 30px; border-radius: 8px; box-shadow: 0 4px 14px rgb(208 69 9 / 0.25); }
+      .brand span { font: 600 22px/1 "Space Grotesk"; letter-spacing: -0.02em; }
+      .brand .tag {
+        display: inline-block; margin-left: 8px; padding: 2px 7px; border-radius: 999px;
+        font: 600 9px/1.4 "JetBrains Mono"; letter-spacing: 0.08em; color: #00685f; background: rgb(0 104 95 / 0.1);
+        vertical-align: 3px;
+      }
+      .lead { margin-top: 8px; font-size: 13px; color: #5b6275; }
+
+      /* Soft wells behind the two icons. */
+      .well {
+        position: absolute; top: 110px; width: 150px; height: 180px; border-radius: 34px;
+        background: rgb(255 255 255 / 0.75); border: 1px solid rgb(20 27 43 / 0.08);
+        box-shadow: 0 8px 24px -12px rgb(20 27 43 / 0.18);
+      }
+      .well.app { left: 95px; box-shadow: 0 10px 40px -10px rgb(208 69 9 / 0.3); }
+      .well.apps { left: 415px; }
+
+      .arrow { position: absolute; left: 262px; top: 166px; width: 136px; height: 48px; }
+
+      .footer {
+        position: absolute; left: 0; right: 0; top: 330px; text-align: center;
+        font: 500 11px/1.6 "JetBrains Mono"; color: #4b5263; letter-spacing: 0.01em;
+      }
+      .footer b { color: #d04509; font-weight: 600; }
+      .footer .vi { color: #7a8091; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="brand">
+        <img src="../../Support/Logo.png" alt="" />
+        <span>Longo Flow</span><span class="tag">BETA</span>
+      </div>
+      <div class="lead">Open it to install, or drag it into Applications · Mở app để cài, hoặc kéo vào Applications</div>
+    </div>
+
+    <div class="well app"></div>
+    <div class="well apps"></div>
+
+    <svg class="arrow" viewBox="0 0 136 48" fill="none">
+      <defs>
+        <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="8" y1="0" x2="116" y2="0">
+          <stop offset="0" stop-color="#ee5a22" />
+          <stop offset="1" stop-color="#7c3aed" />
+        </linearGradient>
+      </defs>
+      <path d="M8 24 H116" stroke="url(#g)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 9" />
+      <path d="M106 12 L124 24 L106 36" stroke="#7c3aed" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+
+    <div class="footer">
+      Blocked on first launch? <b>System Settings › Privacy &amp; Security › Open Anyway</b><br />
+      <span class="vi">Bị chặn khi mở lần đầu? Cài đặt hệ thống › Quyền riêng tư &amp; Bảo mật › Vẫn mở</span>
+    </div>
+  </body>
+</html>

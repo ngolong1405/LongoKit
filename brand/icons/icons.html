@@ -2,7 +2,7 @@
 <!--
   LongoKit Trinity icons (1024×1024): LongoMouse, LongoDisplay, LongoKeys as gradient line art on an obsidian
   (dark) or porcelain (light) squircle, plus LongoShot, and LongoKit (all four on one tile). Pick one with
-  ?icon=mouse|display|keys|shot|share|kit&theme=dark|light. Add &mark=1 for the small mark used in sidebars: just the tile,
+  ?icon=mouse|display|keys|shot|share|flow|kit&theme=dark|light. Add &mark=1 for the small mark used in sidebars: just the tile,
   with a bigger glyph, so it reads at 20 pt.
   Render all of them with brand/icons/render.sh.
 -->
@@ -71,6 +71,12 @@
           <stop offset="0.5" stop-color="#38bdf8" />
           <stop offset="1" stop-color="#ff6b35" />
         </linearGradient>
+        <!-- Flow: violet to cyan, the pointer in orange -->
+        <linearGradient id="flow" gradientUnits="userSpaceOnUse" x1="232" y1="330" x2="792" y2="690">
+          <stop offset="0" stop-color="#a855f7" />
+          <stop offset="0.55" stop-color="#38bdf8" />
+          <stop offset="1" stop-color="#2dd4bf" />
+        </linearGradient>
         <linearGradient id="key" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stop-color="#a855f7" />
           <stop offset="1" stop-color="#ff5e7a" />
@@ -132,6 +138,17 @@
           <path d="M624 380 L677 392 L672 338" />
         </g>
         <circle cx="512" cy="300" r="34" fill="#fde047" />
+      </g>
+
+      <g id="glyph-flow" filter="url(#glow)" style="display:none">
+        <rect x="222" y="388" width="252" height="184" rx="28" stroke="url(#flow)" stroke-width="26" />
+        <rect x="550" y="388" width="252" height="184" rx="28" stroke="url(#flow)" stroke-width="26" />
+        <rect x="200" y="622" width="296" height="26" rx="13" fill="url(#flow)" />
+        <rect x="528" y="622" width="296" height="26" rx="13" fill="url(#flow)" />
+        <g stroke-linecap="round" stroke="#fde047" stroke-width="12" stroke-dasharray="2 26">
+          <path d="M392 480 H520" />
+        </g>
+        <path d="M600 432 V556 L630 528 L652 576 L674 566 L652 520 L692 518 Z" fill="#ff6b35" stroke="#1d1d24" stroke-width="10" stroke-linejoin="round" />
       </g>
     </svg>
 
