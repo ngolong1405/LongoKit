@@ -80,12 +80,15 @@ public class ShareTests
     public void ClearingKeepsWhatsUnderWay()
     {
         var state = new ShareState();
+        var underWay = new ChatItem();
         state.Conversations["f1"] = new Conversation
         {
             Id = "f1", Alias = "Pixel 8",
-            Items = { new ChatItem { Text = "done", State = ChatState.Done }, new ChatItem { State = ChatState.Transferring } },
+            Items = { new ChatItem { Text = "done", State = ChatState.Done }, underWay },
         };
         var model = new ShareModel(state);
+        // (What was under way at launch is marked failed: this one starts now.)
+        underWay.State = ChatState.Transferring;
         model.Simulate(new[] { Phone() }, "f1");
         model.Clear("f1");
         Assert.Single(model.Contact("f1")!.Conversation!.Items);
@@ -94,6 +97,7 @@ public class ShareTests
     [Fact]
     public void TheMessageLine()
     {
+        Localizer.Language = AppLanguage.English;
         Assert.Equal("You: photo.jpg", Words.Line(new ChatItem { Sent = true, Files = { new ChatFile { Name = "photo.jpg" } } }));
         Assert.Equal("hello", Words.Line(new ChatItem { Text = "hello" }));
     }
