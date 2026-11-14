@@ -99,8 +99,8 @@ public class ShareTests
     public void TheMessageLine()
     {
         Localizer.Language = AppLanguage.English;
-        Assert.Equal("You: photo.jpg", Words.Line(new ChatItem { Sent = true, Files = { new ChatFile { Name = "photo.jpg" } } }));
-        Assert.Equal("hello", Words.Line(new ChatItem { Text = "hello" }));
+        Assert.Equal("You: photo.jpg", Words.Line(new ChatItem { Sent = true, State = ChatState.Done, Files = { new ChatFile { Name = "photo.jpg" } } }));
+        Assert.Equal("hello", Words.Line(new ChatItem { Text = "hello", State = ChatState.Done }));
     }
 
     [Fact]
