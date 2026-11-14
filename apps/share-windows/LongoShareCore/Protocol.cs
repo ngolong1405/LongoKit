@@ -31,12 +31,12 @@ public static class Protocol
 public sealed record DeviceInfo
 {
     public string Alias { get; init; } = "";
-    public string Version { get; init; } = Protocol.Version;
+    public string Version { get; init; } = global::LongoShare.Protocol.Version;
     public string? DeviceModel { get; init; }
     /// <summary>mobile, desktop, web, headless or server.</summary>
     public string? DeviceType { get; init; } = "desktop";
     public string Fingerprint { get; init; } = "";
-    public int Port { get; init; } = Protocol.Port;
+    public int Port { get; init; } = global::LongoShare.Protocol.Port;
     /// <summary>"https" or "http".</summary>
     public string Protocol { get; init; } = "https";
     public bool Download { get; init; }
