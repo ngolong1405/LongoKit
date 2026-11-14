@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>LongoMouse</AssemblyName>
     <RootNamespace>LongoMouse.App</RootNamespace>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Product>Longo Mouse</Product>
     <Company>Long Ngô</Company>
     <ApplicationIcon>..\..\..\packages\ui-windows\Icons\mouse.ico</ApplicationIcon>

@@ -49,6 +49,9 @@ public static class Ocr
             if (tesseract != null || tesseractFailed) return tesseract;
             try
             {
+                // Inside one .exe the app's files are unpacked to a folder of their own: Tesseract's library is looked
+                // for there, not next to an assembly (which has no path then).
+                Tess.TesseractEnviornment.CustomSearchPath = AppContext.BaseDirectory;
                 tesseract = new Tess.TesseractEngine(Path.Combine(AppContext.BaseDirectory, "tessdata"), Latin, Tess.EngineMode.LstmOnly);
             }
             catch (Exception)
