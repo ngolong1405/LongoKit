@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\mouse-windows\LongoMouseKit\LongoMouseKit.csproj" />
     <ProjectReference Include="..\..\shot-windows\LongoShotKit\LongoShotKit.csproj" />
     <ProjectReference Include="..\..\display-windows\LongoDisplayKit\LongoDisplayKit.csproj" />
+    <ProjectReference Include="..\..\share-windows\LongoShareKit\LongoShareKit.csproj" />
   </ItemGroup>
 
 </Project>

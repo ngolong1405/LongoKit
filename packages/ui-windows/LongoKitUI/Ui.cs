@@ -56,7 +56,7 @@ public sealed class Stack : Panel
 
 /// <summary>
 /// A piece of a page built again whenever its source says something changed, but not while the pointer holds a
-/// control in it (a slider being dragged): then once it's let go.
+/// control in it (a slider being dragged) or a box in it is being typed in: then once it's let go.
 /// </summary>
 public sealed class LiveView : ContentControl
 {
@@ -74,11 +74,16 @@ public sealed class LiveView : ContentControl
         {
             if (pending) Dispatcher.BeginInvoke(Refresh);
         };
+        LostKeyboardFocus += (_, _) =>
+        {
+            if (pending) Dispatcher.BeginInvoke(Refresh);
+        };
     }
 
     public void Refresh()
     {
-        if (Mouse.Captured is DependencyObject held && IsAncestorOf(held))
+        if ((Mouse.Captured is DependencyObject held && IsAncestorOf(held)) ||
+            (Keyboard.FocusedElement is TextBoxBase typing && IsAncestorOf(typing)))
         {
             pending = true;
             return;

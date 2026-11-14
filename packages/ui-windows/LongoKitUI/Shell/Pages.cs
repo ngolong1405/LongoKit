@@ -56,7 +56,7 @@ public static class Pages
         name.HorizontalAlignment = HorizontalAlignment.Center;
         var version = Ui.Text(Localizer.L("Version {0}", LongoShell.Version) + " · beta", 12, color: "TextMuted", font: "MonoFont");
         version.HorizontalAlignment = HorizontalAlignment.Center;
-        var blurb = Ui.Text(!shell.IsSuite && module != null ? Localizer.L(module.Blurb) : Localizer.L("Mouse, Display & Shot in one app"), 13, color: "TextSecondary", wrap: true);
+        var blurb = Ui.Text(!shell.IsSuite && module != null ? Localizer.L(module.Blurb) : Localizer.L("Mouse, Display, Shot & Share in one app"), 13, color: "TextSecondary", wrap: true);
         blurb.HorizontalAlignment = HorizontalAlignment.Center;
         blurb.TextAlignment = TextAlignment.Center;
         var links = Ui.Row(8,

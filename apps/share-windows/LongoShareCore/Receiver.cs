@@ -29,6 +29,8 @@ public sealed class Receiver
     public Func<IncomingTransfer, Task<bool>> Ask { get; set; } = _ => Task.FromResult(false);
     /// <summary>A device announced itself (or answered): it's on the network.</summary>
     public event Action<Peer>? Registered;
+    /// <summary>Files are on their way in (asked and accepted, or from a trusted device).</summary>
+    public event Action<IncomingTransfer>? Accepted;
     /// <summary>Bytes received so far of a transfer, and its total.</summary>
     public event Action<long, long>? Progress;
     public event Action<ReceivedTransfer>? Received;
@@ -112,6 +114,7 @@ public sealed class Receiver
             return new HttpResponse(204);
         }
         if (files.Count == 0) return new HttpResponse(204);
+        Accepted?.Invoke(incoming);
         Session started;
         lock (gate)
         {

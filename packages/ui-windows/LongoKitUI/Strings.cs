@@ -38,7 +38,7 @@ internal static class Strings
         ["MODULES"] = "MODULE",
         ["Modules"] = "Các module",
         ["A module that's off stops at once and leaves your settings as they are."] = "Module nào tắt thì dừng ngay, cài đặt của nó vẫn giữ nguyên.",
-        ["Mouse, Display & Shot in one app"] = "Mouse, Display & Shot trong một app",
+        ["Mouse, Display, Shot & Share in one app"] = "Mouse, Display, Shot & Share trong một app",
         ["Beta. Not signed yet: Windows may warn before the first launch (More info › Run anyway)."] =
             "Bản beta, chưa ký số: Windows có thể cảnh báo khi mở lần đầu (Thông tin thêm › Vẫn chạy).",
     };

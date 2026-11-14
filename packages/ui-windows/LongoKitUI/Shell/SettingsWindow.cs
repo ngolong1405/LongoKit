@@ -159,7 +159,7 @@ internal sealed class SettingsWindow : Window
 }
 
 /// <summary>Windows 11's title bar in the app's colors: dark or light, the canvas color behind the title.</summary>
-internal static class TitleBar
+public static class TitleBar
 {
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);

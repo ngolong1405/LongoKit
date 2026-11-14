@@ -2,7 +2,7 @@
 <!--
   LongoKit Trinity icons (1024×1024): LongoMouse, LongoDisplay, LongoKeys as gradient line art on an obsidian
   (dark) or porcelain (light) squircle, plus LongoShot, and LongoKit (all four on one tile). Pick one with
-  ?icon=mouse|display|keys|shot|kit&theme=dark|light. Add &mark=1 for the small mark used in sidebars: just the tile,
+  ?icon=mouse|display|keys|shot|share|kit&theme=dark|light. Add &mark=1 for the small mark used in sidebars: just the tile,
   with a bigger glyph, so it reads at 20 pt.
   Render all of them with brand/icons/render.sh.
 -->
@@ -65,6 +65,12 @@
           <stop offset="0.55" stop-color="#38bdf8" />
           <stop offset="1" stop-color="#ff6b35" />
         </linearGradient>
+        <!-- Share: emerald, cyan, orange -->
+        <linearGradient id="share" gradientUnits="userSpaceOnUse" x1="262" y1="300" x2="762" y2="700">
+          <stop offset="0" stop-color="#34d399" />
+          <stop offset="0.5" stop-color="#38bdf8" />
+          <stop offset="1" stop-color="#ff6b35" />
+        </linearGradient>
         <linearGradient id="key" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stop-color="#a855f7" />
           <stop offset="1" stop-color="#ff5e7a" />
@@ -114,6 +120,18 @@
         <circle cx="512" cy="512" r="96" stroke="url(#shot)" stroke-width="26" />
         <circle cx="512" cy="512" r="40" fill="#fde047" />
         <circle cx="620" cy="404" r="16" fill="#ff6b35" />
+      </g>
+
+      <g id="glyph-share" filter="url(#glow)" style="display:none">
+        <rect x="262" y="440" width="170" height="270" rx="36" stroke="url(#share)" stroke-width="28" />
+        <rect x="592" y="440" width="170" height="270" rx="36" stroke="url(#share)" stroke-width="28" />
+        <circle cx="347" cy="656" r="12" fill="#34d399" />
+        <circle cx="677" cy="656" r="12" fill="#ff6b35" />
+        <g stroke="url(#share)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M347 392 Q512 210 677 392" />
+          <path d="M624 380 L677 392 L672 338" />
+        </g>
+        <circle cx="512" cy="300" r="34" fill="#fde047" />
       </g>
     </svg>
 
