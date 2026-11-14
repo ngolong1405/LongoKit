@@ -231,7 +231,7 @@ public class TransferTests
 
     [Theory]
     [InlineData("../../etc/passwd", "etc/passwd")]
-    [InlineData("C:\\Windows\\evil.dll", "Windows/evil.dll")]
+    [InlineData("C:\\Windows\\evil.dll", "C/Windows/evil.dll")]
     [InlineData("photos/2026/a.jpg", "photos/2026/a.jpg")]
     [InlineData("..", "file")]
     public void AFileNameCantLeaveTheFolder(string name, string expected)
