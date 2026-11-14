@@ -20,11 +20,11 @@ export const shotVersion = "0.2.9";
 export const shotDownload = `${repo}/releases/download/shot-macos/v${shotVersion}/LongoShot-${shotVersion}.dmg`;
 export const shotReleaseNotes = `${repo}/releases/tag/shot-macos/v${shotVersion}`;
 export const shotBuildFromSource = "git clone https://github.com/ngolong1405/LongoKit && cd LongoKit/apps/shot-macos && ./scripts/build-app.sh";
-export const shareVersion = "0.1.1";
+export const shareVersion = "0.1.2";
 // Longo Share: bump shareVersion and upload LongoShare-<version>.dmg to tag share-macos/v<version>.
 export const shareDownload = `${repo}/releases/download/share-macos/v${shareVersion}/LongoShare-${shareVersion}.dmg`;
 export const shareReleaseNotes = `${repo}/releases/tag/share-macos/v${shareVersion}`;
-export const kitVersion = "0.1.10";
+export const kitVersion = "0.1.11";
 // LongoKit, the five apps as modules of one: bump kitVersion and upload LongoKit-<version>.dmg to tag kit-macos/v<version>.
 export const kitDownload = `${repo}/releases/download/kit-macos/v${kitVersion}/LongoKit-${kitVersion}.dmg`;
 export const kitReleaseNotes = `${repo}/releases/tag/kit-macos/v${kitVersion}`;
