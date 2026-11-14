@@ -227,11 +227,12 @@ private struct Arrangement: View {
                     let others = model.localScreens.enumerated().filter { $0.offset != index }.map(\.element)
                     let moved = CGPoint(x: screen.minX + by.x, y: screen.minY + by.y)
                     landing = others.isEmpty ? screen.origin
-                        : Screens.snap([CGRect(origin: .zero, size: screen.size)], at: moved, to: others)
+                        : Screens.snap([CGRect(origin: .zero, size: screen.size)], at: moved, to: others, avoiding: model.placedScreens())
                 case .mac(let id):
                     guard let mac = model.paired.first(where: { $0.id == id }) else { return }
                     let offset = model.offset(of: mac)
-                    landing = Screens.snap(mac.knownScreens, at: CGPoint(x: offset.x + by.x, y: offset.y + by.y), to: model.localScreens)
+                    landing = Screens.snap(mac.knownScreens, at: CGPoint(x: offset.x + by.x, y: offset.y + by.y), to: model.localScreens,
+                                           avoiding: model.placedScreens(except: id))
                 }
             }
             .onEnded { _ in

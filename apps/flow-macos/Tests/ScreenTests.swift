@@ -40,7 +40,8 @@ final class ScreenTests: XCTestCase {
         // Dropped a bit off, to the right of the laptop: it snaps against its right edge.
         let snapped = Screens.snap(air, at: CGPoint(x: 1600, y: 40), to: [laptop, monitor])
         XCTAssertEqual(snapped.x, 1512)
-        XCTAssertEqual(snapped.y, 40)
+        // 40 points off the laptop's top: lined up with it.
+        XCTAssertEqual(snapped.y, 0)
         // Dropped over the laptop: moved off it, still touching.
         let off = Screens.snap(air, at: CGPoint(x: 900, y: 100), to: [laptop])
         let placed = CGRect(origin: off, size: air[0].size)
@@ -79,5 +80,23 @@ final class ScreenTests: XCTestCase {
         XCTAssertEqual(Screens.short("Built-in Retina Display"), "Built-in")
         XCTAssertEqual(Screens.short("LG ULTRAGEAR"), "LG ULTRAGEAR")
         XCTAssertEqual(Screens.short("A Very Long Monitor Name Indeed"), "A Very Long Monit…")
+    }
+
+    func testNeverOnTopOfAnotherMac() {
+        // The Air dropped where another Mac's display already is, right of the laptop: it goes elsewhere, touching.
+        let taken = CGRect(x: 1512, y: 0, width: 1920, height: 1080)
+        let spot = Screens.snap(air, at: CGPoint(x: 1600, y: 0), to: [laptop], avoiding: [taken])
+        let placed = CGRect(origin: spot, size: air[0].size)
+        XCTAssertFalse(taken.insetBy(dx: 1, dy: 1).intersects(placed))
+        XCTAssertFalse(laptop.insetBy(dx: 1, dy: 1).intersects(placed))
+        XCTAssertTrue(laptop.insetBy(dx: -1, dy: -1).intersects(placed))
+    }
+
+    func testLinesUpWhenClose() {
+        // Dropped right of the laptop, 30 points below its top: it lines up with it.
+        let spot = Screens.snap(air, at: CGPoint(x: 1530, y: 30), to: [laptop])
+        XCTAssertEqual(spot, CGPoint(x: 1512, y: 0))
+        // Further off, it stays where it was let go (along the edge).
+        XCTAssertEqual(Screens.snap(air, at: CGPoint(x: 1530, y: 300), to: [laptop]).y, 300)
     }
 }

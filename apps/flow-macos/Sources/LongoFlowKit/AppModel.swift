@@ -163,6 +163,7 @@ final class AppModel: ObservableObject, HostableModel {
                 if let node = self?.node { self?.refreshWallpapers(node) }
                 self?.node?.sendScreens()
                 self?.arranging = false
+                self?.settle()
                 self?.localScreens = Screens.all()
                 self?.screenNames = Screens.names()
                 self?.localBuiltin = Screens.builtin(in: Screens.all())
@@ -180,6 +181,7 @@ final class AppModel: ObservableObject, HostableModel {
     @Published private(set) var theirWallpapers: [String: [Int: NSImage]] = [:]
     /// This Mac's displays are being moved (until macOS says they have).
     @Published private(set) var arranging = false
+    private var settledOnce = false
 
     private func refreshWallpapers(_ node: FlowNode) {
         let pictures = Screens.wallpapers()
@@ -211,6 +213,25 @@ final class AppModel: ObservableObject, HostableModel {
             guard let self, self.arranging else { return }
             self.arranging = false
             self.localScreens = Screens.all()
+        }
+    }
+
+    /// After this Mac's displays changed (moved, plugged in, gone): each other Mac back against them, touching and
+    /// covering nothing (where it was may now be on top of a display, or away from them all).
+    func settle() {
+        var taken: [CGRect] = []
+        for mac in paired {
+            guard let offset = mac.offset, !mac.screens.isEmpty else { continue }
+            let fixed = Screens.snap(mac.screens, at: offset, to: localScreens, avoiding: taken)
+            taken += mac.screens.map { $0.offsetBy(dx: fixed.x, dy: fixed.y) }
+            if hypot(fixed.x - offset.x, fixed.y - offset.y) > 0.5 { place(mac, at: fixed) }
+        }
+    }
+
+    /// The other Macs' displays where they sit here, but `mac`'s.
+    func placedScreens(except mac: String? = nil) -> [CGRect] {
+        paired.filter { $0.id != mac }.flatMap { other in
+            other.knownScreens.map { $0.offsetBy(dx: offset(of: other).x, dy: offset(of: other).y) }
         }
     }
 
@@ -261,6 +282,11 @@ final class AppModel: ObservableObject, HostableModel {
     private func connectedChanged(_ set: Set<String>) {
         connected = set
         bridge.setPeers(peers)
+        // Joined with its displays known: if where it sits is on top of a display here, it moves off.
+        if !settledOnce, paired.contains(where: { set.contains($0.id) && !$0.screens.isEmpty && $0.offset != nil }) {
+            settledOnce = true
+            settle()
+        }
     }
 
     /// The connected Macs that know their screens and are placed.

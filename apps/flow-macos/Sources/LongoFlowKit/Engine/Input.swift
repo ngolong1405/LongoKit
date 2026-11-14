@@ -59,22 +59,30 @@ enum Screens {
     /// How far across empty desk the pointer jumps to another Mac's display (in points).
     static let maxGap: CGFloat = 2400
 
-    /// Another Mac's screens, dropped at `offset` here, moved to the nearest place where they touch one of these
-    /// screens edge to edge (sharing at least a stretch of it) without covering any: as macOS arranges displays.
-    static func snap(_ other: [CGRect], at offset: CGPoint, to local: [CGRect]) -> CGPoint {
+    /// Displays dropped at `offset` here (another Mac's, or one of this Mac's), moved to the nearest place where they
+    /// touch one of `local` edge to edge, sharing a stretch of it, covering none of `local` or `avoiding`: as macOS
+    /// arranges displays. Close to lining up with the display they touch (top with top, bottom with bottom, side with
+    /// side), they line up, so the desk stays tidy.
+    static func snap(_ other: [CGRect], at offset: CGPoint, to local: [CGRect], avoiding: [CGRect] = []) -> CGPoint {
         let group = other.reduce(CGRect.null) { $0.union($1) }.offsetBy(dx: offset.x, dy: offset.y)
         guard !group.isNull, !local.isEmpty else { return offset }
+        let pull: CGFloat = 50
+        func lined(_ value: CGFloat, _ length: CGFloat, _ start: CGFloat, _ end: CGFloat) -> CGFloat {
+            if abs(value - start) < pull { return start }
+            if abs(value + length - end) < pull { return end - length }
+            return value
+        }
         var best: (move: CGPoint, distance: CGFloat)?
         for screen in local {
             let shareY = min(80, group.height / 3, screen.height / 3), shareX = min(80, group.width / 3, screen.width / 3)
-            let y = min(max(group.minY, screen.minY - group.height + shareY), screen.maxY - shareY)
-            let x = min(max(group.minX, screen.minX - group.width + shareX), screen.maxX - shareX)
+            let y = lined(min(max(group.minY, screen.minY - group.height + shareY), screen.maxY - shareY), group.height, screen.minY, screen.maxY)
+            let x = lined(min(max(group.minX, screen.minX - group.width + shareX), screen.maxX - shareX), group.width, screen.minX, screen.maxX)
             let spots = [CGPoint(x: screen.maxX, y: y), CGPoint(x: screen.minX - group.width, y: y),
                          CGPoint(x: x, y: screen.maxY), CGPoint(x: x, y: screen.minY - group.height)]
             for spot in spots {
                 let placed = CGRect(origin: spot, size: group.size)
                 // Edge to edge is fine; covering a display isn't.
-                if local.contains(where: { $0.insetBy(dx: 1, dy: 1).intersects(placed) }) { continue }
+                if (local + avoiding).contains(where: { $0.insetBy(dx: 1, dy: 1).intersects(placed) }) { continue }
                 let move = CGPoint(x: spot.x - group.minX, y: spot.y - group.minY)
                 let distance = hypot(move.x, move.y)
                 if best == nil || distance < best!.distance { best = (move, distance) }
