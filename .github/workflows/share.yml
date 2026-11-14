@@ -3,9 +3,9 @@ name: share
 on:
   push:
     branches: [main, windows]
-    paths: ["apps/share-windows/**", ".github/workflows/share.yml"]
+    paths: ["apps/share-windows/**", "apps/share-macos/**", "packages/ui-macos/**", ".github/workflows/share.yml"]
   pull_request:
-    paths: ["apps/share-windows/**", ".github/workflows/share.yml"]
+    paths: ["apps/share-windows/**", "apps/share-macos/**", "packages/ui-macos/**", ".github/workflows/share.yml"]
   workflow_dispatch:
 
 jobs:
@@ -23,3 +23,15 @@ jobs:
           dotnet-version: 8.0.x
       - name: Tests
         run: dotnet test apps/share-windows/Tests/LongoShare.Tests.csproj -c Release --logger "console;verbosity=normal"
+
+  macos-app:
+    # The Mac app: its engine against itself over real sockets, and the build.
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tests
+        working-directory: apps/share-macos
+        run: swift test
+      - name: Build
+        working-directory: apps/share-macos
+        run: swift build -c release

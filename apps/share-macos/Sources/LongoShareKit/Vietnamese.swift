@@ -1,0 +1,148 @@
+/// Vietnamese strings, keyed by the English text passed to `L()` (including LongoKitUI's own strings).
+enum Vietnamese {
+    static let strings: [String: String] = [
+        // Window & tabs
+        "General": "Chung",
+        "Devices": "Thiết bị",
+        "History": "Lịch sử",
+        "About": "Giới thiệu",
+        "Quit": "Thoát",
+        "Settings…": "Cài đặt…",
+        "Cancel": "Huỷ",
+        "Close": "Đóng",
+        "Close window (keeps running in the menu bar)": "Đóng cửa sổ (app vẫn chạy trên menu bar)",
+        "Minimize": "Thu nhỏ",
+        "This window has a fixed size": "Cửa sổ có kích thước cố định",
+        "Coming soon": "Sắp có",
+        "Off": "Tắt",
+        "1 device": "1 thiết bị",
+        "%d devices": "%d thiết bị",
+        "Open Received Files": "Mở file đã nhận",
+
+        // General
+        "Status": "Trạng thái",
+        "Devices nearby can find this Mac and send it files; you can send to them.":
+            "Các máy ở gần thấy được máy Mac này và gửi file cho nó; bạn cũng gửi được cho chúng.",
+        "Off: this Mac can't be found and takes no files.": "Đang tắt: không ai thấy máy Mac này, và nó không nhận file.",
+        "This Mac": "Máy Mac này",
+        "Device name": "Tên máy",
+        "What others see when they look for this Mac.": "Tên các máy khác thấy khi tìm máy Mac này.",
+        "Save to": "Lưu vào",
+        "Change…": "Đổi…",
+        "Choose": "Chọn",
+        "Open the folder": "Mở thư mục",
+        "Save received files to": "Lưu file nhận được vào",
+        "Receiving": "Nhận file",
+        "Require a PIN": "Yêu cầu mã PIN",
+        "Senders type it before their files are offered to you.": "Người gửi phải nhập mã này thì file mới được gửi tới bạn.",
+        "Devices nearby and sending from the menu bar.": "Xem máy ở gần và gửi file ngay từ thanh menu.",
+        "Works with LocalSend on phones, Windows and Linux, on the same Wi-Fi or network.":
+            "Dùng được với LocalSend trên điện thoại, Windows và Linux, khi cùng Wi-Fi hoặc cùng mạng.",
+        "Port %d is taken by another app (LocalSend?). Quit it, then turn Longo Share off and on.":
+            "Cổng %d đang bị app khác dùng (LocalSend?). Hãy thoát app đó, rồi tắt và bật lại Longo Share.",
+        "Couldn't start receiving: %@": "Không bắt đầu nhận file được: %@",
+
+        // App settings (LongoKitUI)
+        "App": "Ứng dụng",
+        "Language": "Ngôn ngữ",
+        "Appearance": "Giao diện",
+        "System": "Hệ thống",
+        "Dark": "Tối",
+        "Light": "Sáng",
+        "Theme: dark": "Giao diện: tối",
+        "Theme: light": "Giao diện: sáng",
+        "Theme: follow macOS": "Giao diện: theo macOS",
+        "Start at Login": "Mở cùng máy",
+        "Show icon in menu bar": "Hiện icon trên thanh menu",
+        "Move %@ to Applications?": "Chuyển %@ vào Applications?",
+        "It's running from the disk image. In Applications it stays installed, and opens from Launchpad and Spotlight.":
+            "App đang chạy từ file cài đặt. Ở trong Applications thì app được cài hẳn, mở được từ Launchpad và Spotlight.",
+        "Move to Applications": "Chuyển vào Applications",
+        "Not Now": "Để sau",
+        "Couldn't move %@ to Applications": "Không chuyển được %@ vào Applications",
+        "Drag it into Applications from the disk image instead.": "Hãy kéo app vào Applications từ file cài đặt.",
+        "%@ is installed": "Đã cài %@",
+        "Delete the installer? It isn't needed any more.": "Xoá file cài đặt? Không cần nó nữa.",
+        "Move to Trash": "Bỏ vào Thùng rác",
+        "Keep": "Giữ lại",
+
+        // Devices
+        "NEARBY DEVICES (%d)": "THIẾT BỊ Ở GẦN (%d)",
+        "Nearby": "Ở gần",
+        "Looking…": "Đang tìm…",
+        "Look Again": "Tìm lại",
+        "Looking for devices…": "Đang tìm thiết bị…",
+        "No devices found yet.": "Chưa thấy thiết bị nào.",
+        "Longo Share is off.": "Longo Share đang tắt.",
+        "Open LocalSend or Longo Share on the other device, on the same Wi-Fi.": "Mở LocalSend hoặc Longo Share trên máy kia, cùng Wi-Fi với máy này.",
+        "Add by address": "Thêm bằng địa chỉ",
+        "Not in the list? Type its IP address, as LocalSend shows it.": "Không thấy trong danh sách? Nhập địa chỉ IP của máy đó, như LocalSend hiện.",
+        "Add": "Thêm",
+        "Add a Device": "Thêm thiết bị",
+        "Its IP address, as LocalSend shows it (192.168.1.20). Both devices must be on the same network.":
+            "Địa chỉ IP của máy đó, như LocalSend hiện (192.168.1.20). Hai máy phải cùng một mạng.",
+        "TRUSTED DEVICES": "THIẾT BỊ TIN CẬY",
+        "Trusted": "Tin cậy",
+        "Forget": "Bỏ",
+        "None. Turn on Always accept when a device sends you files, and its files come in without asking.":
+            "Chưa có. Bật Luôn nhận khi một máy gửi file cho bạn, lần sau file của máy đó vào thẳng, không hỏi nữa.",
+        "This Mac: %@": "Máy này: %@",
+        "This Mac: %@ · %@": "Máy này: %@ · %@",
+        "Text": "Văn bản",
+        "Send Files": "Gửi file",
+        "Send files": "Gửi file",
+        "Send text": "Gửi văn bản",
+        "Send": "Gửi",
+        "Send to %@": "Gửi tới %@",
+        "Click to pick files, or drop them here": "Bấm để chọn file, hoặc thả file vào đây",
+        "Click a device to pick files for it. To drop files, use the window.":
+            "Bấm vào một máy để chọn file gửi. Muốn kéo thả file thì dùng cửa sổ.",
+
+        // Transfers
+        "Sending to %@": "Đang gửi tới %@",
+        "Receiving from %@": "Đang nhận từ %@",
+        "Sent to %@.": "Đã gửi tới %@.",
+        "%@ declined.": "%@ đã từ chối.",
+        "%@ is busy with another transfer.": "%@ đang bận nhận file khác.",
+        "Cancelled.": "Đã huỷ.",
+        "Couldn't reach %@.": "Không kết nối được với %@.",
+        "Received from %@.": "Đã nhận từ %@.",
+        "Transfer stopped.": "Đã dừng truyền file.",
+        "Found %@.": "Đã thấy %@.",
+        "Nothing answered at %@.": "Không có máy nào trả lời ở %@.",
+
+        // History
+        "HISTORY (%d)": "LỊCH SỬ (%d)",
+        "Clear": "Xoá",
+        "Nothing sent or received yet.": "Chưa gửi hay nhận gì.",
+        "Files": "Các file",
+        "%@ and %d more": "%@ và %d file khác",
+        "To %@": "Tới %@",
+        "From %@": "Từ %@",
+        "Copy": "Chép",
+        "Show in Finder": "Hiện trong Finder",
+
+        // Small windows
+        "Files from %@": "File từ %@",
+        "wants to send you a file · %@": "muốn gửi bạn 1 file · %@",
+        "wants to send you %d files · %@": "muốn gửi bạn %d file · %@",
+        "and %d more": "và %d file khác",
+        "Always accept from this device": "Luôn nhận từ máy này",
+        "Its files come in without asking from now on.": "Từ giờ file của máy này vào thẳng, không hỏi nữa.",
+        "Decline": "Từ chối",
+        "Accept": "Nhận",
+        "Message from %@": "Tin nhắn từ %@",
+        "sent you a message": "gửi bạn một tin nhắn",
+        "Open Link": "Mở liên kết",
+        "PIN for %@": "Mã PIN của %@",
+        "%@ asks for a PIN. It's shown on that device.": "%@ yêu cầu mã PIN. Mã này hiện trên máy đó.",
+        "Send Text to %@": "Gửi văn bản tới %@",
+        "⌘↩ to send": "⌘↩ để gửi",
+
+        // About
+        "Files and text between your devices nearby: Macs, Windows PCs, phones. Works with LocalSend.":
+            "Gửi file và văn bản giữa các máy ở gần: Mac, máy Windows, điện thoại. Dùng được với LocalSend.",
+        "License": "Giấy phép",
+        "Part of LongoKit · Crafted by %@": "Thuộc LongoKit · Do %@ làm",
+    ]
+}
