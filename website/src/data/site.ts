@@ -24,7 +24,7 @@ export const shareVersion = "0.1.2";
 // Longo Share: bump shareVersion and upload LongoShare-<version>.dmg to tag share-macos/v<version>.
 export const shareDownload = `${repo}/releases/download/share-macos/v${shareVersion}/LongoShare-${shareVersion}.dmg`;
 export const shareReleaseNotes = `${repo}/releases/tag/share-macos/v${shareVersion}`;
-export const flowVersion = "0.1.0";
+export const flowVersion = "0.1.1";
 // Longo Flow: bump flowVersion and upload LongoFlow-<version>.dmg to tag flow-macos/v<version>.
 export const flowDownload = `${repo}/releases/download/flow-macos/v${flowVersion}/LongoFlow-${flowVersion}.dmg`;
 export const flowReleaseNotes = `${repo}/releases/tag/flow-macos/v${flowVersion}`;
