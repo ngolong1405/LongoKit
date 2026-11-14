@@ -42,6 +42,16 @@ struct GeneralTab: View {
                     }
                 }
             }
+            SettingsGroup(L("Trusted devices")) {
+                if model.trusted.isEmpty {
+                    CompactRow(L("None yet"), help: L("Turn on Always accept in a device's chat, and its files come in without asking.")) { EmptyView() }
+                }
+                ForEach(model.trusted, id: \.fingerprint) { device in
+                    CompactRow(device.alias) {
+                        Button(L("Forget")) { model.forget(device) }.buttonStyle(GhostButtonStyle(compact: true))
+                    }
+                }
+            }
             AppBehaviorRows(language: $model.language, appearance: $model.appearance, startAtLogin: model.startAtLogin,
                             setStartAtLogin: model.setStartAtLogin, showMenuBarIcon: $model.showMenuBarIcon,
                             menuBarHelp: L("Devices nearby and sending from the menu bar."))
@@ -127,168 +137,6 @@ struct CommitField: View {
     }
 }
 
-// MARK: - Devices
-
-struct DevicesTab: View {
-    @EnvironmentObject private var model: AppModel
-    @State private var address = ""
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                SectionLabel(text: L("NEARBY DEVICES (%d)", model.peers.count))
-                Spacer()
-                Button { Task { await model.refresh() } } label: {
-                    Label(model.isScanning ? L("Looking…") : L("Look Again"), systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(GhostButtonStyle(compact: true))
-                .disabled(!model.isEnabled || model.isScanning)
-            }
-            ActivityView()
-            VStack(spacing: 8) {
-                ForEach(model.peers) { peer in PeerRow(peer: peer, compact: false) }
-                if model.peers.isEmpty { EmptyDevices() }
-            }
-            .panel(padding: 10)
-
-            HStack(spacing: 12) {
-                Image(systemName: "network").foregroundStyle(Theme.violet).frame(width: 22)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L("Add by address")).font(.ui(13, .medium)).foregroundStyle(Theme.text)
-                    Text(L("Not in the list? Type its IP address, as LocalSend shows it.")).font(.ui(11)).foregroundStyle(Theme.textMuted)
-                }
-                Spacer()
-                CommitField(text: address, width: 150, placeholder: "192.168.1.20") { typed in
-                    Task { await model.connect(typed) }
-                }
-            }
-            .panel(padding: 14)
-            .disabled(!model.isEnabled)
-
-            SectionLabel(text: L("TRUSTED DEVICES"))
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(model.trusted, id: \.fingerprint) { device in
-                    HStack {
-                        Image(systemName: "checkmark.shield.fill").foregroundStyle(Theme.emerald)
-                        Text(device.alias).font(.ui(13, .medium)).foregroundStyle(Theme.text)
-                        Spacer()
-                        Button(L("Forget")) { model.forget(device) }.buttonStyle(GhostButtonStyle(compact: true))
-                    }
-                }
-                if model.trusted.isEmpty {
-                    Text(L("None. Turn on Always accept when a device sends you files, and its files come in without asking."))
-                        .font(.ui(12))
-                        .foregroundStyle(Theme.textMuted)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .panel(padding: 14)
-            Text(L("This Mac: %@ · %@", model.alias, "\(model.address):\(ShareProtocol.port)"))
-                .font(.mono(10))
-                .foregroundStyle(Theme.textFaint)
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 20)
-    }
-}
-
-/// A device: what it is, and sending to it. Files dropped on it are sent; a click picks some.
-struct PeerRow: View {
-    @EnvironmentObject private var model: AppModel
-    let peer: Peer
-    let compact: Bool
-    @State private var hovered = false
-    @State private var targeted = false
-    @Environment(\.rendersFlat) private var rendersFlat
-
-    var body: some View {
-        let busy = model.current != nil
-        let lit = (hovered || targeted) && !busy
-        HStack(spacing: 12) {
-            DeviceBadge(info: peer.info, size: compact ? 32 : 38)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(peer.info.alias).font(.ui(13, .semibold)).foregroundStyle(Theme.text).lineLimit(1)
-                    if model.isTrusted(peer) { Chip(L("Trusted"), tone: .emerald) }
-                }
-                Text([peer.info.deviceModel, peer.address].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
-                    .font(.ui(11))
-                    .foregroundStyle(Theme.textMuted)
-                    .lineLimit(1)
-            }
-            Spacer(minLength: 8)
-            if compact {
-                IconButton(symbol: "text.bubble", help: L("Send text")) { Panels.sendText(to: peer, model: model) }
-                IconButton(symbol: "paperplane.fill", help: L("Send files")) { pickFiles() }
-            } else {
-                Button { Panels.sendText(to: peer, model: model) } label: { Label(L("Text"), systemImage: "text.bubble") }
-                    .buttonStyle(GhostButtonStyle(compact: true))
-                Button { pickFiles() } label: { Label(L("Send Files"), systemImage: "paperplane.fill") }
-                    .buttonStyle(PrimaryButtonStyle(compact: true))
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(lit ? Theme.hover : Theme.tint(0.04)))
-        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(lit ? Theme.violet : Theme.hairline))
-        .contentShape(Rectangle())
-        .onHover { hovered = $0 }
-        .onTapGesture { if !busy { pickFiles() } }
-        .modifier(DropFiles(enabled: !rendersFlat, targeted: $targeted) { urls in
-            if !busy { model.send(urls, to: peer) }
-        })
-        .opacity(busy ? 0.55 : 1)
-        .help(L("Click to pick files, or drop them here"))
-    }
-
-    private func pickFiles() {
-        let panel = NSOpenPanel()
-        panel.allowsMultipleSelection = true
-        panel.canChooseDirectories = true
-        panel.canChooseFiles = true
-        panel.prompt = L("Send")
-        panel.message = L("Send to %@", peer.info.alias)
-        NSApp.activate(ignoringOtherApps: true)
-        if panel.runModal() == .OK { model.send(panel.urls, to: peer) }
-    }
-
-    static func urls(from providers: [NSItemProvider], done: @escaping ([URL]) -> Void) {
-        let group = DispatchGroup()
-        var urls: [URL] = []
-        let lock = NSLock()
-        for provider in providers {
-            group.enter()
-            _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                if let url {
-                    lock.lock()
-                    urls.append(url)
-                    lock.unlock()
-                }
-                group.leave()
-            }
-        }
-        group.notify(queue: .main) { done(urls) }
-    }
-}
-
-/// Files dropped from Finder (left out of snapshots, which can't draw a drop target).
-private struct DropFiles: ViewModifier {
-    let enabled: Bool
-    @Binding var targeted: Bool
-    let dropped: ([URL]) -> Void
-
-    func body(content: Content) -> some View {
-        if enabled {
-            content.onDrop(of: [.fileURL], isTargeted: $targeted) { providers in
-                PeerRow.urls(from: providers, done: dropped)
-                return true
-            }
-        } else {
-            content
-        }
-    }
-}
-
 struct IconButton: View {
     let symbol: String
     let help: String
@@ -337,120 +185,6 @@ struct EmptyDevices: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(6)
-    }
-}
-
-/// The transfer under way, or how the last one went.
-struct ActivityView: View {
-    @EnvironmentObject private var model: AppModel
-
-    var body: some View {
-        if let transfer = model.current {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
-                    Image(systemName: transfer.sending ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
-                        .foregroundStyle(transfer.sending ? Theme.solar : Theme.emerald)
-                    Text(transfer.sending ? L("Sending to %@", transfer.device)
-                         : transfer.device.isEmpty ? L("Receiving") : L("Receiving from %@", transfer.device))
-                        .font(.ui(12.5, .semibold))
-                        .foregroundStyle(Theme.text)
-                    Spacer()
-                    Button(L("Cancel"), action: model.cancel).buttonStyle(GhostButtonStyle(compact: true))
-                }
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(Theme.tint(0.1))
-                        Capsule().fill(Theme.accentGradient).frame(width: max(6, geometry.size.width * transfer.fraction))
-                    }
-                }
-                .frame(height: 6)
-                Text("\(Pretty.size(transfer.done)) / \(Pretty.size(transfer.total)) · \(Int(transfer.fraction * 100))%")
-                    .font(.mono(10.5))
-                    .foregroundStyle(Theme.textMuted)
-            }
-            .panel(padding: 12)
-        } else if let notice = model.notice {
-            HStack(spacing: 8) {
-                Image(systemName: notice.good ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                    .foregroundStyle(notice.good ? Theme.emerald : Theme.amber)
-                Text(notice.device.isEmpty ? L(notice.text) : L(notice.text, notice.device))
-                    .font(.ui(12))
-                    .foregroundStyle(Theme.textSecondary)
-            }
-        }
-    }
-}
-
-// MARK: - History
-
-struct HistoryTab: View {
-    @EnvironmentObject private var model: AppModel
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                SectionLabel(text: L("HISTORY (%d)", model.history.count))
-                Spacer()
-                if !model.history.isEmpty {
-                    Button { model.clearHistory() } label: { Label(L("Clear"), systemImage: "trash") }
-                        .buttonStyle(GhostButtonStyle(compact: true))
-                }
-            }
-            VStack(spacing: 0) {
-                ForEach(Array(model.history.enumerated()), id: \.element.id) { index, item in
-                    if index > 0 { Hairline().padding(.vertical, 10) }
-                    HistoryRow(item: item)
-                }
-                if model.history.isEmpty {
-                    Text(L("Nothing sent or received yet.")).font(.ui(12)).foregroundStyle(Theme.textMuted)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-            .panel(padding: 14)
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 20)
-    }
-}
-
-private struct HistoryRow: View {
-    @EnvironmentObject private var model: AppModel
-    let item: HistoryItem
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: item.sent ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
-                .font(.system(size: 16))
-                .foregroundStyle(item.sent ? Theme.solar : Theme.emerald)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(what).font(.ui(13, .medium)).foregroundStyle(Theme.text).lineLimit(1)
-                Text("\(item.sent ? L("To %@", item.device) : L("From %@", item.device)) · \(item.time.formatted(date: .abbreviated, time: .shortened))")
-                    .font(.ui(11))
-                    .foregroundStyle(Theme.textMuted)
-            }
-            Spacer()
-            if let text = item.text {
-                IconButton(symbol: "doc.on.doc", help: L("Copy")) {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(text, forType: .string)
-                }
-            } else if !item.sent {
-                IconButton(symbol: "magnifyingglass", help: L("Show in Finder")) { reveal() }
-            }
-        }
-    }
-
-    private var what: String {
-        if let text = item.text { return "“\(Pretty.shorten(text, 60))”" }
-        if item.files.isEmpty { return L("Files") }
-        if item.files.count == 1 { return item.files[0] }
-        return L("%@ and %d more", item.files[0], item.files.count - 1)
-    }
-
-    private func reveal() {
-        let folder = URL(fileURLWithPath: item.folder ?? model.folder.path)
-        let files = item.files.map { folder.appendingPathComponent($0) }.filter { FileManager.default.fileExists(atPath: $0.path) }
-        if files.isEmpty { NSWorkspace.shared.open(folder) } else { NSWorkspace.shared.activateFileViewerSelecting(files) }
     }
 }
 

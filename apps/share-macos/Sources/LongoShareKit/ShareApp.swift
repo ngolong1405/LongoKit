@@ -34,11 +34,7 @@ public struct ShareScenes: Scene {
 
 public final class ShareAppDelegate: NSObject, NSApplicationDelegate {
     /// Made here so the right-click menu of the menu bar icon can reach it.
-    @MainActor static let model: AppModel = {
-        let model = AppModel(live: !Snapshot.isRequested)
-        Panels.attach(to: model)
-        return model
-    }()
+    @MainActor static let model = AppModel(live: !Snapshot.isRequested)
     private var closeShortcutMonitor: Any?
 
     override public init() { super.init() }

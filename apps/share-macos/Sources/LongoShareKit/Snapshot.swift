@@ -24,17 +24,25 @@ enum Snapshot {
         let phone = Peer(info: DeviceInfo(alias: "Pixel 8", deviceModel: "Google", deviceType: "mobile", fingerprint: "b2"), address: "192.168.1.31")
         let pad = Peer(info: DeviceInfo(alias: "iPad", deviceModel: "iPad", deviceType: "tablet", fingerprint: "c3"), address: "192.168.1.40")
         let day = Date(timeIntervalSince1970: 1_794_640_000)
-        model.simulate(peers: [mac, phone, pad], current: Transfer(device: "Pixel 8", sending: false, done: 38_400_000, total: 61_200_000),
-                       notice: nil,
-                       history: [HistoryItem(sent: false, device: "Pixel 8", files: ["IMG_2041.jpg", "IMG_2042.jpg", "IMG_2043.jpg"], time: day),
-                                 HistoryItem(sent: true, device: "Long's PC", files: ["Báo cáo quý 3.pdf"], time: day.addingTimeInterval(-1800)),
-                                 HistoryItem(sent: false, device: "iPad", text: "https://longokit.vercel.app", time: day.addingTimeInterval(-40000))],
-                       trusted: [TrustedDevice(fingerprint: "a1", alias: "Long's PC")])
-        let incoming = IncomingTransfer(from: phone, files: [
-            ShareFile(id: "1", fileName: "IMG_2044.jpg", size: 3_480_000, fileType: "image/jpeg"),
-            ShareFile(id: "2", fileName: "IMG_2045.jpg", size: 2_910_000, fileType: "image/jpeg"),
-            ShareFile(id: "3", fileName: "Ghi âm 14-11.m4a", size: 812_000, fileType: "audio/mp4"),
+        func at(_ minutes: Double) -> Date { day.addingTimeInterval(minutes * 60) }
+        let chat = Conversation(id: "b2", alias: "Pixel 8", deviceModel: "Google", deviceType: "mobile", items: [
+            ChatItem(sent: false, text: "Gửi mình mấy tấm hình hôm qua nha", state: .done, time: at(0)),
+            ChatItem(sent: true, files: [ChatFile(name: "IMG_2041.jpg", size: 3_480_000), ChatFile(name: "IMG_2042.jpg", size: 2_910_000)],
+                     state: .done, time: at(2), done: 6_390_000, total: 6_390_000),
+            ChatItem(sent: true, text: "Xong rồi đó. Link bài viết: https://longokit.vercel.app/share", state: .done, time: at(3)),
+            ChatItem(sent: false, files: [ChatFile(name: "Ghi âm 14-11.m4a", size: 812_000), ChatFile(name: "Báo cáo quý 3.pdf", size: 1_240_000)],
+                     state: .asking, time: at(5), total: 2_052_000),
+            ChatItem(sent: true, files: [ChatFile(name: "video-4k.mov", size: 61_200_000)], state: .transferring, time: at(6),
+                     done: 38_400_000, total: 61_200_000),
+        ], unread: 0)
+        let older = Conversation(id: "c3", alias: "iPad", deviceModel: "iPad", deviceType: "tablet", items: [
+            ChatItem(sent: false, text: "https://longokit.vercel.app", state: .done, time: at(-900)),
+        ], unread: 2)
+        let away = Conversation(id: "d4", alias: "Logan's MacBook Air", deviceModel: "macOS", deviceType: "desktop", items: [
+            ChatItem(sent: false, text: "tôi sẽ xem", state: .done, time: at(-3000)),
         ])
+        model.simulate(peers: [mac, phone, pad], conversations: [chat, older, away], selected: "b2",
+                       trusted: [TrustedDevice(fingerprint: "a1", alias: "Long's PC")])
 
         for (scheme, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", .aqua)] {
             NSApp.appearance = NSAppearance(named: appearance)
@@ -51,10 +59,6 @@ enum Snapshot {
                     }, model, scheme, to: directory.appendingPathComponent("\(prefix)-\(index + 1)-\(tab).png"))
                 }
                 render(MenuPopover(), model, scheme, to: directory.appendingPathComponent("\(prefix)-popover.png"))
-                render(IncomingView(transfer: incoming) { _, _ in }.padding(20).frame(width: 440), model, scheme,
-                       to: directory.appendingPathComponent("\(prefix)-incoming.png"))
-                render(MessageView(from: pad, text: "Gửi bạn link nè: https://longokit.vercel.app") {}.padding(20).frame(width: 440), model, scheme,
-                       to: directory.appendingPathComponent("\(prefix)-message.png"))
             }
         }
         let icon = HStack(spacing: 24) {

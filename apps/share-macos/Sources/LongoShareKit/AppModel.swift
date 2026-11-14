@@ -5,13 +5,12 @@ import ServiceManagement
 import SwiftUI
 
 enum MainTab: CaseIterable {
-    case general, devices, history, about
+    case devices, general, about
 
     var title: String {
         switch self {
-        case .general: return L("General")
         case .devices: return L("Devices")
-        case .history: return L("History")
+        case .general: return L("General")
         case .about: return L("About")
         }
     }
@@ -23,19 +22,52 @@ struct TrustedDevice: Codable, Hashable {
     var alias: String
 }
 
-/// A transfer done, for History.
-struct HistoryItem: Codable, Hashable, Identifiable {
-    var id = UUID()
-    var sent: Bool
-    var device: String
-    var files: [String] = []
-    /// Where received files went.
-    var folder: String?
-    var text: String?
-    var time: Date
+/// A file in a chat: its name and size, and where it is on this Mac (sent from, or saved to).
+struct ChatFile: Codable, Hashable {
+    var name: String
+    var size: Int64
+    var path: String?
 }
 
-/// A transfer under way.
+/// Where a message stands.
+enum ChatState: String, Codable {
+    /// Coming in, waiting for the person here to accept or decline.
+    case asking
+    /// Going out, waiting for the other side to accept.
+    case waiting
+    /// The other side wants a PIN before it takes these.
+    case pin
+    case transferring, done, declined, failed, cancelled
+}
+
+/// One message in a chat with a device: text, or files, either way.
+struct ChatItem: Codable, Hashable, Identifiable {
+    var id = UUID()
+    var sent: Bool
+    var text: String?
+    var files: [ChatFile] = []
+    var state: ChatState
+    var time = Date()
+    var done: Int64 = 0
+    var total: Int64 = 0
+
+    var fraction: Double { total == 0 ? 0 : min(1, Double(done) / Double(total)) }
+    var isOpen: Bool { [.asking, .waiting, .pin, .transferring].contains(state) }
+}
+
+/// The chat with one device, kept across launches (the device may not be around now).
+struct Conversation: Codable, Hashable, Identifiable {
+    var id: String
+    var alias: String
+    var deviceModel: String?
+    var deviceType: String?
+    var items: [ChatItem] = []
+    var unread = 0
+
+    var lastTime: Date { items.last?.time ?? .distantPast }
+}
+
+/// A transfer under way, for the menu bar and the title bar.
 struct Transfer: Equatable {
     var device: String
     var sending: Bool
@@ -45,24 +77,34 @@ struct Transfer: Equatable {
     var fraction: Double { total == 0 ? 0 : min(1, Double(done) / Double(total)) }
 }
 
-/// What happened last: an English line (through L) about a device.
-struct Notice: Equatable {
-    var text: String
-    var device = ""
-    var good = true
+/// A device in the list: one around now, or one chatted with before.
+struct Contact: Identifiable, Hashable {
+    var id: String
+    var info: DeviceInfo
+    /// Where it is now; nil when it isn't around.
+    var peer: Peer?
+    var conversation: Conversation?
+
+    var isOnline: Bool { peer != nil }
 }
 
-/// Longo Share's state: the settings, the device (`ShareNode`) while it's on, the devices around, the transfer
-/// under way and the history.
+/// Longo Share's state: the settings, the device (`ShareNode`) while it's on, the devices around, and a chat with
+/// each one, where files and text come and go and incoming transfers are answered.
 @MainActor
 final class AppModel: ObservableObject, HostableModel {
-    @Published var tab: MainTab = .general
+    @Published var tab: MainTab = .devices
     @Published private(set) var peers: [Peer] = []
-    @Published private(set) var current: Transfer?
-    @Published private(set) var notice: Notice?
+    @Published private(set) var conversations: [String: Conversation] = [:] {
+        didSet { scheduleSave() }
+    }
+    /// The chat on screen.
+    @Published var selected: String? {
+        didSet { markRead() }
+    }
     /// Why it can't receive (the port is taken...), or nil.
     @Published private(set) var problem: String?
     @Published private(set) var isScanning = false
+    @Published private(set) var lastAddressFailed: String?
 
     @Published var isEnabled: Bool {
         didSet {
@@ -112,10 +154,6 @@ final class AppModel: ObservableObject, HostableModel {
         }
     }
 
-    @Published private(set) var history: [HistoryItem] {
-        didSet { save(history, forKey: Keys.history) }
-    }
-
     @Published var language: AppLanguage {
         didSet {
             Localizer.language = language
@@ -138,22 +176,21 @@ final class AppModel: ObservableObject, HostableModel {
     }
 
     @Published private(set) var startAtLogin = SMAppService.mainApp.status == .enabled
-
-    /// Asks the person whether to take files; true takes them, and `always` trusts the device too.
-    var ask: (IncomingTransfer) async -> (accept: Bool, always: Bool) = { _ in (false, false) }
-    /// Asks for the PIN a device wants; nil gives up.
-    var askPin: (Peer) async -> String? = { _ in nil }
-    /// A message came in: shows it.
-    var showMessage: (Peer, String) -> Void = { _, _ in }
+    private(set) var problemDetail = ""
 
     private let defaults: UserDefaults
     private let live: Bool
     private let fingerprint: String
     private var node: ShareNode?
-    private var sending: Task<Void, Never>?
+    private var sending: [UUID: Task<Void, Never>] = [:]
     private var announcer: Timer?
-    private var receivingFrom = ""
+    /// Answers the person gives in a chat: an incoming request's, or a PIN.
+    private var answers: [UUID: CheckedContinuation<Bool, Never>] = [:]
+    private var pins: [UUID: CheckedContinuation<String?, Never>] = [:]
+    /// The incoming transfer under way: its chat and message.
+    private var incoming: (conversation: String, item: UUID)?
     private var lastProgress = Date.distantPast
+    private var saveTask: Task<Void, Never>?
 
     private enum Keys {
         static let enabled = "enabled"
@@ -161,14 +198,15 @@ final class AppModel: ObservableObject, HostableModel {
         static let folder = "folder"
         static let pin = "pin"
         static let trusted = "trusted"
-        static let history = "history"
+        static let conversations = "conversations"
         static let fingerprint = "fingerprint"
         static let language = "language"
         static let appearance = "appearance"
         static let menuBarIcon = "showMenuBarIcon"
     }
 
-    private static let historyLength = 100
+    /// Messages kept per chat.
+    private static let chatLength = 300
 
     init(live: Bool = true, defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -179,7 +217,14 @@ final class AppModel: ObservableObject, HostableModel {
             ?? FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!
         pin = defaults.string(forKey: Keys.pin)
         trusted = defaults.data(forKey: Keys.trusted).flatMap { try? JSONDecoder().decode([TrustedDevice].self, from: $0) } ?? []
-        history = defaults.data(forKey: Keys.history).flatMap { try? JSONDecoder().decode([HistoryItem].self, from: $0) } ?? []
+        var saved = defaults.data(forKey: Keys.conversations).flatMap { try? JSONDecoder().decode([String: Conversation].self, from: $0) } ?? [:]
+        // What was under way when the app quit didn't finish.
+        for key in saved.keys {
+            for index in saved[key]!.items.indices where saved[key]!.items[index].isOpen {
+                saved[key]!.items[index].state = .failed
+            }
+        }
+        conversations = saved
         language = defaults.string(forKey: Keys.language).flatMap(AppLanguage.init(rawValue:)) ?? .systemDefault
         appearance = defaults.string(forKey: Keys.appearance).flatMap(AppAppearance.init(rawValue:)) ?? .system
         showMenuBarIcon = defaults.object(forKey: Keys.menuBarIcon) as? Bool ?? true
@@ -196,10 +241,54 @@ final class AppModel: ObservableObject, HostableModel {
         if live && isEnabled { start() }
     }
 
-    // MARK: - Running
+    // MARK: - Devices
 
     /// This Mac, as others see it.
     var address: String { Discovery.localAddresses().first.map { Discovery.text($0.address) } ?? "" }
+
+    /// Devices around now first, then the ones chatted with before, most recent first.
+    var contacts: [Contact] {
+        var list = peers.map { Contact(id: $0.id, info: $0.info, peer: $0, conversation: conversations[$0.id]) }
+        let online = Set(list.map(\.id))
+        for conversation in conversations.values where !online.contains(conversation.id) {
+            list.append(Contact(id: conversation.id,
+                                info: DeviceInfo(alias: conversation.alias, deviceModel: conversation.deviceModel,
+                                                 deviceType: conversation.deviceType, fingerprint: conversation.id),
+                                peer: nil, conversation: conversation))
+        }
+        return list.sorted { a, b in
+            if a.isOnline != b.isOnline { return a.isOnline }
+            let at = a.conversation?.lastTime ?? .distantPast, bt = b.conversation?.lastTime ?? .distantPast
+            if at != bt { return at > bt }
+            return a.info.alias.localizedCaseInsensitiveCompare(b.info.alias) == .orderedAscending
+        }
+    }
+
+    func contact(_ id: String?) -> Contact? {
+        guard let id else { return nil }
+        return contacts.first { $0.id == id }
+    }
+
+    var unread: Int { conversations.values.reduce(0) { $0 + $1.unread } }
+
+    /// The transfer under way, if any.
+    var current: Transfer? {
+        for conversation in conversations.values {
+            if let item = conversation.items.last(where: { $0.state == .transferring }) {
+                return Transfer(device: conversation.alias, sending: item.sent, done: item.done, total: item.total)
+            }
+        }
+        return nil
+    }
+
+    /// Opens the window on a device's chat.
+    func open(_ id: String) {
+        tab = .devices
+        selected = id
+        MainWindowRef.show()
+    }
+
+    // MARK: - Running
 
     private func start() {
         guard live, node == nil else { return }
@@ -210,13 +299,11 @@ final class AppModel: ObservableObject, HostableModel {
             if transfer.text != nil { return true }
             return await self?.askToAccept(transfer) ?? false
         }
-        receiver.accepted = { [weak self] transfer in Task { @MainActor in self?.receivingFrom = transfer.from.info.alias } }
-        receiver.progress = { [weak self] done, total in
-            Task { @MainActor in self?.progressed(Transfer(device: self?.receivingFrom ?? "", sending: false, done: done, total: total)) }
-        }
+        receiver.accepted = { [weak self] transfer in Task { @MainActor in self?.accepted(transfer) } }
+        receiver.progress = { [weak self] done, total in Task { @MainActor in self?.receiving(done, total) } }
         receiver.received = { [weak self] received in Task { @MainActor in self?.received(received) } }
-        receiver.cancelled = { [weak self] in Task { @MainActor in self?.finish(Notice(text: "Transfer stopped.", good: false)) } }
-        node.peersChanged = { [weak self] in Task { @MainActor in self?.peers = self?.node?.list ?? [] } }
+        receiver.cancelled = { [weak self] in Task { @MainActor in self?.incomingEnded() } }
+        node.peersChanged = { [weak self] in Task { @MainActor in self?.peersChanged() } }
         self.node = node
         problem = nil
         node.start { [weak self] error in
@@ -236,8 +323,6 @@ final class AppModel: ObservableObject, HostableModel {
         Task { await refresh() }
     }
 
-    private(set) var problemDetail = ""
-
     private func stop() {
         stopNode()
         problem = nil
@@ -246,11 +331,23 @@ final class AppModel: ObservableObject, HostableModel {
     private func stopNode() {
         announcer?.invalidate()
         announcer = nil
-        sending?.cancel()
+        for task in sending.values { task.cancel() }
+        for (id, answer) in answers { answer.resume(returning: false); update(id) { $0.state = .cancelled } }
+        answers = [:]
+        for (_, pin) in pins { pin.resume(returning: nil) }
+        pins = [:]
         node?.stop()
         node = nil
         peers = []
-        current = nil
+    }
+
+    private func peersChanged() {
+        peers = node?.list ?? []
+        // A device's chat follows its new name.
+        for peer in peers where conversations[peer.id] != nil && conversations[peer.id]?.alias != peer.info.alias {
+            conversations[peer.id]?.alias = peer.info.alias
+        }
+        if selected == nil, let first = peers.first { selected = first.id }
     }
 
     /// Looks for devices: an announcement, then every address on the network.
@@ -258,7 +355,7 @@ final class AppModel: ObservableObject, HostableModel {
         guard let node, !isScanning else { return }
         isScanning = true
         await node.refresh()
-        peers = node.list
+        peersChanged()
         isScanning = false
     }
 
@@ -273,8 +370,49 @@ final class AppModel: ObservableObject, HostableModel {
             address = String(address[..<colon])
         }
         let peer = await node.connect(address, port: port)
-        peers = node.list
-        notice = peer.map { Notice(text: "Found %@.", device: $0.info.alias) } ?? Notice(text: "Nothing answered at %@.", device: address, good: false)
+        peersChanged()
+        lastAddressFailed = peer == nil ? address : nil
+        if let peer { selected = peer.id }
+    }
+
+    // MARK: - Chats
+
+    private func conversation(for info: DeviceInfo, id: String) {
+        if conversations[id] == nil {
+            conversations[id] = Conversation(id: id, alias: info.alias, deviceModel: info.deviceModel, deviceType: info.deviceType)
+        }
+    }
+
+    private func append(_ item: ChatItem, to id: String, from info: DeviceInfo) {
+        conversation(for: info, id: id)
+        conversations[id]!.items.append(item)
+        if conversations[id]!.items.count > Self.chatLength { conversations[id]!.items.removeFirst(conversations[id]!.items.count - Self.chatLength) }
+        if !item.sent {
+            // Seen at once when its chat is open in a window on screen; otherwise the window comes up on it.
+            let onScreen = WindowVisibility.shared.isShown && MainWindowRef.window?.isVisible == true && tab == .devices
+            if onScreen && selected == id { return }
+            conversations[id]!.unread += 1
+            if !onScreen && live { open(id) } else if selected == nil { selected = id }
+        }
+    }
+
+    private func update(_ item: UUID, _ change: (inout ChatItem) -> Void) {
+        for key in conversations.keys {
+            if let index = conversations[key]!.items.firstIndex(where: { $0.id == item }) {
+                change(&conversations[key]!.items[index])
+                return
+            }
+        }
+    }
+
+    private func markRead() {
+        guard let selected, conversations[selected]?.unread ?? 0 > 0 else { return }
+        conversations[selected]!.unread = 0
+    }
+
+    func clear(_ id: String) {
+        conversations[id]?.items.removeAll { !$0.isOpen }
+        if conversations[id]?.items.isEmpty == true, peers.contains(where: { $0.id == id }) == false { conversations[id] = nil }
     }
 
     // MARK: - Sending
@@ -294,118 +432,152 @@ final class AppModel: ObservableObject, HostableModel {
                 files.append(url)
             }
         }
-        send(files.map(Outgoing.file), to: peer)
+        guard !files.isEmpty else { return }
+        let chatFiles = files.map { ChatFile(name: $0.lastPathComponent, size: Int64((try? $0.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0), path: $0.path) }
+        send(files.map(Outgoing.file), item: ChatItem(sent: true, files: chatFiles, state: .waiting, total: chatFiles.reduce(0) { $0 + $1.size }), to: peer)
     }
 
     func send(text: String, to peer: Peer) {
+        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
-        send([.message(text)], to: peer)
+        send([.message(text)], item: ChatItem(sent: true, text: text, state: .waiting, total: Int64(text.utf8.count)), to: peer)
     }
 
-    private func send(_ items: [Outgoing], to peer: Peer) {
-        guard let node, !items.isEmpty, current == nil else { return }
-        let total = items.reduce(Int64(0)) { sum, item in
-            switch item {
-            case .message(let text): return sum + Int64(text.utf8.count)
-            case .file(let url): return sum + Int64((try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
-            }
-        }
-        let name = peer.info.alias
-        current = Transfer(device: name, sending: true, done: 0, total: total)
-        notice = nil
-        sending = Task {
+    private func send(_ items: [Outgoing], item: ChatItem, to peer: Peer) {
+        guard let node else { return }
+        append(item, to: peer.id, from: peer.info)
+        let id = item.id
+        sending[id] = Task {
             var pin: String?
             var result: SendResult
             while true {
                 result = await node.send(to: peer, items: items, pin: pin) { [weak self] done, all in
-                    Task { @MainActor in self?.progressed(Transfer(device: name, sending: true, done: done, total: all)) }
+                    Task { @MainActor in self?.progressed(id, done, all) }
                 }
                 if Task.isCancelled { result = .cancelled }
                 guard result == .pinRequired else { break }
-                pin = await askPin(peer)
+                update(id) { $0.state = .pin }
+                pin = await withCheckedContinuation { pins[id] = $0 }
                 if pin == nil {
                     result = .cancelled
                     break
                 }
+                update(id) { $0.state = .waiting }
             }
-            sending = nil
-            if result == .sent {
-                var files: [String] = []
-                var text: String?
-                for item in items {
-                    switch item {
-                    case .file(let url): files.append(url.lastPathComponent)
-                    case .message(let message): text = message
-                    }
+            sending[id] = nil
+            update(id) { item in
+                switch result {
+                case .sent: item.state = .done; item.done = item.total
+                case .rejected: item.state = .declined
+                case .busy, .failed, .pinRequired: item.state = .failed
+                case .cancelled: item.state = .cancelled
                 }
-                remember(HistoryItem(sent: true, device: name, files: files, text: text, time: Date()))
-            }
-            switch result {
-            case .sent: finish(Notice(text: "Sent to %@.", device: name))
-            case .rejected: finish(Notice(text: "%@ declined.", device: name, good: false))
-            case .busy: finish(Notice(text: "%@ is busy with another transfer.", device: name, good: false))
-            case .cancelled: finish(Notice(text: "Cancelled."))
-            case .failed, .pinRequired: finish(Notice(text: "Couldn't reach %@.", device: name, good: false))
             }
         }
     }
 
-    /// Stops the transfer under way, either way.
-    func cancel() {
-        if let sending { sending.cancel() } else { node?.receiver.cancel() }
+    /// The PIN the other side asked for (nil gives up).
+    func answerPin(_ item: UUID, _ pin: String?) {
+        pins.removeValue(forKey: item)?.resume(returning: pin)
+    }
+
+    /// Stops a message under way, either way.
+    func cancel(_ item: UUID) {
+        if let task = sending[item] {
+            task.cancel()
+            answerPin(item, nil)
+        } else if let incoming, incoming.item == item {
+            node?.receiver.cancel()
+        }
+    }
+
+    private func progressed(_ id: UUID, _ done: Int64, _ total: Int64) {
+        guard sending[id] != nil else { return }
+        let now = Date()
+        if now.timeIntervalSince(lastProgress) < 0.1 && done < total { return }
+        lastProgress = now
+        update(id) { item in
+            item.state = .transferring
+            item.done = done
+            item.total = total
+        }
     }
 
     // MARK: - Receiving
 
     private func askToAccept(_ transfer: IncomingTransfer) async -> Bool {
-        let answer = await ask(transfer)
-        if answer.accept && answer.always { setTrusted(transfer.from, true) }
-        return answer.accept
+        let peer = transfer.from
+        let item = ChatItem(sent: false, files: transfer.files.map { ChatFile(name: $0.fileName, size: $0.size) }, state: .asking,
+                            total: transfer.files.reduce(0) { $0 + $1.size })
+        append(item, to: peer.id, from: peer.info)
+        let accepted = await withCheckedContinuation { answers[item.id] = $0 }
+        if accepted { incoming = (peer.id, item.id) }
+        return accepted
+    }
+
+    /// The person's answer to files coming in; `always` trusts the device from then on.
+    func answer(_ item: UUID, accept: Bool, always: Bool = false) {
+        guard let answer = answers.removeValue(forKey: item) else { return }
+        update(item) { $0.state = accept ? .transferring : .declined }
+        if accept && always, let id = conversations.first(where: { $0.value.items.contains { $0.id == item } })?.key,
+           let contact = contact(id) {
+            setTrusted(contact.info, true)
+        }
+        answer.resume(returning: accept)
+    }
+
+    /// Files on their way in; from a trusted device, their message starts here.
+    private func accepted(_ transfer: IncomingTransfer) {
+        if incoming != nil { return }
+        let item = ChatItem(sent: false, files: transfer.files.map { ChatFile(name: $0.fileName, size: $0.size) }, state: .transferring,
+                            total: transfer.files.reduce(0) { $0 + $1.size })
+        append(item, to: transfer.from.id, from: transfer.from.info)
+        incoming = (transfer.from.id, item.id)
+    }
+
+    private func receiving(_ done: Int64, _ total: Int64) {
+        guard let incoming else { return }
+        let now = Date()
+        if now.timeIntervalSince(lastProgress) < 0.1 && done < total { return }
+        lastProgress = now
+        update(incoming.item) { item in
+            item.state = .transferring
+            item.done = done
+            item.total = total
+        }
     }
 
     private func received(_ received: ReceivedTransfer) {
-        remember(HistoryItem(sent: false, device: received.from.info.alias, files: received.files.map(\.lastPathComponent),
-                             folder: received.files.first?.deletingLastPathComponent().path, text: received.text, time: Date()))
         if let text = received.text {
-            showMessage(received.from, text)
+            append(ChatItem(sent: false, text: text, state: .done), to: received.from.id, from: received.from.info)
             return
         }
-        finish(Notice(text: "Received from %@.", device: received.from.info.alias))
+        guard let incoming else { return }
+        self.incoming = nil
+        update(incoming.item) { item in
+            item.state = .done
+            item.done = item.total
+            // Saved under their own names (photo (1).jpg when there was one already).
+            item.files = received.files.map { url in
+                ChatFile(name: url.lastPathComponent, size: Int64((try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0), path: url.path)
+            }
+        }
     }
 
-    private func progressed(_ transfer: Transfer) {
-        // Each piece's message may land after the transfer has finished.
-        if transfer.sending, sending == nil { return }
-        if !transfer.sending, node?.receiver.isBusy != true { return }
-        let now = Date()
-        if now.timeIntervalSince(lastProgress) < 0.1 && transfer.done < transfer.total { return }
-        lastProgress = now
-        current = transfer
+    private func incomingEnded() {
+        guard let incoming else { return }
+        self.incoming = nil
+        update(incoming.item) { $0.state = .failed }
     }
-
-    private func finish(_ notice: Notice) {
-        current = nil
-        self.notice = notice
-    }
-
-    private func remember(_ item: HistoryItem) {
-        history.insert(item, at: 0)
-        if history.count > Self.historyLength { history.removeLast(history.count - Self.historyLength) }
-    }
-
-    func clearHistory() { history = [] }
-
-    /// A transfer is under way: quitting would cut it short.
-    var isBusy: Bool { current != nil }
 
     // MARK: - Trust
 
-    func isTrusted(_ peer: Peer) -> Bool { trusted.contains { $0.fingerprint == peer.info.fingerprint } }
+    func isTrusted(_ info: DeviceInfo) -> Bool { trusted.contains { $0.fingerprint == info.fingerprint } }
 
-    func setTrusted(_ peer: Peer, _ on: Bool) {
-        guard !peer.info.fingerprint.isEmpty else { return }
-        var list = trusted.filter { $0.fingerprint != peer.info.fingerprint }
-        if on { list.append(TrustedDevice(fingerprint: peer.info.fingerprint, alias: peer.info.alias)) }
+    func setTrusted(_ info: DeviceInfo, _ on: Bool) {
+        guard !info.fingerprint.isEmpty else { return }
+        var list = trusted.filter { $0.fingerprint != info.fingerprint }
+        if on { list.append(TrustedDevice(fingerprint: info.fingerprint, alias: info.alias)) }
         trusted = list
     }
 
@@ -414,6 +586,9 @@ final class AppModel: ObservableObject, HostableModel {
     }
 
     // MARK: - App
+
+    /// A transfer is under way: quitting would cut it short.
+    var isBusy: Bool { current != nil }
 
     func setStartAtLogin(_ on: Bool) {
         do {
@@ -426,20 +601,34 @@ final class AppModel: ObservableObject, HostableModel {
 
     func prepareToQuit() {
         stopNode()
+        saveNow()
     }
 
-    /// Devices, a transfer and a notice, for snapshots.
-    func simulate(peers: [Peer], current: Transfer?, notice: Notice?, history: [HistoryItem], trusted: [TrustedDevice]) {
+    /// Devices and chats, for snapshots.
+    func simulate(peers: [Peer], conversations: [Conversation], selected: String?, trusted: [TrustedDevice]) {
         self.peers = peers
-        self.current = current
-        self.notice = notice
-        self.history = history
+        self.conversations = Dictionary(uniqueKeysWithValues: conversations.map { ($0.id, $0) })
+        self.selected = selected
         self.trusted = trusted
     }
 
     private func applyAppearance() {
         let appearance = appearance.nsAppearance
         DispatchQueue.main.async { NSApp?.appearance = appearance }
+    }
+
+    /// Chats change at every bit of progress: they're written a moment later, once.
+    private func scheduleSave() {
+        guard live else { return }
+        saveTask?.cancel()
+        saveTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            if !Task.isCancelled { self?.saveNow() }
+        }
+    }
+
+    private func saveNow() {
+        save(conversations, forKey: Keys.conversations)
     }
 
     private func save<T: Encodable>(_ value: T, forKey key: String) {

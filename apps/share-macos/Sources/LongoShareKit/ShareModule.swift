@@ -11,7 +11,6 @@ public enum ShareModule: LongoModule {
 
     @MainActor public static func host(defaults: UserDefaults, live: Bool) -> any HostedModule {
         let model = AppModel(live: live, defaults: defaults)
-        Panels.attach(to: model)
         // About is the host's own page.
         if model.tab == .about { model.tab = .general }
         return ModelHost(model: model, panel: { ModulePanel() }, menu: { MenuPopover() },

@@ -28,10 +28,17 @@ struct ModulePanel: View {
     var body: some View {
         VStack(spacing: 0) {
             TabBar()
-            SlimScrollView(contentHeight: $pageHeight) {
-                TabContent(tab: model.tab)
+            // The chat has its own scrolling and a fixed height; the other pages scroll as in the other apps.
+            Group {
+                if model.tab == .devices {
+                    DevicesTab()
+                } else {
+                    SlimScrollView(contentHeight: $pageHeight) {
+                        TabContent(tab: model.tab)
+                    }
+                    .frame(height: Theme.pageHeight(pageHeight))
+                }
             }
-            .frame(height: Theme.pageHeight(pageHeight))
             .id(model.tab)
             .transaction { $0.animation = nil }
             WindowFooter()
@@ -44,9 +51,8 @@ struct TabContent: View {
 
     var body: some View {
         switch tab {
-        case .general: GeneralTab()
         case .devices: DevicesTab()
-        case .history: HistoryTab()
+        case .general: GeneralTab()
         case .about: AboutTab()
         }
     }
@@ -96,12 +102,11 @@ struct TabBar: View {
 
     var body: some View {
         PillTabBar(tabs: isHosted ? MainTab.allCases.filter { $0 != .about } : MainTab.allCases, selection: $model.tab) { tab in
-            tab == .devices && !model.peers.isEmpty ? L("Devices") + " (\(model.peers.count))" : tab.title
+            tab == .devices && model.unread > 0 ? L("Devices") + " (\(model.unread))" : tab.title
         } symbol: { tab in
             switch tab {
+            case .devices: return "bubble.left.and.bubble.right"
             case .general: return "gearshape"
-            case .devices: return "laptopcomputer.and.iphone"
-            case .history: return "clock.arrow.circlepath"
             case .about: return "info.circle"
             }
         }
