@@ -18,17 +18,19 @@ public enum Side: UInt8, Codable, CaseIterable, Sendable {
 /// What goes over a link. Pairing and the hello are JSON in the clear; everything after is binary, encrypted.
 enum Kind: UInt8 {
     case hello = 1, pairRequest, pairChallenge, pairConfirm, pairResult
-    /// The pointer crossed onto the receiver: the side it came in by, how far along the edge (0…1).
+    /// The pointer crossed onto the receiver: where, in the receiver's own coordinates.
     case enter
-    /// The pointer left the receiver back to the sender: how far along the edge.
+    /// The pointer left the receiver back to the sender: where, in the sender's coordinates.
     case leave
     case move, button, scroll, key, flags
     case clipboard
-    /// "You are on my <side>": the receiver puts the sender on the opposite side.
+    /// Where the sender's screens sit in the receiver's coordinates (the receiver's arrangement of the two).
     case layout
     /// The controller takes its keyboard and mouse back (Esc three times, or it lost track).
     case release
     case ping
+    /// The sender's displays, in its own global coordinates.
+    case screens
 }
 
 struct Hello: Codable {
@@ -104,6 +106,10 @@ struct Writer {
     mutating func u16(_ value: UInt16) { withUnsafeBytes(of: value.littleEndian) { data.append(contentsOf: $0) } }
     mutating func u64(_ value: UInt64) { withUnsafeBytes(of: value.littleEndian) { data.append(contentsOf: $0) } }
     mutating func f32(_ value: Float) { withUnsafeBytes(of: value.bitPattern.littleEndian) { data.append(contentsOf: $0) } }
+    mutating func point(_ value: CGPoint) {
+        f32(Float(value.x))
+        f32(Float(value.y))
+    }
 }
 
 struct Reader {
@@ -132,6 +138,10 @@ struct Reader {
     mutating func u16() -> UInt16? { number(take(2)) }
     mutating func u64() -> UInt64? { number(take(8)) }
     mutating func f32() -> Float? { (number(take(4)) as UInt32?).map(Float.init(bitPattern:)) }
+    mutating func point() -> CGPoint? {
+        guard let x = f32(), let y = f32() else { return nil }
+        return CGPoint(x: CGFloat(x), y: CGFloat(y))
+    }
     var rest: Data { data[at...] }
 }
 

@@ -20,8 +20,14 @@ enum Snapshot {
         UserDefaults().removePersistentDomain(forName: suite)
         let model = AppModel(live: false, defaults: UserDefaults(suiteName: suite)!)
         let endpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: 1)
-        let air = PairedMac(id: "air", name: "Logan's MacBook Air", key: Data(), side: .right)
-        let studio = PairedMac(id: "studio", name: "Mac Studio", key: Data(), side: .left)
+        // This Mac: a laptop with a monitor on its left; the Air on the right, the Studio's two displays above.
+        let laptop = CGRect(x: 0, y: 0, width: 1512, height: 982)
+        let monitor = CGRect(x: -2560, y: -458, width: 2560, height: 1440)
+        let air = PairedMac(id: "air", name: "Logan's MacBook Air", key: Data(), side: .right,
+                            screens: [CGRect(x: 0, y: 0, width: 1470, height: 956)], offset: CGPoint(x: 1512, y: 13))
+        let studio = PairedMac(id: "studio", name: "Mac Studio", key: Data(), side: .top,
+                               screens: [CGRect(x: 0, y: 0, width: 1920, height: 1080), CGRect(x: 1920, y: 0, width: 1920, height: 1080)],
+                               offset: CGPoint(x: -2600, y: -1538))
         let states: [(String, Pairing)] = [("1-macs", .none), ("1-showing", .showing("Logan's MacBook Air", code: "482915")),
                                            ("1-typing", .typing("Mac mini", wrong: false))]
         for (scheme, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", .aqua)] {
@@ -31,7 +37,7 @@ enum Snapshot {
                 let prefix = "\(scheme)-\(language.rawValue)"
                 for (name, pairing) in states {
                     model.simulate(nearby: [NearbyMac(id: "mini", name: "Mac mini", endpoint: endpoint)], paired: [air, studio],
-                                   connected: ["air"], pairing: pairing, access: name != "1-macs")
+                                   connected: ["air"], pairing: pairing, access: name != "1-macs", screens: [laptop, monitor])
                     model.tab = .devices
                     render(window(.devices), model, scheme, to: directory.appendingPathComponent("\(prefix)-\(name).png"))
                 }

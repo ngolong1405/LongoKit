@@ -35,7 +35,7 @@ struct MenuPopover: View {
                         Image(systemName: "laptopcomputer").foregroundStyle(connected ? Theme.violetLight : Theme.textFaint).frame(width: 22)
                         VStack(alignment: .leading, spacing: 1) {
                             Text(mac.name).font(.ui(12.5, .semibold)).foregroundStyle(Theme.text).lineLimit(1)
-                            Text(connected ? L("%@ of this Mac", mac.side.title) : L("Not around now"))
+                            Text(connected ? L("Connected") : L("Not around now"))
                                 .font(.ui(11)).foregroundStyle(Theme.textMuted)
                         }
                         Spacer()

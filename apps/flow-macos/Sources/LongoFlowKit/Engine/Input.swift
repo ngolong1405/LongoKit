@@ -12,45 +12,47 @@ enum Screens {
         return ids.prefix(Int(count)).map { CGDisplayBounds($0) }
     }
 
-    /// Whether `point`, moving by (`dx`, `dy`), pushes out through the outer edge on `side`; if so, how far along
-    /// that screen's edge it is (0…1).
-    static func leaving(_ point: CGPoint, dx: Double, dy: Double, side: Side, screens: [CGRect] = all()) -> CGFloat? {
-        guard let screen = screens.first(where: { $0.insetBy(dx: -1, dy: -1).contains(point) }) else { return nil }
-        let union = screens.reduce(CGRect.null) { $0.union($1) }
-        switch side {
-        case .right:
-            guard dx > 0, point.x >= screen.maxX - 1.5, screen.maxX >= union.maxX - 0.5 else { return nil }
-            return clamp((point.y - screen.minY) / screen.height)
-        case .left:
-            guard dx < 0, point.x <= screen.minX + 0.5, screen.minX <= union.minX + 0.5 else { return nil }
-            return clamp((point.y - screen.minY) / screen.height)
-        case .bottom:
-            guard dy > 0, point.y >= screen.maxY - 1.5, screen.maxY >= union.maxY - 0.5 else { return nil }
-            return clamp((point.x - screen.minX) / screen.width)
-        case .top:
-            guard dy < 0, point.y <= screen.minY + 0.5, screen.minY <= union.minY + 0.5 else { return nil }
-            return clamp((point.x - screen.minX) / screen.width)
+    /// The pointer at `point` moving by (`dx`, `dy`): when that leaves these screens and lands on one of `other`'s
+    /// (placed at `offset` here), where on it, in its own coordinates.
+    static func crossing(_ point: CGPoint, dx: Double, dy: Double, local: [CGRect], into other: [CGRect], at offset: CGPoint) -> CGPoint? {
+        guard dx != 0 || dy != 0 else { return nil }
+        // At least two points on: a slow push at the edge still gets over it.
+        let step = max(abs(dx), abs(dy))
+        let scale = step < 2 ? 2 / step : 1
+        let target = CGPoint(x: point.x + dx * scale, y: point.y + dy * scale)
+        guard !local.contains(where: { $0.contains(target) }) else { return nil }
+        for screen in other {
+            let placed = screen.offsetBy(dx: offset.x, dy: offset.y)
+            guard placed.insetBy(dx: -3, dy: -3).contains(target) else { continue }
+            let there = CGPoint(x: target.x - offset.x, y: target.y - offset.y)
+            return CGPoint(x: min(max(there.x, screen.minX + 1), screen.maxX - 2), y: min(max(there.y, screen.minY + 1), screen.maxY - 2))
         }
+        return nil
     }
 
-    /// Where the pointer comes in on `side` of these screens, `fraction` along the edge, a point inside.
-    static func entry(_ side: Side, _ fraction: CGFloat, screens: [CGRect] = all()) -> CGPoint {
-        let union = screens.reduce(CGRect.null) { $0.union($1) }
-        let edge: [CGRect]
-        switch side {
-        case .left: edge = screens.filter { $0.minX <= union.minX + 0.5 }
-        case .right: edge = screens.filter { $0.maxX >= union.maxX - 0.5 }
-        case .top: edge = screens.filter { $0.minY <= union.minY + 0.5 }
-        case .bottom: edge = screens.filter { $0.maxY >= union.maxY - 0.5 }
+    /// Another Mac's screens, dropped at `offset` here, moved to the nearest place where they touch one of these
+    /// screens edge to edge (sharing at least a stretch of it) without covering any: as macOS arranges displays.
+    static func snap(_ other: [CGRect], at offset: CGPoint, to local: [CGRect]) -> CGPoint {
+        let group = other.reduce(CGRect.null) { $0.union($1) }.offsetBy(dx: offset.x, dy: offset.y)
+        guard !group.isNull, !local.isEmpty else { return offset }
+        var best: (move: CGPoint, distance: CGFloat)?
+        for screen in local {
+            let shareY = min(80, group.height / 3, screen.height / 3), shareX = min(80, group.width / 3, screen.width / 3)
+            let y = min(max(group.minY, screen.minY - group.height + shareY), screen.maxY - shareY)
+            let x = min(max(group.minX, screen.minX - group.width + shareX), screen.maxX - shareX)
+            let spots = [CGPoint(x: screen.maxX, y: y), CGPoint(x: screen.minX - group.width, y: y),
+                         CGPoint(x: x, y: screen.maxY), CGPoint(x: x, y: screen.minY - group.height)]
+            for spot in spots {
+                let placed = CGRect(origin: spot, size: group.size)
+                // Edge to edge is fine; covering a display isn't.
+                if local.contains(where: { $0.insetBy(dx: 1, dy: 1).intersects(placed) }) { continue }
+                let move = CGPoint(x: spot.x - group.minX, y: spot.y - group.minY)
+                let distance = hypot(move.x, move.y)
+                if best == nil || distance < best!.distance { best = (move, distance) }
+            }
         }
-        // The biggest of the screens on that edge.
-        let screen = edge.max { $0.width * $0.height < $1.width * $1.height } ?? union
-        switch side {
-        case .left: return CGPoint(x: screen.minX + 2, y: screen.minY + fraction * (screen.height - 1))
-        case .right: return CGPoint(x: screen.maxX - 3, y: screen.minY + fraction * (screen.height - 1))
-        case .top: return CGPoint(x: screen.minX + fraction * (screen.width - 1), y: screen.minY + 2)
-        case .bottom: return CGPoint(x: screen.minX + fraction * (screen.width - 1), y: screen.maxY - 3)
-        }
+        guard let move = best?.move else { return offset }
+        return CGPoint(x: offset.x + move.x, y: offset.y + move.y)
     }
 
     /// `point` kept on a screen: the nearest point of the nearest one.
@@ -84,14 +86,22 @@ final class InputBridge: @unchecked Sendable {
 
     private enum State {
         case idle
-        case controlling(mac: String, side: Side)
-        case controlled(by: String, side: Side)
+        case controlling(mac: String)
+        case controlled(by: String)
+    }
+
+    /// A connected Mac: its displays, and where they sit here.
+    struct Peer {
+        var screens: [CGRect]
+        var offset: CGPoint
     }
 
     private let lock = NSLock()
     private var state = State.idle
-    /// Where each connected Mac sits.
-    private var sides: [String: Side] = [:]
+    /// The connected Macs that are placed.
+    private var peers: [String: Peer] = [:]
+    /// This Mac's displays (kept, not asked for at every pointer move).
+    private var screens = Screens.all()
     private var tap: CFMachPort?
     private var thread: Thread?
     private var escapes: [Date] = []
@@ -116,14 +126,22 @@ final class InputBridge: @unchecked Sendable {
         _ = AXIsProcessTrustedWithOptions(options)
     }
 
-    func setSides(_ sides: [String: Side]) {
+    func setPeers(_ peers: [String: Peer]) {
         lock.lock()
-        self.sides = sides
+        self.peers = peers
         let current = state
         lock.unlock()
         // The Mac in control left the network: take the keyboard and mouse back.
-        if case .controlling(let mac, _) = current, sides[mac] == nil { comeBack(fraction: nil) }
-        if case .controlled(let mac, _) = current, sides[mac] == nil { letGo() }
+        if case .controlling(let mac) = current, peers[mac] == nil { comeBack(at: nil) }
+        if case .controlled(let mac) = current, peers[mac] == nil { letGo() }
+    }
+
+    /// This Mac's displays changed (one plugged in, moved, or gone).
+    func screensChanged() {
+        let now = Screens.all()
+        lock.lock()
+        screens = now
+        lock.unlock()
     }
 
     // MARK: - The tap
@@ -162,7 +180,7 @@ final class InputBridge: @unchecked Sendable {
     }
 
     func stop() {
-        comeBack(fraction: nil)
+        comeBack(at: nil)
         letGo()
         if let tap {
             CGEvent.tapEnable(tap: tap, enable: false)
@@ -180,21 +198,22 @@ final class InputBridge: @unchecked Sendable {
         if event.getIntegerValueField(.eventSourceUserData) == Self.marker { return Unmanaged.passUnretained(event) }
         lock.lock()
         let current = state
-        let sides = self.sides
+        let peers = self.peers
+        let local = screens
         lock.unlock()
         switch current {
         case .idle:
             if type == .mouseMoved || type == .leftMouseDragged || type == .rightMouseDragged || type == .otherMouseDragged {
                 let dx = event.getDoubleValueField(.mouseEventDeltaX), dy = event.getDoubleValueField(.mouseEventDeltaY)
-                for (mac, side) in sides {
-                    if let fraction = Screens.leaving(event.location, dx: dx, dy: dy, side: side) {
-                        goOver(to: mac, side: side, fraction: fraction, at: event.location)
+                for (mac, peer) in peers {
+                    if let there = Screens.crossing(event.location, dx: dx, dy: dy, local: local, into: peer.screens, at: peer.offset) {
+                        goOver(to: mac, at: there, leaving: event.location)
                         return nil
                     }
                 }
             }
             return Unmanaged.passUnretained(event)
-        case .controlling(let mac, _):
+        case .controlling(let mac):
             forward(type, event, to: mac)
             return nil
         case .controlled:
@@ -205,17 +224,17 @@ final class InputBridge: @unchecked Sendable {
 
     // MARK: - Controlling
 
-    private func goOver(to mac: String, side: Side, fraction: CGFloat, at point: CGPoint) {
+    private func goOver(to mac: String, at there: CGPoint, leaving here: CGPoint) {
         lock.lock()
-        state = .controlling(mac: mac, side: side)
+        state = .controlling(mac: mac)
         escapes = []
+        let local = screens
         lock.unlock()
         var writer = Writer()
-        writer.u8(side.opposite.rawValue)
-        writer.f32(Float(fraction))
+        writer.point(there)
         send(Message(.enter, writer.data), mac)
-        // Parked a little inside the edge, hidden, while the other Mac has it.
-        Cursor.park(at: Screens.clamp(Screens.entry(side, fraction)))
+        // Parked where it left, hidden, while the other Mac has it.
+        Cursor.park(at: Screens.clamp(here, screens: local))
         controlling(mac)
     }
 
@@ -254,7 +273,7 @@ final class InputBridge: @unchecked Sendable {
                 lock.unlock()
                 if three {
                     send(Message(.release), mac)
-                    comeBack(fraction: nil)
+                    comeBack(at: nil)
                     return
                 }
             }
@@ -272,17 +291,17 @@ final class InputBridge: @unchecked Sendable {
         }
     }
 
-    /// The pointer is back here (the other Mac sent it back at `fraction` along the edge, or it's taken back).
-    func comeBack(fraction: CGFloat?) {
+    /// The pointer is back here (the other Mac sent it back to `point`, or it's taken back where it left).
+    func comeBack(at point: CGPoint?) {
         lock.lock()
-        guard case .controlling(_, let side) = state else {
+        guard case .controlling = state else {
             lock.unlock()
             return
         }
         state = .idle
+        let local = screens
         lock.unlock()
-        let point = fraction.map { Screens.entry(side, $0) }
-        Cursor.release(at: point)
+        Cursor.release(at: point.map { Screens.clamp($0, screens: local) })
         controlling(nil)
     }
 
@@ -293,10 +312,10 @@ final class InputBridge: @unchecked Sendable {
         var reader = Reader(message.payload)
         switch message.kind {
         case .enter:
-            guard let raw = reader.u8(), let side = Side(rawValue: raw), let fraction = reader.f32() else { return }
+            guard let point = reader.point() else { return }
             lock.lock()
-            state = .controlled(by: mac, side: side)
-            pointer = Screens.entry(side, CGFloat(fraction))
+            state = .controlled(by: mac)
+            pointer = Screens.clamp(point, screens: screens)
             held = []
             modifiers = []
             lock.unlock()
@@ -304,8 +323,8 @@ final class InputBridge: @unchecked Sendable {
             post(mouse: .mouseMoved, button: .left)
             controlledBy(mac)
         case .leave:
-            guard let fraction = reader.f32() else { return }
-            comeBack(fraction: CGFloat(fraction))
+            guard let point = reader.point() else { return }
+            comeBack(at: point)
         case .release:
             letGo()
         case .move:
@@ -352,24 +371,24 @@ final class InputBridge: @unchecked Sendable {
     private func isControlled(by mac: String) -> Bool {
         lock.lock()
         defer { lock.unlock() }
-        if case .controlled(let by, _) = state { return by == mac }
+        if case .controlled(let by) = state { return by == mac }
         return false
     }
 
     private func move(dx: CGFloat, dy: CGFloat, from mac: String) {
         lock.lock()
-        guard case .controlled(let by, let side) = state, by == mac else {
+        guard case .controlled(let by) = state, by == mac else {
             lock.unlock()
             return
         }
-        let screens = Screens.all()
+        let screens = self.screens
         let target = CGPoint(x: pointer.x + dx, y: pointer.y + dy)
-        // Pushed back out the edge it came in by: it goes home.
-        if let fraction = Screens.leaving(pointer, dx: Double(dx), dy: Double(dy), side: side, screens: screens),
-           !screens.contains(where: { $0.contains(target) }) {
+        // Pushed over onto the controlling Mac's screens, where they sit here: it goes home, to that point there.
+        if let home = peers[mac],
+           let there = Screens.crossing(pointer, dx: Double(dx), dy: Double(dy), local: screens, into: home.screens, at: home.offset) {
             lock.unlock()
             var writer = Writer()
-            writer.f32(Float(fraction))
+            writer.point(there)
             letGo()
             send(Message(.leave, writer.data), mac)
             return

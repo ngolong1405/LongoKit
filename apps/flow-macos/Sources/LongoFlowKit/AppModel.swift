@@ -135,6 +135,7 @@ final class AppModel: ObservableObject, HostableModel {
         node.codeRejected = { from in Task { @MainActor [weak self] in self?.pairing = .typing(from, wrong: true) } }
         node.pairingEnded = { name, ok in Task { @MainActor [weak self] in self?.pairingEnded(name, ok) } }
         // Events go straight to the bridge, off the main thread; the clipboard goes through the main one.
+        node.localScreens = { Screens.all() }
         let bridge = self.bridge
         node.received = { [weak self] mac, message in
             if message.kind == .clipboard {
@@ -149,10 +150,25 @@ final class AppModel: ObservableObject, HostableModel {
         self.node = node
         node.start()
         startBridge()
+        // A display plugged in, moved or gone: the other Macs hear of it, and the edges here move.
+        screenObserver = NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
+                                                                object: nil, queue: .main) { _ in
+            Task { @MainActor [weak self] in
+                self?.bridge.screensChanged()
+                self?.node?.sendScreens()
+                self?.localScreens = Screens.all()
+            }
+        }
     }
+
+    private var screenObserver: NSObjectProtocol?
+    /// This Mac's displays, for the arrangement.
+    @Published private(set) var localScreens = Screens.all()
 
     private func stop() {
         bridge.stop()
+        if let screenObserver { NotificationCenter.default.removeObserver(screenObserver) }
+        screenObserver = nil
         node?.stop()
         node = nil
         nearby = []
@@ -187,17 +203,22 @@ final class AppModel: ObservableObject, HostableModel {
 
     private func pairedChanged(_ list: [PairedMac]) {
         paired = list.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-        bridge.setSides(sides)
+        bridge.setPeers(peers)
     }
 
     private func connectedChanged(_ set: Set<String>) {
         connected = set
-        bridge.setSides(sides)
+        bridge.setPeers(peers)
     }
 
-    /// The connected Macs and where they sit.
-    private var sides: [String: Side] {
-        Dictionary(uniqueKeysWithValues: paired.filter { connected.contains($0.id) }.map { ($0.id, $0.side) })
+    /// The connected Macs that know their screens and are placed.
+    private var peers: [String: InputBridge.Peer] {
+        var result: [String: InputBridge.Peer] = [:]
+        for mac in paired where connected.contains(mac.id) && !mac.screens.isEmpty {
+            guard let offset = mac.offset else { continue }
+            result[mac.id] = InputBridge.Peer(screens: mac.screens, offset: offset)
+        }
+        return result
     }
 
     private func controllingChanged(_ mac: String?) {
@@ -250,8 +271,15 @@ final class AppModel: ObservableObject, HostableModel {
         if ok { lastPaired = name }
     }
 
-    func place(_ mac: PairedMac, on side: Side) {
-        node?.place(mac.id, on: side)
+    /// Puts a Mac's screens at `offset` here (dragged in the arrangement), here and there.
+    func place(_ mac: PairedMac, at offset: CGPoint) {
+        if let index = paired.firstIndex(where: { $0.id == mac.id }) { paired[index].offset = offset }
+        node?.place(mac.id, at: offset)
+    }
+
+    /// Where a Mac sits here: as placed, or by its side until it is.
+    func offset(of mac: PairedMac) -> CGPoint {
+        mac.offset ?? mac.placed(next: localScreens)
     }
 
     func unpair(_ mac: PairedMac) {
@@ -285,7 +313,9 @@ final class AppModel: ObservableObject, HostableModel {
     }
 
     /// Macs, for snapshots.
-    func simulate(nearby: [NearbyMac], paired: [PairedMac], connected: Set<String>, pairing: Pairing = .none, access: Bool = true) {
+    func simulate(nearby: [NearbyMac], paired: [PairedMac], connected: Set<String>, pairing: Pairing = .none, access: Bool = true,
+                  screens: [CGRect]? = nil) {
+        if let screens { localScreens = screens }
         self.nearby = nearby
         self.paired = paired
         self.connected = connected

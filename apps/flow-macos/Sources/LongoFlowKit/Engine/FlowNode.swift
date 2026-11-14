@@ -7,7 +7,46 @@ public struct PairedMac: Codable, Hashable, Identifiable, Sendable {
     public var id: String
     public var name: String
     public var key: Data
+    /// Where it was put when paired, until its screens are known and placed.
     public var side: Side
+    /// Its displays, in its own coordinates (as it last said).
+    public var screens: [CGRect] = []
+    /// Where its coordinates sit in this Mac's: its point + offset = here. Nil until it's placed.
+    public var offset: CGPoint?
+
+    public init(id: String, name: String, key: Data, side: Side, screens: [CGRect] = [], offset: CGPoint? = nil) {
+        self.id = id
+        self.name = name
+        self.key = key
+        self.side = side
+        self.screens = screens
+        self.offset = offset
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        key = try c.decode(Data.self, forKey: .key)
+        side = try c.decodeIfPresent(Side.self, forKey: .side) ?? .right
+        screens = try c.decodeIfPresent([CGRect].self, forKey: .screens) ?? []
+        offset = try c.decodeIfPresent(CGPoint.self, forKey: .offset)
+    }
+
+    /// Its screens, or a laptop's when it hasn't said yet.
+    public var knownScreens: [CGRect] { screens.isEmpty ? [CGRect(x: 0, y: 0, width: 1512, height: 982)] : screens }
+
+    /// Where it sits by default: on `side` of these screens, its main display's edge against theirs, centred.
+    public func placed(next local: [CGRect]) -> CGPoint {
+        let union = local.reduce(CGRect.null) { $0.union($1) }
+        let theirs = knownScreens.reduce(CGRect.null) { $0.union($1) }
+        switch side {
+        case .right: return CGPoint(x: union.maxX - theirs.minX, y: union.midY - theirs.midY)
+        case .left: return CGPoint(x: union.minX - theirs.maxX, y: union.midY - theirs.midY)
+        case .top: return CGPoint(x: union.midX - theirs.midX, y: union.minY - theirs.maxY)
+        case .bottom: return CGPoint(x: union.midX - theirs.midX, y: union.maxY - theirs.minY)
+        }
+    }
 }
 
 /// A Mac with Longo Flow seen on the network.
@@ -278,16 +317,37 @@ final class FlowNode: @unchecked Sendable {
         }
     }
 
-    /// Moves a paired Mac to another side, here and there.
-    func place(_ mac: String, on side: Side) {
+    /// This Mac's displays, for telling the others (set by the app; read on the node's queue).
+    var localScreens: () -> [CGRect] = { [] }
+
+    /// Puts a paired Mac's screens at `offset` in this Mac's coordinates, here and there (there, the inverse).
+    func place(_ mac: String, at offset: CGPoint) {
         queue.async { [self] in
             guard paired[mac] != nil else { return }
-            paired[mac]!.side = side
+            paired[mac]!.offset = offset
             pairedChanged(Array(paired.values))
             var writer = Writer()
-            writer.u8(side.rawValue)
+            writer.point(CGPoint(x: -offset.x, y: -offset.y))
             links[mac]?.send(Message(.layout, writer.data))
         }
+    }
+
+    /// Tells every connected Mac this one's displays (at the start, and when they change).
+    func sendScreens() {
+        queue.async { [self] in
+            for mac in links.keys { sendScreens(to: mac) }
+        }
+    }
+
+    private func sendScreens(to mac: String) {
+        let screens = localScreens()
+        var writer = Writer()
+        writer.u8(UInt8(min(screens.count, 255)))
+        for screen in screens.prefix(255) {
+            writer.point(screen.origin)
+            writer.point(CGPoint(x: screen.width, y: screen.height))
+        }
+        links[mac]?.send(Message(.screens, writer.data))
     }
 
     // MARK: - Sessions
@@ -384,6 +444,7 @@ final class FlowNode: @unchecked Sendable {
         links[mac] = link
         dialing.remove(mac)
         connectedChanged(Set(links.keys))
+        sendScreens(to: mac)
     }
 
     private func unlinked(_ mac: String) {
@@ -392,10 +453,33 @@ final class FlowNode: @unchecked Sendable {
     }
 
     private func deliver(_ mac: String, _ message: Message) {
-        if message.kind == .layout, var reader = Optional(Reader(message.payload)), let raw = reader.u8(), let side = Side(rawValue: raw) {
-            paired[mac]?.side = side.opposite
+        var reader = Reader(message.payload)
+        switch message.kind {
+        case .layout:
+            guard let offset = reader.point(), paired[mac] != nil else { return }
+            paired[mac]!.offset = offset
             pairedChanged(Array(paired.values))
             return
+        case .screens:
+            guard let count = reader.u8(), paired[mac] != nil else { return }
+            var screens: [CGRect] = []
+            for _ in 0..<count {
+                guard let origin = reader.point(), let size = reader.point() else { break }
+                screens.append(CGRect(origin: origin, size: CGSize(width: size.x, height: size.y)))
+            }
+            paired[mac]!.screens = screens
+            // Not placed yet: the Mac with the smaller id places the two, from the side chosen when pairing.
+            if paired[mac]!.offset == nil && id < mac {
+                let offset = paired[mac]!.placed(next: localScreens())
+                paired[mac]!.offset = offset
+                var writer = Writer()
+                writer.point(CGPoint(x: -offset.x, y: -offset.y))
+                links[mac]?.send(Message(.layout, writer.data))
+            }
+            pairedChanged(Array(paired.values))
+            return
+        default:
+            break
         }
         received(mac, message)
     }
