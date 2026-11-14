@@ -14,6 +14,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\packages\ui-windows\LongoKitUI\LongoKitUI.csproj" />
     <InternalsVisibleTo Include="LongoKit.Windows.Tests" />
+    <!-- Reads Vietnamese (Windows' own recognizer has none) and English: Tesseract, with its trained models. -->
+    <PackageReference Include="Tesseract" Version="5.2.0" />
+    <None Include="tessdata\*.traineddata" CopyToOutputDirectory="PreserveNewest" LinkBase="tessdata" />
     <!-- WPF projects leave System.IO out (its Path would clash with WPF's shape); here Path means the file one. -->
     <Using Include="System.IO" />
   </ItemGroup>

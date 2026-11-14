@@ -9,6 +9,8 @@
     <ServerGarbageCollector>false</ServerGarbageCollector>
     <AutoreleasePoolSupport>false</AutoreleasePoolSupport>
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <!-- Shot's text recognition (Tesseract's library and models) inside the one .exe too. -->
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
   </PropertyGroup>
   <ItemGroup>
     <!-- Windows' own culture data (NLS) instead of loading ICU's: tens of MB less, and WPF still has every culture it asks for. -->

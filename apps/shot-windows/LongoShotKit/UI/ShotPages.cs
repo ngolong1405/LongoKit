@@ -53,7 +53,7 @@ internal static class ShotPages
         var languages = Ocr.Languages();
         var text = Ui.Card(Ui.Setting(L("Text recognition"),
             languages.Count == 0 ? L("Windows has no text recognition languages yet: add one in Settings › Time & language › Language.")
-                                 : L("Read on this PC by Windows, nothing is uploaded: {0}.", string.Join(", ", languages.Select(l => l.Name))),
+                                 : L("Read on this PC, nothing is uploaded: {0}.", string.Join(", ", languages.Select(l => l.Name))),
             null, "\uE8C1"));
         return Ui.Column(16, Ui.Section(L("Status")), power, Ui.Section(L("Captures")), captures, Ui.Section(L("Copy Text")), text);
     });

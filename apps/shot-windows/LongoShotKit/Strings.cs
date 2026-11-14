@@ -29,7 +29,7 @@ internal static class Strings
         ["Text recognition"] = "Nhận dạng chữ",
         ["Windows has no text recognition languages yet: add one in Settings › Time & language › Language."] =
             "Windows chưa có ngôn ngữ nhận dạng chữ nào: thêm trong Cài đặt › Thời gian & ngôn ngữ › Ngôn ngữ.",
-        ["Read on this PC by Windows, nothing is uploaded: {0}."] = "Windows đọc ngay trên máy, không gửi gì lên mạng: {0}.",
+        ["Read on this PC, nothing is uploaded: {0}."] = "Đọc ngay trên máy, không gửi gì lên mạng: {0}.",
         ["Status"] = "Trạng thái",
         ["Captures"] = "Chụp",
         ["Copy Text"] = "Copy chữ",
