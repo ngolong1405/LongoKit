@@ -22,24 +22,23 @@ struct MainWindow: View {
 /// shows it beside its sidebar.
 struct ModulePanel: View {
     @EnvironmentObject private var model: AppModel
-    /// The open page's height: the window fits it, up to the tallest page size.
-    @State private var pageHeight = Theme.lastPageHeight
-
     var body: some View {
         VStack(spacing: 0) {
             TabBar()
-            // The chat has its own scrolling and a fixed height; the other pages scroll as in the other apps.
+            // Every tab is the chat's height, so the window stays put; the chat scrolls its own parts, the other
+            // pages scroll as a whole. The page swaps at once: no fade of one over the other.
             Group {
                 if model.tab == .devices {
                     DevicesTab()
                 } else {
-                    SlimScrollView(contentHeight: $pageHeight) {
+                    SlimScrollView {
                         TabContent(tab: model.tab)
                     }
-                    .frame(height: Theme.pageHeight(pageHeight))
                 }
             }
+            .frame(height: DevicesTab.height)
             .id(model.tab)
+            .transition(.identity)
             .transaction { $0.animation = nil }
             WindowFooter()
         }

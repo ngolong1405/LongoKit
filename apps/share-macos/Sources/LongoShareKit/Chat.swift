@@ -5,6 +5,8 @@ import UniformTypeIdentifiers
 
 /// The Devices page: the devices down the left, and a chat with the one picked, where files and text come and go.
 struct DevicesTab: View {
+    /// The page's height, and every tab's (the window doesn't change size between them).
+    static let height: CGFloat = 580
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
@@ -20,7 +22,7 @@ struct DevicesTab: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(height: 580)
+        .frame(height: Self.height)
         .onAppear { model.chatOnScreen = true }
         .onDisappear { model.chatOnScreen = false }
     }
