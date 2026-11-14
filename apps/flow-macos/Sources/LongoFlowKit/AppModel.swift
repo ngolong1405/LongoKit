@@ -119,6 +119,7 @@ final class AppModel: ObservableObject, HostableModel {
         MainWindowRef.keepsDockIconWhenHidden = !showMenuBarIcon
         let value = appearance.nsAppearance
         DispatchQueue.main.async { NSApp?.appearance = value }
+        if live { screenNames = Screens.names() }
         if live && isEnabled { start() }
     }
 
@@ -158,6 +159,7 @@ final class AppModel: ObservableObject, HostableModel {
                 self?.bridge.screensChanged()
                 self?.node?.sendScreens()
                 self?.localScreens = Screens.all()
+                self?.screenNames = Screens.names()
             }
         }
     }
@@ -165,6 +167,8 @@ final class AppModel: ObservableObject, HostableModel {
     private var screenObserver: NSObjectProtocol?
     /// This Mac's displays, for the arrangement.
     @Published private(set) var localScreens = Screens.all()
+    /// Their names, for the arrangement.
+    @Published private(set) var screenNames: [String: String] = [:]
 
     private func stop() {
         bridge.stop()
@@ -324,6 +328,7 @@ final class AppModel: ObservableObject, HostableModel {
     func simulate(nearby: [NearbyMac], paired: [PairedMac], connected: Set<String>, pairing: Pairing = .none, access: Bool = true,
                   screens: [CGRect]? = nil) {
         if let screens { localScreens = screens }
+        screenNames = [:]
         self.nearby = nearby
         self.paired = paired
         self.connected = connected

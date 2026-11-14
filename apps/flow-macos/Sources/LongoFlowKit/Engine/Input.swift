@@ -55,6 +55,43 @@ enum Screens {
         return CGPoint(x: offset.x + move.x, y: offset.y + move.y)
     }
 
+    /// This Mac's displays by name ("Built-in Retina Display", "DELL U2723QE"), keyed by their place.
+    @MainActor static func names() -> [String: String] {
+        guard let main = NSScreen.screens.first else { return [:] }
+        var names: [String: String] = [:]
+        for screen in NSScreen.screens {
+            // AppKit's frames have the origin bottom-left of the main display; events', top-left.
+            let frame = screen.frame
+            names[key(CGRect(x: frame.minX, y: main.frame.maxY - frame.maxY, width: frame.width, height: frame.height))] = screen.localizedName
+        }
+        return names
+    }
+
+    /// A display's place as a key (CGRect is only hashable from macOS 15).
+    static func key(_ rect: CGRect) -> String {
+        "\(Int(rect.minX.rounded())),\(Int(rect.minY.rounded())),\(Int(rect.width.rounded())),\(Int(rect.height.rounded()))"
+    }
+
+    /// Where two Macs' displays touch: the stretches of edge the pointer goes over, in this Mac's points.
+    static func seams(_ local: [CGRect], _ other: [CGRect]) -> [(CGPoint, CGPoint)] {
+        var seams: [(CGPoint, CGPoint)] = []
+        for a in local {
+            for b in other {
+                if abs(a.maxX - b.minX) < 1.5 || abs(b.maxX - a.minX) < 1.5 {
+                    let x = abs(a.maxX - b.minX) < 1.5 ? a.maxX : a.minX
+                    let top = max(a.minY, b.minY), bottom = min(a.maxY, b.maxY)
+                    if bottom - top > 1 { seams.append((CGPoint(x: x, y: top), CGPoint(x: x, y: bottom))) }
+                }
+                if abs(a.maxY - b.minY) < 1.5 || abs(b.maxY - a.minY) < 1.5 {
+                    let y = abs(a.maxY - b.minY) < 1.5 ? a.maxY : a.minY
+                    let left = max(a.minX, b.minX), right = min(a.maxX, b.maxX)
+                    if right - left > 1 { seams.append((CGPoint(x: left, y: y), CGPoint(x: right, y: y))) }
+                }
+            }
+        }
+        return seams
+    }
+
     /// `point` kept on a screen: the nearest point of the nearest one.
     static func clamp(_ point: CGPoint, screens: [CGRect] = all()) -> CGPoint {
         if screens.contains(where: { $0.contains(point) }) { return point }

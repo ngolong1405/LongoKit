@@ -128,9 +128,10 @@ private struct CodeField: View {
     }
 }
 
-/// This Mac's displays as they're arranged, and each paired Mac's around them where it sits. A Mac's screens follow
-/// the hand anywhere while dragged, with an outline where they'll land: against the nearest edge, sharing a stretch
-/// of it, never on top of a display. Let go, they settle there, dimmed with a spinner until the other Mac has it.
+/// The desk: this Mac's displays as macOS arranges them, each paired Mac's around them where it sits, each Mac's
+/// screens framed and named, and the stretches where they touch (where the pointer goes over) lit. A Mac's screens
+/// follow the hand anywhere while dragged, with an outline where they'll land: against the nearest edge, sharing a
+/// stretch of it, never on top of a display. Let go, they settle there, dimmed with a spinner until the Mac has it.
 private struct Arrangement: View {
     @EnvironmentObject private var model: AppModel
     @State private var dragging: String?
@@ -139,46 +140,67 @@ private struct Arrangement: View {
     @State private var landing: CGPoint?
     /// The scale and place of everything, kept while dragging and settling, so nothing jumps under the hand.
     @State private var frozen: Layout?
-    static let height: CGFloat = 300
+    static let height: CGFloat = 320
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(model.paired.isEmpty ? L("Your displays, as macOS arranges them. Paired Macs show up beside them.")
-                 : L("Drag a Mac's screens to where it sits on your desk. The pointer goes over where they touch."))
-                .font(.ui(11.5))
-                .foregroundStyle(Theme.textMuted)
-                .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 10) {
             GeometryReader { geometry in
                 let layout = frozen ?? Layout(local: model.localScreens, macs: model.paired.map { ($0.knownScreens, model.offset(of: $0)) },
                                               size: geometry.size)
                 ZStack(alignment: .topLeading) {
+                    Desk()
+                    // This Mac.
+                    MacFrame(rects: model.localScreens.map(layout.frame), tint: Theme.violet)
+                    let biggest = Self.biggest(model.localScreens)
                     ForEach(Array(model.localScreens.enumerated()), id: \.offset) { index, screen in
-                        Tile(title: index == 0 ? L("This Mac") : nil, main: index == 0, tint: Theme.violet,
-                             pointer: index == 0 && model.controlling == nil, faded: false)
-                            .frame(width: layout.size(screen).width, height: layout.size(screen).height)
-                            .position(layout.center(screen))
+                        let frame = layout.frame(screen)
+                        Display(label: model.screenNames[Screens.key(screen)] ?? "\(Int(screen.width)) × \(Int(screen.height))",
+                                badge: index == biggest ? MacBadge(name: model.name, status: L("This Mac"), tint: Theme.violet, live: true) : nil,
+                                main: index == 0,
+                                tint: Theme.violet, pointer: index == 0 && model.controlling == nil, faded: false, small: frame.width < 90)
+                            .frame(width: frame.width, height: frame.height)
+                            .position(x: frame.midX, y: frame.midY)
                             .help(L("This Mac's displays are arranged in System Settings › Displays"))
+                    }
+                    // Where the pointer goes over.
+                    ForEach(model.paired.filter { model.connected.contains($0.id) && dragging != $0.id }) { mac in
+                        let offset = model.offset(of: mac)
+                        ForEach(Array(Screens.seams(model.localScreens, mac.knownScreens.map { $0.offsetBy(dx: offset.x, dy: offset.y) }).enumerated()),
+                                id: \.offset) { _, seam in
+                            Seam(from: layout.point(seam.0), to: layout.point(seam.1))
+                        }
                     }
                     // Where the dragged Mac will land.
                     if let dragging, let landing, let mac = model.paired.first(where: { $0.id == dragging }) {
                         ForEach(Array(mac.knownScreens.enumerated()), id: \.offset) { _, screen in
-                            let placed = screen.offsetBy(dx: landing.x, dy: landing.y)
+                            let frame = layout.frame(screen.offsetBy(dx: landing.x, dy: landing.y))
                             RoundedRectangle(cornerRadius: 6, style: .continuous)
                                 .strokeBorder(Theme.emerald, style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
-                                .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Theme.emerald.opacity(0.08)))
-                                .frame(width: layout.size(placed).width, height: layout.size(placed).height)
-                                .position(layout.center(placed))
+                                .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Theme.emerald.opacity(0.1)))
+                                .frame(width: frame.width, height: frame.height)
+                                .position(x: frame.midX, y: frame.midY)
                         }
                     }
                     ForEach(model.paired) { mac in
                         group(mac, layout: layout, in: geometry.size)
                     }
                 }
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
             .frame(height: Self.height)
-            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.tint(0.03)))
             .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.hairline))
-            HStack {
+
+            HStack(spacing: 14) {
+                Label(model.paired.isEmpty ? L("Pair a Mac below to place it here") : L("Drag a Mac to where it sits on your desk"),
+                      systemImage: "hand.draw")
+                    .font(.ui(11.5, .medium))
+                    .foregroundStyle(Theme.textSecondary)
+                if !model.paired.isEmpty {
+                    HStack(spacing: 5) {
+                        Capsule().fill(Theme.solar).frame(width: 14, height: 3).shadow(color: Theme.solar.opacity(0.8), radius: 3)
+                        Text(L("The pointer goes over here")).font(.ui(11)).foregroundStyle(Theme.textMuted)
+                    }
+                }
                 Spacer()
                 Button {
                     NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Displays-Settings.extension")!)
@@ -188,55 +210,65 @@ private struct Arrangement: View {
         }
     }
 
-    /// A paired Mac's screens: dragged together, then settled (dimmed, with a spinner, until the Mac confirms).
+    /// The biggest display's index: its name goes there, where there's room.
+    static func biggest(_ screens: [CGRect]) -> Int {
+        screens.indices.max { screens[$0].width * screens[$0].height < screens[$1].width * screens[$1].height } ?? 0
+    }
+
+    /// A paired Mac: its frame and screens, dragged together, then settled (dimmed, with a spinner, until it confirms).
     @ViewBuilder private func group(_ mac: PairedMac, layout: Layout, in size: CGSize) -> some View {
         let offset = model.offset(of: mac)
         let connected = model.connected.contains(mac.id)
         let moving = dragging == mac.id ? drag : .zero
         let settling = model.placing.contains(mac.id)
-        ForEach(Array(mac.knownScreens.enumerated()), id: \.offset) { index, screen in
-            let placed = screen.offsetBy(dx: offset.x, dy: offset.y)
-            let center = layout.center(placed)
-            Tile(title: index == 0 ? mac.name : nil, main: index == 0, tint: connected ? Theme.emerald : Theme.textFaint,
-                 pointer: index == 0 && model.controlling == mac.id, faded: !connected)
-                .overlay {
-                    if settling {
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(Theme.canvas.opacity(0.55))
-                            .overlay(ProgressView().controlSize(.small))
-                    }
+        let tint = connected ? Theme.emerald : Theme.textFaint
+        let frames = mac.knownScreens.map { layout.frame($0.offsetBy(dx: offset.x, dy: offset.y)).offsetBy(dx: moving.width, dy: moving.height) }
+        let gesture = DragGesture(minimumDistance: 1)
+            .onChanged { value in
+                if dragging != mac.id {
+                    frozen = layout
+                    dragging = mac.id
                 }
-                .frame(width: layout.size(placed).width, height: layout.size(placed).height)
-                .position(x: min(max(center.x + moving.width, 0), size.width), y: min(max(center.y + moving.height, 0), size.height))
-                .shadow(color: .black.opacity(dragging == mac.id ? 0.3 : 0), radius: 10, y: 5)
-                .zIndex(dragging == mac.id ? 2 : 1)
-                .gesture(DragGesture(minimumDistance: 1)
-                    .onChanged { value in
-                        if dragging != mac.id {
-                            frozen = layout
-                            dragging = mac.id
+                drag = value.translation
+                let moved = CGPoint(x: offset.x + value.translation.width / layout.scale, y: offset.y + value.translation.height / layout.scale)
+                landing = Screens.snap(mac.knownScreens, at: moved, to: model.localScreens)
+            }
+            .onEnded { _ in
+                let target = landing ?? offset
+                // Into place smoothly, from where it was let go.
+                withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
+                    model.place(mac, at: target)
+                    dragging = nil
+                    drag = .zero
+                    landing = nil
+                }
+                // The view settles at its new scale once the move is done.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                    withAnimation(.easeInOut(duration: 0.25)) { frozen = nil }
+                }
+            }
+        Group {
+            MacFrame(rects: frames, tint: tint)
+            ForEach(Array(frames.enumerated()), id: \.offset) { index, frame in
+                Display(label: mac.knownScreens.count > 1 ? L("Display %d", index + 1) : "\(Int(mac.knownScreens[index].width)) × \(Int(mac.knownScreens[index].height))",
+                        badge: index == Self.biggest(mac.knownScreens) ? MacBadge(name: mac.name, status: connected ? L("Connected") : L("Away"), tint: tint, live: connected) : nil,
+                        main: index == 0, tint: tint, pointer: index == 0 && model.controlling == mac.id, faded: !connected, small: frame.width < 90)
+                    .overlay {
+                        if settling {
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(Theme.canvas.opacity(0.55))
+                                .overlay(ProgressView().controlSize(.small))
                         }
-                        drag = value.translation
-                        let moved = CGPoint(x: offset.x + value.translation.width / layout.scale,
-                                            y: offset.y + value.translation.height / layout.scale)
-                        landing = Screens.snap(mac.knownScreens, at: moved, to: model.localScreens)
                     }
-                    .onEnded { _ in
-                        let target = landing ?? offset
-                        // Into place smoothly, from where it was let go.
-                        withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
-                            model.place(mac, at: target)
-                            dragging = nil
-                            drag = .zero
-                            landing = nil
-                        }
-                        // The view settles at its new scale once the move is done.
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                            withAnimation(.easeInOut(duration: 0.25)) { frozen = nil }
-                        }
-                    })
-                .help(L("Drag to where %@ sits", mac.name))
+                    .frame(width: frame.width, height: frame.height)
+                    .position(x: min(max(frame.midX, 0), size.width), y: min(max(frame.midY, 0), size.height))
+                    .shadow(color: .black.opacity(dragging == mac.id ? 0.3 : 0.12), radius: dragging == mac.id ? 12 : 4, y: dragging == mac.id ? 6 : 2)
+                    .gesture(gesture)
+                    .onHover { inside in if inside { NSCursor.openHand.push() } else { NSCursor.pop() } }
+                    .help(L("Drag to where %@ sits", mac.name))
+            }
         }
+        .zIndex(dragging == mac.id ? 2 : 1)
     }
 
     /// Points on the desk to points in the box: everything fits, centred, at one scale (fixed while dragging, so a
@@ -251,46 +283,143 @@ private struct Arrangement: View {
                 for screen in screens { all = all.union(screen.offsetBy(dx: offset.x, dy: offset.y)) }
             }
             if all.isNull { all = CGRect(x: 0, y: 0, width: 1512, height: 982) }
-            // Room around, so a Mac can be dragged to any side.
-            let padded = all.insetBy(dx: -all.width * 0.25, dy: -all.height * 0.2)
+            // Room around for the labels, and to drag a Mac to any side.
+            let padded = all.insetBy(dx: -all.width * 0.2, dy: -all.height * 0.2)
             scale = min(size.width / padded.width, size.height / padded.height)
             origin = CGPoint(x: (size.width - padded.width * scale) / 2 - padded.minX * scale,
                              y: (size.height - padded.height * scale) / 2 - padded.minY * scale)
         }
 
-        func size(_ rect: CGRect) -> CGSize { CGSize(width: max(rect.width * scale - 3, 8), height: max(rect.height * scale - 3, 6)) }
-        func center(_ rect: CGRect) -> CGPoint { CGPoint(x: origin.x + rect.midX * scale, y: origin.y + rect.midY * scale) }
+        /// A display's box, a hair smaller than its place so displays side by side read as two.
+        func frame(_ rect: CGRect) -> CGRect {
+            CGRect(x: origin.x + rect.minX * scale + 1.5, y: origin.y + rect.minY * scale + 1.5,
+                   width: max(rect.width * scale - 3, 8), height: max(rect.height * scale - 3, 6))
+        }
+
+        func point(_ point: CGPoint) -> CGPoint { CGPoint(x: origin.x + point.x * scale, y: origin.y + point.y * scale) }
     }
 }
 
-/// One display in the arrangement: its menu bar on the main one, the name, and the pointer where the mouse is.
-private struct Tile: View {
-    let title: String?
+/// The desk under the displays: a faint dot grid.
+private struct Desk: View {
+    var body: some View {
+        Canvas { context, size in
+            let dot = GraphicsContext.Shading.color(Theme.text.opacity(0.09))
+            var y: CGFloat = 8
+            while y < size.height {
+                var x: CGFloat = 8
+                while x < size.width {
+                    context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: 1.6, height: 1.6)), with: dot)
+                    x += 16
+                }
+                y += 16
+            }
+        }
+        .background(Theme.tint(0.025))
+    }
+}
+
+/// A Mac's screens, framed together.
+private struct MacFrame: View {
+    let rects: [CGRect]
+    let tint: Color
+
+    var body: some View {
+        let box = rects.reduce(CGRect.null) { $0.union($1) }.insetBy(dx: -4, dy: -4)
+        if !box.isNull {
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                .strokeBorder(tint.opacity(0.45), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(tint.opacity(0.05)))
+                .frame(width: box.width, height: box.height)
+                .position(x: box.midX, y: box.midY)
+                .allowsHitTesting(false)
+        }
+    }
+}
+
+/// A Mac's name and state, on its main display.
+private struct MacBadge: View {
+    let name: String
+    let status: String
+    let tint: Color
+    let live: Bool
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "laptopcomputer").font(.system(size: 8.5, weight: .semibold))
+            Text(name).font(.ui(10, .semibold)).lineLimit(1)
+            Circle().fill(live ? tint : Theme.textFaint).frame(width: 6, height: 6)
+        }
+        .help(status)
+        .foregroundStyle(Theme.text)
+        .padding(.horizontal, 6)
+        .frame(height: 18)
+        .background(Capsule().fill(Theme.island.opacity(0.92)))
+        .overlay(Capsule().strokeBorder(tint.opacity(0.5)))
+    }
+}
+
+/// One display: a lit screen in its Mac's colour, its menu bar on the main one, its name, and the pointer where it is.
+private struct Display: View {
+    let label: String
+    var badge: MacBadge? = nil
     let main: Bool
     let tint: Color
     let pointer: Bool
     let faded: Bool
+    let small: Bool
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 6, style: .continuous)
-        ZStack(alignment: .top) {
-            shape.fill(LinearGradient(colors: [tint.opacity(0.28), tint.opacity(0.12)], startPoint: .topLeading, endPoint: .bottomTrailing))
+        let shape = RoundedRectangle(cornerRadius: 5, style: .continuous)
+        ZStack(alignment: .topLeading) {
+            shape.fill(LinearGradient(colors: [tint.opacity(0.85), tint.opacity(0.45)], startPoint: .topLeading, endPoint: .bottomTrailing))
+            // A soft light across the "wallpaper".
+            shape.fill(RadialGradient(colors: [Color.white.opacity(0.28), .clear], center: .topTrailing, startRadius: 0, endRadius: 140))
             if main {
-                Rectangle().fill(Color.white.opacity(0.35)).frame(height: 4)
+                Rectangle().fill(Color.white.opacity(0.55)).frame(height: 4)
             }
-            VStack(spacing: 4) {
-                Spacer(minLength: 0)
-                if pointer { Image(systemName: "cursorarrow").font(.system(size: 13, weight: .bold)).foregroundStyle(tint) }
-                if let title {
-                    Text(title).font(.ui(10.5, .semibold)).foregroundStyle(Theme.text).lineLimit(1).padding(.horizontal, 4)
-                }
-                Spacer(minLength: 0)
+            if let badge {
+                badge.padding(.top, main ? 8 : 5).padding(.horizontal, 5)
+            }
+            if pointer {
+                Image(systemName: "cursorarrow")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.5), radius: 1.5)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            if !small {
+                Text(label)
+                    .font(.ui(9.5, .medium))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .lineLimit(1)
+                    .padding(.horizontal, 5)
+                    .padding(.bottom, 4)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             }
         }
         .clipShape(shape)
-        .overlay(shape.strokeBorder(tint.opacity(0.9), lineWidth: main ? 1.6 : 1))
-        .opacity(faded ? 0.55 : 1)
+        .overlay(shape.strokeBorder(Color.white.opacity(0.22), lineWidth: 1))
+        .overlay(shape.strokeBorder(tint.opacity(0.9), lineWidth: 0.5).padding(-0.5))
+        .saturation(faded ? 0.2 : 1)
+        .opacity(faded ? 0.6 : 1)
         .contentShape(shape)
+    }
+}
+
+/// A lit stretch of edge where two Macs' displays touch.
+private struct Seam: View {
+    let from: CGPoint
+    let to: CGPoint
+
+    var body: some View {
+        Path { path in
+            path.move(to: from)
+            path.addLine(to: to)
+        }
+        .stroke(Theme.solar, style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
+        .shadow(color: Theme.solar.opacity(0.9), radius: 4)
+        .allowsHitTesting(false)
     }
 }
 

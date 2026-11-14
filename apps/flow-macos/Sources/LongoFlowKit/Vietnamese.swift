@@ -101,5 +101,9 @@ enum Vietnamese {
         "Drag to where %@ sits": "Kéo tới chỗ %@ đang đặt",
         "This Mac's displays are arranged in System Settings › Displays": "Màn hình của máy này được xếp trong Cài đặt hệ thống › Màn hình",
         "Your displays, as macOS arranges them. Paired Macs show up beside them.": "Các màn hình của bạn, đúng như macOS đang xếp. Máy Mac đã ghép đôi hiện ra bên cạnh.",
+        "Drag a Mac to where it sits on your desk": "Kéo máy Mac tới chỗ nó đặt trên bàn",
+        "The pointer goes over here": "Chuột sang máy kia ở đây",
+        "Display %d": "Màn hình %d",
+        "Pair a Mac below to place it here": "Ghép đôi một máy bên dưới để đặt nó vào đây",
     ]
 }
