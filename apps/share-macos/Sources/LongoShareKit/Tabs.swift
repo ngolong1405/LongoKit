@@ -32,11 +32,8 @@ struct GeneralTab: View {
                                 .frame(maxWidth: 260, alignment: .trailing)
                         }
                         .buttonStyle(.plain)
-                        .help(model.folder.path)
+                        .help(L("Open the folder") + ": " + model.folder.path)
                         Button(L("Change…"), action: pickFolder).buttonStyle(GhostButtonStyle(compact: true))
-                        Button { NSWorkspace.shared.open(model.folder) } label: { Image(systemName: "folder") }
-                            .buttonStyle(GhostButtonStyle(compact: true))
-                            .help(L("Open the folder"))
                     }
                 }
             }
