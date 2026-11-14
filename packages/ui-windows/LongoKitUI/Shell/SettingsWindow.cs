@@ -57,10 +57,10 @@ internal sealed class SettingsWindow : Window
         Refresh();
     }
 
-    public void Open(ILongoModule module)
+    public void Open(ILongoModule module, int tab = 0)
     {
         this.module = module;
-        tab = 0;
+        this.tab = tab;
         Refresh();
     }
 
@@ -106,8 +106,9 @@ internal sealed class SettingsWindow : Window
             .Res(Border.BackgroundProperty, "Chrome").Res(Border.BorderBrushProperty, "Hairline");
 
         var page = tabs[tab].Create();
-        if (tab == 0 && !shell.IsSuite) page = Ui.Column(16, page, Ui.Section(Localizer.L("App")), Pages.AppCard(shell));
-        var body = Ui.Scroll(new Border { Child = page, Padding = new Thickness(24, 20, 24, 24) });
+        // A module's own app has the app settings under its first page that scrolls (General).
+        if (tab == tabs.FindIndex(t => !t.Fill) && !shell.IsSuite) page = Ui.Column(16, page, Ui.Section(Localizer.L("App")), Pages.AppCard(shell));
+        FrameworkElement body = tabs[tab].Fill ? page : Ui.Scroll(new Border { Child = page, Padding = new Thickness(24, 20, 24, 24) });
 
         var content = new DockPanel();
         DockPanel.SetDock(top, Dock.Top);

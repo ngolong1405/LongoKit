@@ -15,20 +15,20 @@ public class ShareTests
     public void ADeviceIsTrustedThenForgotten()
     {
         var model = new ShareModel(new ShareState());
-        model.SetTrusted(Phone(), true);
-        model.SetTrusted(Phone(), true);
-        Assert.True(model.IsTrusted(Phone()));
+        model.SetTrusted(Phone().Info, true);
+        model.SetTrusted(Phone().Info, true);
+        Assert.True(model.IsTrusted(Phone().Info));
         Assert.Single(model.Trusted);
         Assert.Equal("Pixel 8", model.Trusted[0].Alias);
         model.Forget(model.Trusted[0]);
-        Assert.False(model.IsTrusted(Phone()));
+        Assert.False(model.IsTrusted(Phone().Info));
     }
 
     [Fact]
     public void ADeviceWithoutAFingerprintIsNeverTrusted()
     {
         var model = new ShareModel(new ShareState());
-        model.SetTrusted(Phone(""), true);
+        model.SetTrusted(Phone("").Info, true);
         Assert.Empty(model.Trusted);
     }
 
@@ -50,6 +50,52 @@ public class ShareTests
         Assert.Equal("Long's PC", model.Alias);
         model.Alias = " Desk ";
         Assert.Equal("Desk", model.Alias);
+    }
+
+    [Fact]
+    public void DevicesAroundComeFirstThenPastChats()
+    {
+        var state = new ShareState();
+        state.Conversations["old"] = new Conversation { Id = "old", Alias = "Old Mac", Items = { new ChatItem { Text = "hi", State = ChatState.Done } } };
+        var model = new ShareModel(state);
+        model.Simulate(new[] { Phone() }, null);
+        Assert.Equal(new[] { "f1", "old" }, model.Contacts.Select(c => c.Id));
+        Assert.True(model.Contacts[0].IsOnline);
+        Assert.False(model.Contacts[1].IsOnline);
+        Assert.Equal("Old Mac", model.Contacts[1].Info.Alias);
+    }
+
+    [Fact]
+    public void OpeningAChatReadsIt()
+    {
+        var state = new ShareState();
+        state.Conversations["f1"] = new Conversation { Id = "f1", Alias = "Pixel 8", Unread = 3 };
+        var model = new ShareModel(state);
+        Assert.Equal(3, model.Unread);
+        model.Selected = "f1";
+        Assert.Equal(0, model.Unread);
+    }
+
+    [Fact]
+    public void ClearingKeepsWhatsUnderWay()
+    {
+        var state = new ShareState();
+        state.Conversations["f1"] = new Conversation
+        {
+            Id = "f1", Alias = "Pixel 8",
+            Items = { new ChatItem { Text = "done", State = ChatState.Done }, new ChatItem { State = ChatState.Transferring } },
+        };
+        var model = new ShareModel(state);
+        model.Simulate(new[] { Phone() }, "f1");
+        model.Clear("f1");
+        Assert.Single(model.Contact("f1")!.Conversation!.Items);
+    }
+
+    [Fact]
+    public void TheMessageLine()
+    {
+        Assert.Equal("You: photo.jpg", Words.Line(new ChatItem { Sent = true, Files = { new ChatFile { Name = "photo.jpg" } } }));
+        Assert.Equal("hello", Words.Line(new ChatItem { Text = "hello" }));
     }
 
     [Fact]

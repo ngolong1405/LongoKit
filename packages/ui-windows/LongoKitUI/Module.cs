@@ -4,7 +4,8 @@ using System.Windows.Media;
 namespace LongoKit.UI;
 
 /// <summary>A page of a module's settings window: its tab's title and icon (a Segoe Fluent Icons glyph).</summary>
-public sealed record ModuleTab(string Title, string Glyph, Func<FrameworkElement> Create);
+/// <param name="Fill">The page fills the window and scrolls its own parts (a chat), rather than scrolling as a whole.</param>
+public sealed record ModuleTab(string Title, string Glyph, Func<FrameworkElement> Create, bool Fill = false);
 
 /// <summary>
 /// One of LongoKit's tools (Display, Shot, Mouse). It runs the same on its own, as its own app, and as a module of

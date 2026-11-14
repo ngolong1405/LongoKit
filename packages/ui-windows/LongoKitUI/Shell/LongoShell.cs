@@ -69,6 +69,9 @@ public sealed class LongoShell
         foreach (var module in Modules)
         {
             module.Changed += () => app.Dispatcher.BeginInvoke(() => Changed?.Invoke());
+            // A module wanting one of its tabs (a message came in): the window comes up on it.
+            var asking = module;
+            module.OpenTab += index => app.Dispatcher.BeginInvoke(() => ShowWindow(asking, index));
             module.Start();
         }
         tray = new TrayIcon(this);
@@ -82,11 +85,11 @@ public sealed class LongoShell
         return app.Run();
     }
 
-    public void ShowWindow(ILongoModule? module = null)
+    public void ShowWindow(ILongoModule? module = null, int tab = 0)
     {
         menu?.Hide();
         window ??= new SettingsWindow(this);
-        if (module != null) window.Open(module);
+        if (module != null) window.Open(module, tab);
         window.Show();
         if (window.WindowState == WindowState.Minimized) window.WindowState = WindowState.Normal;
         window.Activate();

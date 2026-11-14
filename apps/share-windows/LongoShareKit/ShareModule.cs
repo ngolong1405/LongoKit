@@ -8,10 +8,10 @@ namespace LongoShare.Windows;
 public sealed class ShareModule : ILongoModule, ISampleData
 {
     private ShareModel model = new(new ShareState());
+    /// <summary>What's typed in each chat and not sent yet (pages are built again as things change).</summary>
+    private readonly Dictionary<string, string> drafts = new();
 
     public ShareModel Model => model;
-    /// <summary>For the pages' pictures: a window drawn in place of the General page.</summary>
-    internal Func<FrameworkElement>? Preview { get; private set; }
 
     public string Id => "share";
     public string Title => "Longo Share";
@@ -19,7 +19,7 @@ public sealed class ShareModule : ILongoModule, ISampleData
     public string IconName => "share.ico";
     public bool IsOn => model.IsEnabled;
     public event Action? Changed;
-    public event Action<int>? OpenTab { add { } remove { } }
+    public event Action<int>? OpenTab;
 
     public ShareModule() => Localizer.Register(Strings.Vietnamese);
 
@@ -32,24 +32,73 @@ public sealed class ShareModule : ILongoModule, ISampleData
     public void Start()
     {
         var next = new ShareModel();
+        // Something came in: the window comes up on its chat.
+        next.WantsWindow += id =>
+        {
+            next.Selected = id;
+            OpenTab?.Invoke(0);
+        };
         Use(next);
-        model.Ask = transfer => Dialogs.Incoming(transfer, () => next.SetTrusted(transfer.From, true));
-        model.AskPin = Dialogs.Pin;
-        model.ShowMessage = Dialogs.Message;
         model.Start();
     }
 
-    public void Stop() => model.Stop();
+    public void Stop()
+    {
+        model.Stop();
+        model.SaveNow();
+    }
+
+    /// <summary>Opens the window on a device's chat (from the menu).</summary>
+    public void ShowChat(string id)
+    {
+        model.Selected = id;
+        OpenTab?.Invoke(0);
+    }
+
+    public string Draft(string id) => drafts.GetValueOrDefault(id, "");
+    public void SetDraft(string id, string text) => drafts[id] = text;
 
     public void UseSampleData()
     {
-        var state = new ShareState { Alias = "Long's PC", Folder = @"C:\Users\Long\Downloads", Pin = null };
+        var state = new ShareState { Alias = "Long's PC", Folder = @"C:\Users\Long\Downloads\Longo Share", Pin = null };
         state.Trusted.Add(new TrustedDevice { Fingerprint = "a1", Alias = "MacBook Air" });
-        state.History.Add(new HistoryItem { Sent = false, Device = "Pixel 8", Time = new DateTime(2026, 11, 14, 9, 41, 0), Files = { "IMG_2041.jpg", "IMG_2042.jpg", "IMG_2043.jpg" } });
-        state.History.Add(new HistoryItem { Sent = true, Device = "MacBook Air", Time = new DateTime(2026, 11, 14, 9, 12, 0), Files = { "Báo cáo quý 3.pdf" } });
-        state.History.Add(new HistoryItem { Sent = false, Device = "iPad", Time = new DateTime(2026, 11, 13, 21, 5, 0), Text = "https://longokit.vercel.app" });
+        var day = new DateTime(2026, 11, 14, 14, 6, 0);
+        state.Conversations["b2"] = new Conversation
+        {
+            Id = "b2", Alias = "Pixel 8", DeviceModel = "Google", DeviceType = "mobile",
+            Items =
+            {
+                new ChatItem { Sent = false, Text = "Gửi mình mấy tấm hình hôm qua nha", State = ChatState.Done, Time = day },
+                new ChatItem
+                {
+                    Sent = true, State = ChatState.Done, Time = day.AddMinutes(2), Done = 6_390_000, Total = 6_390_000,
+                    Files = { new ChatFile { Name = "IMG_2041.jpg", Size = 3_480_000 }, new ChatFile { Name = "IMG_2042.jpg", Size = 2_910_000 } },
+                },
+                new ChatItem { Sent = true, Text = "Xong rồi đó. Link bài viết: https://longokit.vercel.app/share", State = ChatState.Done, Time = day.AddMinutes(3) },
+                new ChatItem
+                {
+                    Sent = false, State = ChatState.Asking, Time = day.AddMinutes(5), Total = 2_052_000,
+                    Files = { new ChatFile { Name = "Ghi âm 14-11.m4a", Size = 812_000 }, new ChatFile { Name = "Báo cáo quý 3.pdf", Size = 1_240_000 } },
+                },
+                new ChatItem
+                {
+                    Sent = true, State = ChatState.Transferring, Time = day.AddMinutes(6), Done = 38_400_000, Total = 61_200_000,
+                    Files = { new ChatFile { Name = "video-4k.mp4", Size = 61_200_000 } },
+                },
+            },
+        };
+        state.Conversations["c3"] = new Conversation
+        {
+            Id = "c3", Alias = "iPad", DeviceModel = "iPad", DeviceType = "tablet", Unread = 2,
+            Items = { new ChatItem { Sent = false, Text = "https://longokit.vercel.app", State = ChatState.Done, Time = day.AddHours(-15) } },
+        };
+        state.Conversations["d4"] = new Conversation
+        {
+            Id = "d4", Alias = "Logan's MacBook Air", DeviceModel = "macOS", DeviceType = "desktop",
+            Items = { new ChatItem { Sent = false, Text = "tôi sẽ xem", State = ChatState.Done, Time = day.AddDays(-2) } },
+        };
         Use(new ShareModel(state));
-        model.Simulate(SamplePeers, new Transfer("Pixel 8", false, 38_400_000, 61_200_000), new Notice("Sent to {0}.", "MacBook Air"));
+        model.Simulate(SamplePeers, "b2");
     }
 
     private static readonly Peer[] SamplePeers =
@@ -61,15 +110,9 @@ public sealed class ShareModule : ILongoModule, ISampleData
 
     public IReadOnlyList<(string Name, int Tab, Action Open)> SamplePages => new (string, int, Action)[]
     {
-        ("incoming", 0, () => Preview = () => Dialogs.IncomingView(new IncomingTransfer(SamplePeers[1], new[]
-        {
-            new FileInfo { Id = "1", FileName = "IMG_2044.jpg", Size = 3_480_000, FileType = "image/jpeg" },
-            new FileInfo { Id = "2", FileName = "IMG_2045.jpg", Size = 2_910_000, FileType = "image/jpeg" },
-            new FileInfo { Id = "3", FileName = "Ghi âm 14-11.m4a", Size = 812_000, FileType = "audio/mp4" },
-        }), (_, _) => { })),
-        ("message", 0, () => Preview = () => Dialogs.MessageView(SamplePeers[2], "Gửi bạn link nè: https://longokit.vercel.app", () => { })),
-        // The last one puts the General page back, for the next pictures.
-        ("devices", 1, () => Preview = null),
+        ("offline", 0, () => model.Selected = "d4"),
+        // The last one puts the first chat back, for the next pictures.
+        ("chat", 0, () => model.Selected = "b2"),
     };
 
     private void Use(ShareModel next)
@@ -84,9 +127,8 @@ public sealed class ShareModule : ILongoModule, ISampleData
 
     public IReadOnlyList<ModuleTab> Tabs => new[]
     {
-        new ModuleTab(Localizer.L("General"), "\uE713", () => Preview?.Invoke() ?? SharePages.General(this)),
-        new ModuleTab(Localizer.L("Devices"), "\uE8EA", () => SharePages.Devices(this)),
-        new ModuleTab(Localizer.L("History"), "\uE81C", () => SharePages.History(this)),
+        new ModuleTab(Localizer.L("Devices"), "\uE8BD", () => SharePages.Devices(this), Fill: true),
+        new ModuleTab(Localizer.L("General"), "\uE713", () => SharePages.General(this)),
     };
 
     public FrameworkElement CreateMenu() => SharePages.Menu(this);

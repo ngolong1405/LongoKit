@@ -80,4 +80,6 @@ public sealed record PrepareUploadResponse
 public sealed record Peer(DeviceInfo Info, string Address)
 {
     public Uri BaseUri => new($"{Info.Protocol}://{(Address.Contains(':') ? $"[{Address}]" : Address)}:{Info.Port}");
+    /// <summary>Who it is: its fingerprint, or its address when it has none.</summary>
+    public string Id => string.IsNullOrEmpty(Info.Fingerprint) ? Address : Info.Fingerprint;
 }
