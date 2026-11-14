@@ -21,8 +21,18 @@ struct GeneralTab: View {
                 CompactRow(L("Device name"), help: L("What others see when they look for this Mac.")) {
                     CommitField(text: model.alias, width: 200) { model.alias = $0 }
                 }
-                CompactRow(L("Save to"), help: (model.folder.path as NSString).abbreviatingWithTildeInPath) {
+                CompactRow(L("Save to")) {
                     HStack(spacing: 6) {
+                        Button { NSWorkspace.shared.open(model.folder) } label: {
+                            Label((model.folder.path as NSString).abbreviatingWithTildeInPath, systemImage: "folder.fill")
+                                .font(.mono(11))
+                                .foregroundStyle(Theme.textSecondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                                .frame(maxWidth: 260, alignment: .trailing)
+                        }
+                        .buttonStyle(.plain)
+                        .help(model.folder.path)
                         Button(L("Change…"), action: pickFolder).buttonStyle(GhostButtonStyle(compact: true))
                         Button { NSWorkspace.shared.open(model.folder) } label: { Image(systemName: "folder") }
                             .buttonStyle(GhostButtonStyle(compact: true))

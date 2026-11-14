@@ -1,4 +1,5 @@
 import LongoKitUI
+import QuickLookThumbnailing
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -327,10 +328,18 @@ private struct FilesBubble: View {
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
         VStack(alignment: .leading, spacing: 10) {
+            if let big = bigPreview {
+                Thumbnail(path: big, fallback: Preview.fileSymbol(item.files[0].name), large: true)
+                    .onTapGesture { NSWorkspace.shared.open(URL(fileURLWithPath: big)) }
+            }
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(Array(item.files.prefix(5).enumerated()), id: \.offset) { _, file in
                     HStack(spacing: 8) {
-                        Image(systemName: Preview.fileSymbol(file.name)).foregroundStyle(Theme.violetLight).frame(width: 16)
+                        if bigPreview == nil, let path = file.path {
+                            Thumbnail(path: path, fallback: Preview.fileSymbol(file.name), large: false)
+                        } else {
+                            Image(systemName: Preview.fileSymbol(file.name)).foregroundStyle(Theme.violetLight).frame(width: 16)
+                        }
                         Text(file.name).font(.ui(12.5)).foregroundStyle(Theme.text).lineLimit(1).truncationMode(.middle)
                         Spacer(minLength: 8)
                         Text(Pretty.size(file.size)).font(.mono(10)).foregroundStyle(Theme.textMuted)
@@ -359,6 +368,14 @@ private struct FilesBubble: View {
         .frame(width: 320, alignment: .leading)
         .background(shape.fill(Theme.island))
         .overlay(shape.strokeBorder(item.state == .asking || item.state == .pin ? Theme.violet : item.sent ? Theme.solar.opacity(0.35) : Theme.hairline))
+    }
+
+    /// One picture or video on this Mac: shown big.
+    private var bigPreview: String? {
+        guard item.files.count == 1, let path = item.files[0].path, FileManager.default.fileExists(atPath: path),
+              let type = UTType(filenameExtension: (path as NSString).pathExtension),
+              type.conforms(to: .image) || type.conforms(to: .movie) else { return nil }
+        return path
     }
 
     @ViewBuilder private var actions: some View {
@@ -430,6 +447,50 @@ private struct Scrolling<Content: View>: View {
         } else {
             ScrollView { content }
         }
+    }
+}
+
+/// A file's Quick Look thumbnail: pictures, videos, PDFs, documents. Its icon until it's made, or if it can't be.
+private struct Thumbnail: View {
+    let path: String
+    let fallback: String
+    let large: Bool
+    @State private var image: NSImage?
+    @Environment(\.displayScale) private var scale
+
+    var body: some View {
+        Group {
+            if let image {
+                if large {
+                    Image(nsImage: image).resizable().aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: 296, maxHeight: 220)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                } else {
+                    Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
+                        .frame(width: 30, height: 30)
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                }
+            } else {
+                Image(systemName: fallback).foregroundStyle(Theme.violetLight)
+                    .frame(width: large ? 296 : 30, height: large ? 120 : 30)
+                    .background(RoundedRectangle(cornerRadius: large ? 10 : 6, style: .continuous).fill(Theme.tint(0.05)))
+            }
+        }
+        .task(id: path) { image = await Thumbnails.image(path, size: large ? CGSize(width: 296, height: 220) : CGSize(width: 30, height: 30), scale: scale) }
+    }
+}
+
+enum Thumbnails {
+    private static let cache = NSCache<NSString, NSImage>()
+
+    static func image(_ path: String, size: CGSize, scale: CGFloat) async -> NSImage? {
+        let key = "\(path)|\(Int(size.width))" as NSString
+        if let cached = cache.object(forKey: key) { return cached }
+        guard FileManager.default.fileExists(atPath: path) else { return nil }
+        let request = QLThumbnailGenerator.Request(fileAt: URL(fileURLWithPath: path), size: size, scale: scale, representationTypes: .thumbnail)
+        guard let image = try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request).nsImage else { return nil }
+        cache.setObject(image, forKey: key)
+        return image
     }
 }
 
