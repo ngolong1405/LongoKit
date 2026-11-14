@@ -15,6 +15,7 @@ enum Vietnamese {
         "Brightness & volume for every display": "Độ sáng & âm lượng cho mọi màn hình",
         "Key remapping & the Hyper layer": "Đổi phím & lớp phím Hyper",
         "Screenshots, recording & copying text on screen": "Chụp, quay màn hình & copy chữ trên màn hình",
+        "Files between your devices, nearby": "Gửi file giữa các máy ở gần",
         "Open %@": "Mở %@",
         "Run Here": "Chạy ở đây",
         "%@ is open as its own app. Quit it so LongoKit runs it instead.":
@@ -36,8 +37,8 @@ enum Vietnamese {
         "Keep Both": "Giữ cả hai",
 
         // About
-        "Longo Mouse, Display, Keys and Shot in one menu bar app. Turn on the ones you need: the others take no memory and ask for nothing.":
-            "Longo Mouse, Display, Keys và Shot trong một app trên thanh menu. Bật module bạn cần: các module còn lại không tốn RAM và không xin quyền gì.",
+        "Longo Mouse, Display, Keys, Shot and Share in one menu bar app. Turn on the ones you need: the others take no memory and ask for nothing.":
+            "Longo Mouse, Display, Keys, Shot và Share trong một app trên thanh menu. Bật module bạn cần: các module còn lại không tốn RAM và không xin quyền gì.",
         "Website": "Website",
         "License": "Giấy phép",
         "Crafted by %@": "Thực hiện bởi %@",

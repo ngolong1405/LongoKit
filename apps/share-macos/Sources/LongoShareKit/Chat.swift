@@ -21,6 +21,8 @@ struct DevicesTab: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(height: 580)
+        .onAppear { model.chatOnScreen = true }
+        .onDisappear { model.chatOnScreen = false }
     }
 }
 

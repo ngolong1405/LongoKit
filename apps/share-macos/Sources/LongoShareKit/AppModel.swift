@@ -105,6 +105,8 @@ final class AppModel: ObservableObject, HostableModel {
     @Published private(set) var problem: String?
     @Published private(set) var isScanning = false
     @Published private(set) var lastAddressFailed: String?
+    /// The chats are showing (set by their page as it comes and goes, also when LongoKit shows another module).
+    var chatOnScreen = false
 
     @Published var isEnabled: Bool {
         didSet {
@@ -285,7 +287,8 @@ final class AppModel: ObservableObject, HostableModel {
     func open(_ id: String) {
         tab = .devices
         selected = id
-        MainWindowRef.show()
+        // In LongoKit, on Share's page.
+        MainWindowRef.show(module: ShareModule.id)
     }
 
     // MARK: - Running
@@ -388,8 +391,8 @@ final class AppModel: ObservableObject, HostableModel {
         conversations[id]!.items.append(item)
         if conversations[id]!.items.count > Self.chatLength { conversations[id]!.items.removeFirst(conversations[id]!.items.count - Self.chatLength) }
         if !item.sent {
-            // Seen at once when its chat is open in a window on screen; otherwise the window comes up on it.
-            let onScreen = WindowVisibility.shared.isShown && MainWindowRef.window?.isVisible == true && tab == .devices
+            // Seen at once when its chat is on screen; otherwise the window comes up on it.
+            let onScreen = chatOnScreen && MainWindowRef.window?.isVisible == true && NSApp.isActive
             if onScreen && selected == id { return }
             conversations[id]!.unread += 1
             if !onScreen && live { open(id) } else if selected == nil { selected = id }
