@@ -525,7 +525,7 @@ final class FlowNode: @unchecked Sendable {
     /// The pointer's, the keyboard's, and the keep-awake: handled as they come.
     private static func isInput(_ kind: Kind) -> Bool {
         switch kind {
-        case .enter, .leave, .move, .button, .scroll, .key, .flags, .release, .awake: return true
+        case .enter, .leave, .move, .button, .scroll, .key, .flags, .release, .awake, .system: return true
         default: return false
         }
     }

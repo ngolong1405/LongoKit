@@ -40,6 +40,8 @@ enum Kind: UInt8 {
     /// Nothing: sent now and then while the pointer is over, so Wi-Fi on both Macs stays awake (asleep, it holds
     /// packets back for tens of milliseconds).
     case awake
+    /// A media key (volume, play, brightness...): macOS's system-defined event, its subtype and data.
+    case system
 }
 
 struct Hello: Codable {

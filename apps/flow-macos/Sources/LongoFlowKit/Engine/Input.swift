@@ -208,6 +208,10 @@ enum Screens {
 /// until the other Mac says the pointer came back. Controlled: the other Mac's events are posted here, as from a
 /// mouse and keyboard plugged in, the pointer tracked here; pushed back out the way it came, it goes home.
 final class InputBridge: @unchecked Sendable {
+    /// macOS's system-defined event type (NX_SYSDEFINED), which carries the media keys as subtype 8.
+    private static let systemDefined: UInt32 = 14
+    private static let mediaKeys: Int16 = 8
+
     /// Posted events carry this, so this Mac's own tap lets them by.
     private static let marker: Int64 = 0x4C_4F_4E_47_46_4C_4F_57
 
@@ -293,7 +297,8 @@ final class InputBridge: @unchecked Sendable {
         let types: [CGEventType] = [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged,
                                     .leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp, .otherMouseDown, .otherMouseUp,
                                     .scrollWheel, .keyDown, .keyUp, .flagsChanged]
-        let mask = types.reduce(CGEventMask(0)) { $0 | (1 << $1.rawValue) }
+        // And macOS's system-defined events (14): the media keys.
+        let mask = types.reduce(CGEventMask(1 << Self.systemDefined)) { $0 | (1 << $1.rawValue) }
         guard let tap = CGEvent.tapCreate(tap: .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap,
                                           eventsOfInterest: mask, callback: { _, type, event, info in
                                               let bridge = Unmanaged<InputBridge>.fromOpaque(info!).takeUnretainedValue()
@@ -349,6 +354,17 @@ final class InputBridge: @unchecked Sendable {
             }
             return Unmanaged.passUnretained(event)
         case .controlling(let mac):
+            if type.rawValue == Self.systemDefined {
+                // Only the media keys go over; anything else system-defined stays here.
+                guard let system = NSEvent(cgEvent: event), system.subtype.rawValue == Self.mediaKeys else { return Unmanaged.passUnretained(event) }
+                flush(to: mac)
+                var writer = Writer()
+                writer.u16(UInt16(bitPattern: system.subtype.rawValue))
+                writer.u64(UInt64(bitPattern: Int64(system.data1)))
+                writer.u64(UInt64(system.modifierFlags.rawValue))
+                send(Message(.system, writer.data), mac)
+                return nil
+            }
             forward(type, event, to: mac)
             return nil
         case .controlled:
@@ -545,6 +561,17 @@ final class InputBridge: @unchecked Sendable {
             event.flags = CGEventFlags(rawValue: flags)
             event.setIntegerValueField(.keyboardEventAutorepeat, value: Int64(reader.u8() ?? 0))
             post(event)
+        case .system:
+            guard let subtype = reader.u16(), let data = reader.u64(), let flags = reader.u64(), isControlled(by: mac) else { return }
+            // Made through AppKit, the only way to make one of these; posted from the main thread, as AppKit wants.
+            DispatchQueue.main.async { [self] in
+                guard let system = NSEvent.otherEvent(with: .systemDefined, location: .zero,
+                                                      modifierFlags: NSEvent.ModifierFlags(rawValue: UInt(flags)),
+                                                      timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: 0, context: nil,
+                                                      subtype: Int16(bitPattern: subtype), data1: Int(Int64(bitPattern: data)), data2: -1),
+                      let event = system.cgEvent else { return }
+                post(event)
+            }
         case .flags:
             guard let code = reader.u16(), let flags = reader.u64(), isControlled(by: mac),
                   let event = CGEvent(keyboardEventSource: source, virtualKey: code, keyDown: true) else { return }
