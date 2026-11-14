@@ -12,6 +12,10 @@ on:
         description: "Release every Windows app at this version (like 0.1.1), with packages/ui-windows/release-notes/<version>.md"
         required: false
         default: ""
+      apps:
+        description: "Only these apps (like \"share\"); empty releases mouse, display, shot and kit"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -74,13 +78,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ github.event.inputs.release }}
+          ONLY: ${{ github.event.inputs.apps }}
         run: |
-          $notes = "packages/ui-windows/release-notes/$env:VERSION.md"
           $apps = @{ "mouse" = @("LongoMouse", "Longo Mouse"); "display" = @("LongoDisplay", "Longo Display");
-                     "shot" = @("LongoShot", "Longo Shot"); "kit" = @("LongoKit", "LongoKit") }
+                     "shot" = @("LongoShot", "Longo Shot"); "kit" = @("LongoKit", "LongoKit"); "share" = @("LongoShare", "Longo Share") }
+          $keys = if ($env:ONLY) { $env:ONLY.Split(" ") } else { @("mouse", "display", "shot", "kit") }
           New-Item -ItemType Directory -Force release | Out-Null
-          foreach ($key in $apps.Keys) {
+          foreach ($key in $keys) {
             $file, $name = $apps[$key]
+            # An app's own notes (share-0.1.0.md), or the shared ones for the version.
+            $notes = "packages/ui-windows/release-notes/$key-$env:VERSION.md"
+            if (-not (Test-Path $notes)) { $notes = "packages/ui-windows/release-notes/$env:VERSION.md" }
             Copy-Item "out/win-x64/$file.exe" "release/$file-$env:VERSION-x64.exe"
             Copy-Item "out/win-arm64/$file.exe" "release/$file-$env:VERSION-arm64.exe"
             gh release create "$key-windows/v$env:VERSION" "release/$file-$env:VERSION-x64.exe" "release/$file-$env:VERSION-arm64.exe" `
