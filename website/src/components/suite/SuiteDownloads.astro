@@ -1,6 +1,6 @@
 ---
 import ProductIcon from "../ProductIcon.astro";
-import { mouseWindows, displayWindows, shotWindows, shareWindows, shareDownload, shareVersion } from "../../data/site";
+import { mouseWindows, displayWindows, shotWindows, shareWindows, shareDownload, shareVersion, flowDownload, flowVersion } from "../../data/site";
 import { repo, mouseDownload, mouseVersion, displayDownload, displayVersion, licenseURL, keysVersion, keysDownload, shotDownload, shotVersion, kitDownload, kitVersion } from "../../data/site";
 import { localize, pick, type Lang } from "../../i18n";
 
@@ -12,7 +12,7 @@ const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
     title: "Download LongoKit.",
-    lead: "All five tools in one app. Rather have just one? Each is also a small app of its own.",
+    lead: "All six tools in one app. Rather have just one? Each is also a small app of its own.",
     single: "Or Just One, as Its Own App",
     soon: "Coming soon", notPlanned: "Not planned",
     mouse: "Smooth scrolling and gestures for any mouse.",
@@ -20,14 +20,15 @@ const t = pick(lang, {
     display: "Brightness and volume for every display, with Sync to your MacBook.",
     shot: "Screenshots, screen recordings and on-screen text from your shortcuts.",
     share: "Files and text between your Macs, PCs and phones nearby. Works with LocalSend.",
-    suiteTitle: "LongoKit: All Five in One App",
-    suiteBody: "LongoKit runs all five as modules of one menu bar app: one window, one menu bar icon, and about a quarter of the memory. Turn on just the ones you need.",
+    flow: "One keyboard and mouse for your Macs, the clipboard along with it.",
+    suiteTitle: "LongoKit: All Six in One App",
+    suiteBody: "LongoKit runs all six as modules of one menu bar app: one window, one menu bar icon, and about a quarter of the memory. Turn on just the ones you need.",
     getKit: "Download LongoKit for macOS", aboutKit: "What's in LongoKit", follow: "Follow on GitHub",
     noTelemetry: "No telemetry", notarize: "Opened from the disk image, it offers to move itself to Applications, then to delete the installer. Beta isn't notarized yet: if blocked, System Settings › Privacy & Security › Open Anyway",
   },
   vi: {
     title: "Tải LongoKit.",
-    lead: "Cả năm công cụ trong một app. Chỉ cần một? Mỗi công cụ cũng là một app nhỏ riêng.",
+    lead: "Cả sáu công cụ trong một app. Chỉ cần một? Mỗi công cụ cũng là một app nhỏ riêng.",
     single: "Hoặc Chỉ Một, Thành App Riêng",
     soon: "Sắp có", notPlanned: "Chưa có kế hoạch",
     mouse: "Cuộn mượt và cử chỉ cho mọi con chuột.",
@@ -35,8 +36,9 @@ const t = pick(lang, {
     display: "Độ sáng và âm lượng cho mọi màn hình, đồng bộ theo MacBook.",
     shot: "Chụp màn hình, quay màn hình và copy chữ trên màn hình bằng phím tắt.",
     share: "Gửi file và văn bản giữa Mac, máy Windows và điện thoại ở gần. Dùng được với LocalSend.",
-    suiteTitle: "LongoKit: Cả Năm Trong Một App",
-    suiteBody: "LongoKit chạy cả năm như các module của một app trên thanh menu: một cửa sổ, một icon trên thanh menu, và chỉ tốn khoảng một phần tư RAM. Chỉ bật module bạn cần.",
+    flow: "Một bộ bàn phím và chuột cho các máy Mac, mang theo cả clipboard.",
+    suiteTitle: "LongoKit: Cả Sáu Trong Một App",
+    suiteBody: "LongoKit chạy cả sáu như các module của một app trên thanh menu: một cửa sổ, một icon trên thanh menu, và chỉ tốn khoảng một phần tư RAM. Chỉ bật module bạn cần.",
     getKit: "Tải LongoKit cho macOS", aboutKit: "LongoKit có gì", follow: "Theo dõi trên GitHub",
     noTelemetry: "Không telemetry", notarize: "Mở ngay trong file cài đặt, app tự đề nghị chuyển vào Applications rồi xoá file cài đặt. Bản beta chưa notarize: nếu bị chặn, Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Vẫn mở",
   },
@@ -69,6 +71,11 @@ const kits = [
     name: "LongoShare", product: "share" as const, version: `v${shareVersion}`, available: true, download: shareDownload, windows: shareWindows.x64,
     tint: "text-tertiary", badgeBg: "bg-tertiary/20",
     mac: "bg-tertiary/15 text-tertiary hover:bg-tertiary/30", tagline: "LocalSend-Compatible Sharing", body: t.share,
+  },
+  {
+    name: "LongoFlow", product: "flow" as const, version: `v${flowVersion}`, available: true, download: flowDownload, windows: null as string | null, windowsSoon: true,
+    tint: "text-secondary", badgeBg: "bg-secondary-container/25",
+    mac: "bg-secondary-container/25 text-secondary hover:bg-secondary-container/40", tagline: "One Keyboard & Mouse, Every Mac", body: t.flow,
   },
 ];
 ---
@@ -149,7 +156,7 @@ const kits = [
             ) : (
               <span class="flex w-full cursor-not-allowed items-center justify-between rounded-xl bg-surface-container-high px-4 py-3 text-xs font-medium opacity-70">
                 <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-tertiary">window</span>Windows</span>
-                <span class="font-code text-[11px] text-on-surface-variant">{t.notPlanned}</span>
+                <span class="font-code text-[11px] text-on-surface-variant">{"windowsSoon" in k && k.windowsSoon ? t.soon : t.notPlanned}</span>
               </span>
             )}
           </div>

@@ -9,7 +9,7 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    badge: "Modules", title: "Five Modules, Each the Whole App",
+    badge: "Modules", title: "Six Modules, Each the Whole App",
     lead: "A module is the app itself, with every tab and setting it has on its own. Only the app-wide settings move to LongoKit.",
     more: "See what it does",
     mods: [
@@ -18,10 +18,11 @@ const t = pick(lang, {
       { id: "keys", name: "LongoKeys", body: "Remap keys per keyboard, and a Hyper layer on Caps Lock." },
       { id: "shot", name: "LongoShot", body: "Screenshots, recordings and on-screen text, each from its own shortcut." },
       { id: "share", name: "LongoShare", body: "Files and text with your devices nearby, as a chat with each. Works with LocalSend." },
+      { id: "flow", name: "LongoFlow", body: "One keyboard and mouse for your Macs: push the pointer past the edge, it's on the next one." },
     ],
   },
   vi: {
-    badge: "Module", title: "Năm Module, Mỗi Module Là Trọn Một App",
+    badge: "Module", title: "Sáu Module, Mỗi Module Là Trọn Một App",
     lead: "Mỗi module chính là app đó, đủ mọi tab và cài đặt như khi chạy riêng. Chỉ các cài đặt chung của app được chuyển về LongoKit.",
     more: "Xem chi tiết",
     mods: [
@@ -30,6 +31,7 @@ const t = pick(lang, {
       { id: "keys", name: "LongoKeys", body: "Đổi phím cho từng bàn phím, và lớp Hyper trên Caps Lock." },
       { id: "shot", name: "LongoShot", body: "Chụp, quay màn hình và copy chữ trên màn hình, mỗi việc một phím tắt." },
       { id: "share", name: "LongoShare", body: "Gửi file và văn bản với các máy ở gần, mỗi máy một cuộc trò chuyện. Dùng được với LocalSend." },
+      { id: "flow", name: "LongoFlow", body: "Một bộ bàn phím và chuột cho các máy Mac: đẩy con trỏ qua mép màn hình là sang máy bên cạnh." },
     ],
   },
 });
@@ -44,7 +46,7 @@ const t = pick(lang, {
     <p class="mt-space-xs text-body-lg text-on-surface-variant">{t.lead}</p>
   </div>
 
-  <div class="grid grid-cols-1 gap-gutter sm:grid-cols-2 xl:grid-cols-5">
+  <div class="grid grid-cols-1 gap-gutter sm:grid-cols-2 lg:grid-cols-3">
     {t.mods.map((m) => (
       <a href={localize(lang, `/${m.id}`)} class="group flex flex-col gap-space-md rounded-2xl bg-surface-container-low p-space-lg shadow-xl transition-colors hover:bg-surface-container">
         <ProductIcon product={m.id as "mouse"} class="-m-1 h-14 w-14" />

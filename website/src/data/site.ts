@@ -28,8 +28,8 @@ export const flowVersion = "0.1.10";
 // Longo Flow: bump flowVersion and upload LongoFlow-<version>.dmg to tag flow-macos/v<version>.
 export const flowDownload = `${repo}/releases/download/flow-macos/v${flowVersion}/LongoFlow-${flowVersion}.dmg`;
 export const flowReleaseNotes = `${repo}/releases/tag/flow-macos/v${flowVersion}`;
-export const kitVersion = "0.1.11";
-// LongoKit, the five apps as modules of one: bump kitVersion and upload LongoKit-<version>.dmg to tag kit-macos/v<version>.
+export const kitVersion = "0.1.12";
+// LongoKit, the six apps as modules of one: bump kitVersion and upload LongoKit-<version>.dmg to tag kit-macos/v<version>.
 export const kitDownload = `${repo}/releases/download/kit-macos/v${kitVersion}/LongoKit-${kitVersion}.dmg`;
 export const kitReleaseNotes = `${repo}/releases/tag/kit-macos/v${kitVersion}`;
 export const kitBuildFromSource = "git clone https://github.com/ngolong1405/LongoKit && cd LongoKit/apps/kit-macos && ./scripts/build-app.sh";
