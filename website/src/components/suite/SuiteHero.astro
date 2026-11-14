@@ -9,9 +9,9 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    title: "One App, Four Tools for Your Mac.",
+    title: "One App, Five Tools for Your Mac.",
     platforms: "macOS 14+ · Windows 10 & 11 (beta)",
-    lead: ["LongoKit puts four small native tools in one menu bar app: smooth scrolling, display brightness, key remapping and screenshots. Turn on the ones you need, at about a quarter of the memory, on", "— and now on"],
+    lead: ["LongoKit puts five small native tools in one menu bar app: smooth scrolling, display brightness, key remapping, screenshots and sharing files with your other devices. Turn on the ones you need, at about a quarter of the memory, on", "— and now on"],
     download: "Download LongoKit", select: "Or just one, as its own app", windowsSoon: "Windows 10 & 11: beta",
     copy: "copy", copied: "copied!",
     running: "Running", curve: "Each wheel notch: ease-out", smooth: "Smooth scrolling",
@@ -39,9 +39,9 @@ const t = pick(lang, {
     shotNote: "✨ Text is recognized on your Mac, in any script, Vietnamese marks kept. Nothing leaves the Mac.",
   },
   vi: {
-    title: "Một App, Bốn Công Cụ Cho Mac.",
+    title: "Một App, Năm Công Cụ Cho Mac.",
     platforms: "macOS 14+ · Windows 10 & 11 (beta)",
-    lead: ["LongoKit gom bốn công cụ native nhỏ gọn vào một app trên thanh menu: cuộn mượt, độ sáng màn hình, đổi phím và chụp màn hình. Bật đúng thứ bạn cần, chỉ tốn khoảng một phần tư RAM, trên", "— và giờ có trên"],
+    lead: ["LongoKit gom năm công cụ native nhỏ gọn vào một app trên thanh menu: cuộn mượt, độ sáng màn hình, đổi phím, chụp màn hình và gửi file sang máy khác. Bật đúng thứ bạn cần, chỉ tốn khoảng một phần tư RAM, trên", "— và giờ có trên"],
     download: "Tải LongoKit", select: "Hoặc chỉ một, thành app riêng", windowsSoon: "Windows 10 & 11: bản beta",
     copy: "copy", copied: "đã copy!",
     running: "Đang chạy", curve: "Mỗi nấc bánh xe: chậm dần (ease-out)", smooth: "Cuộn mượt",
@@ -122,7 +122,7 @@ const vim = ["H ←", "J ↓", "K ↑", "L →"];
             <span class="material-symbols-outlined text-[24px] text-tertiary">widgets</span>
             <span class="flex flex-col text-left">
               <span class="font-display text-sm leading-tight">{t.select}</span>
-              <span class="font-code text-[11px] text-on-surface-variant">Mouse · Keys · Display · Shot</span>
+              <span class="font-code text-[11px] text-on-surface-variant">Mouse · Keys · Display · Shot · Share</span>
             </span>
           </span>
           <span class="material-symbols-outlined text-[20px] text-on-surface-variant transition-transform group-hover:translate-x-1">arrow_forward</span>

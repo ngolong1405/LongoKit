@@ -10,7 +10,7 @@ interface Props {
 const { lang } = Astro.props;
 const t = pick(lang, {
   en: {
-    title: "Four Modules, One App",
+    title: "Five Modules, One App",
     lead: "Small, native tools instead of heavy vendor software. In LongoKit each is a module you turn on or off; each is also its own app.",
     available: "Available", soon: "Coming soon",
     mouse: {
@@ -29,9 +29,13 @@ const t = pick(lang, {
       body: "Screenshots, screen recordings and on-screen text, each from its own shortcut, saved and on your clipboard.",
       points: ["Area, window or full screen, then draw on it", "Screen recording as MP4", "Copy text in any script, on-device OCR"],
     },
+    share: {
+      body: "Files and text between your Macs, PCs and phones nearby, as a chat with each device. No cloud, no account.",
+      points: ["A chat with each device, previews of each picture", "Works with LocalSend on phones & Linux", "Asks before anything comes in"],
+    },
   },
   vi: {
-    title: "Bốn Module, Một App",
+    title: "Năm Module, Một App",
     lead: "Công cụ nhỏ, native, thay cho phần mềm nặng của từng hãng. Trong LongoKit mỗi công cụ là một module bật tắt được; mỗi cái cũng là một app riêng.",
     available: "Có thể tải", soon: "Sắp có",
     mouse: {
@@ -49,6 +53,10 @@ const t = pick(lang, {
     shot: {
       body: "Chụp màn hình, quay màn hình và copy chữ trên màn hình, mỗi việc một phím tắt, lưu sẵn và có trong clipboard.",
       points: ["Chụp vùng, cửa sổ hoặc toàn màn hình, rồi vẽ lên", "Quay màn hình thành MP4", "Copy chữ mọi ngôn ngữ, OCR ngay trên máy"],
+    },
+    share: {
+      body: "Gửi file và văn bản giữa Mac, máy Windows và điện thoại ở gần, mỗi máy một cuộc trò chuyện. Không cloud, không tài khoản.",
+      points: ["Mỗi máy một cuộc trò chuyện, có ảnh xem trước", "Dùng được với LocalSend trên điện thoại & Linux", "Hỏi trước khi nhận bất cứ gì"],
     },
   },
 });
@@ -74,6 +82,11 @@ const pillars = [
     tint: "text-primary-container", glow: "bg-tertiary/10 group-hover:bg-tertiary/20", dot: "bg-primary-container",
     tagline: "Capture, Record & On-Device OCR", ...t.shot, tech: "ScreenCaptureKit + Vision",
   },
+  {
+    name: "LongoShare", product: "share" as const, href: localize(lang, "/share"), status: t.available,
+    tint: "text-tertiary", glow: "bg-tertiary/10 group-hover:bg-tertiary/20", dot: "bg-tertiary",
+    tagline: "LocalSend-Compatible Sharing", ...t.share, tech: "Network.framework + LocalSend v2",
+  },
 ];
 ---
 
@@ -84,7 +97,7 @@ const pillars = [
     <p class="max-w-2xl text-body-lg text-on-surface-variant">{t.lead}</p>
   </div>
 
-  <div class="grid grid-cols-1 gap-gutter-lg md:grid-cols-2 xl:grid-cols-4">
+  <div class="grid grid-cols-1 gap-gutter-lg md:grid-cols-2 xl:grid-cols-5">
     {
       pillars.map((p) => (
         <a href={p.href} class="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-surface-container-low p-8 shadow-lg transition-all hover:bg-surface-container">
