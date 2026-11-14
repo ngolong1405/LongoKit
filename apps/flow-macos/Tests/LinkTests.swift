@@ -68,6 +68,13 @@ final class LinkTests: XCTestCase {
         a.send(Message(.move, writer.data), to: "b-mac")
         await fulfillment(of: [got], timeout: 5)
         XCTAssertEqual(dx, 12.5)
+
+        // Moving B in A's arrangement: B takes the inverse, and says so.
+        let confirmed = expectation(description: "placed")
+        a.placedThere = { if $0 == "b-mac" { confirmed.fulfill() } }
+        a.place("b-mac", at: CGPoint(x: 1512, y: 40))
+        await fulfillment(of: [confirmed], timeout: 5)
+        XCTAssertEqual(b.pairedMacs.first?.offset, CGPoint(x: -1512, y: -40))
     }
 
     func testAWrongCodeDoesntPair() async throws {

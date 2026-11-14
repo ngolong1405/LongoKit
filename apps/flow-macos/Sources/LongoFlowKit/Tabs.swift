@@ -128,13 +128,18 @@ private struct CodeField: View {
     }
 }
 
-/// This Mac's displays as they're arranged, and each paired Mac's around them where it sits: drag a Mac's screens
-/// to where it is on the desk, and they snap to the nearest edge, as in macOS's Arrange Displays.
+/// This Mac's displays as they're arranged, and each paired Mac's around them where it sits. A Mac's screens follow
+/// the hand anywhere while dragged, with an outline where they'll land: against the nearest edge, sharing a stretch
+/// of it, never on top of a display. Let go, they settle there, dimmed with a spinner until the other Mac has it.
 private struct Arrangement: View {
     @EnvironmentObject private var model: AppModel
     @State private var dragging: String?
     @State private var drag = CGSize.zero
-    static let height: CGFloat = 270
+    /// Where the Mac being dragged will land, in this Mac's points.
+    @State private var landing: CGPoint?
+    /// The scale and place of everything, kept while dragging and settling, so nothing jumps under the hand.
+    @State private var frozen: Layout?
+    static let height: CGFloat = 300
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -144,50 +149,93 @@ private struct Arrangement: View {
                 .foregroundStyle(Theme.textMuted)
                 .fixedSize(horizontal: false, vertical: true)
             GeometryReader { geometry in
-                let layout = Layout(local: model.localScreens, macs: model.paired.map { ($0.knownScreens, model.offset(of: $0)) },
-                                    size: geometry.size)
+                let layout = frozen ?? Layout(local: model.localScreens, macs: model.paired.map { ($0.knownScreens, model.offset(of: $0)) },
+                                              size: geometry.size)
                 ZStack(alignment: .topLeading) {
                     ForEach(Array(model.localScreens.enumerated()), id: \.offset) { index, screen in
                         Tile(title: index == 0 ? L("This Mac") : nil, main: index == 0, tint: Theme.violet,
                              pointer: index == 0 && model.controlling == nil, faded: false)
                             .frame(width: layout.size(screen).width, height: layout.size(screen).height)
                             .position(layout.center(screen))
+                            .help(L("This Mac's displays are arranged in System Settings › Displays"))
+                    }
+                    // Where the dragged Mac will land.
+                    if let dragging, let landing, let mac = model.paired.first(where: { $0.id == dragging }) {
+                        ForEach(Array(mac.knownScreens.enumerated()), id: \.offset) { _, screen in
+                            let placed = screen.offsetBy(dx: landing.x, dy: landing.y)
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .strokeBorder(Theme.emerald, style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
+                                .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Theme.emerald.opacity(0.08)))
+                                .frame(width: layout.size(placed).width, height: layout.size(placed).height)
+                                .position(layout.center(placed))
+                        }
                     }
                     ForEach(model.paired) { mac in
-                        let offset = model.offset(of: mac)
-                        let connected = model.connected.contains(mac.id)
-                        let moving = dragging == mac.id ? drag : .zero
-                        ForEach(Array(mac.knownScreens.enumerated()), id: \.offset) { index, screen in
-                            let placed = screen.offsetBy(dx: offset.x, dy: offset.y)
-                            Tile(title: index == 0 ? mac.name : nil, main: index == 0, tint: connected ? Theme.emerald : Theme.textFaint,
-                                 pointer: index == 0 && model.controlling == mac.id, faded: !connected)
-                                .frame(width: layout.size(placed).width, height: layout.size(placed).height)
-                                .position(x: layout.center(placed).x + moving.width, y: layout.center(placed).y + moving.height)
-                                .shadow(color: .black.opacity(dragging == mac.id ? 0.25 : 0), radius: 8, y: 4)
-                                .zIndex(dragging == mac.id ? 2 : 1)
-                                .gesture(DragGesture(minimumDistance: 2)
-                                    .onChanged { value in
-                                        dragging = mac.id
-                                        drag = value.translation
-                                    }
-                                    .onEnded { value in
-                                        let moved = CGPoint(x: offset.x + value.translation.width / layout.scale,
-                                                            y: offset.y + value.translation.height / layout.scale)
-                                        let snapped = Screens.snap(mac.knownScreens, at: moved, to: model.localScreens)
-                                        withAnimation(Motion.quick) {
-                                            model.place(mac, at: snapped)
-                                            dragging = nil
-                                            drag = .zero
-                                        }
-                                    })
-                                .help(L("Drag to where %@ sits", mac.name))
-                        }
+                        group(mac, layout: layout, in: geometry.size)
                     }
                 }
             }
             .frame(height: Self.height)
             .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.tint(0.03)))
             .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.hairline))
+            HStack {
+                Spacer()
+                Button {
+                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Displays-Settings.extension")!)
+                } label: { Label(L("Arrange this Mac's displays…"), systemImage: "display.2") }
+                    .buttonStyle(GhostButtonStyle(compact: true))
+            }
+        }
+    }
+
+    /// A paired Mac's screens: dragged together, then settled (dimmed, with a spinner, until the Mac confirms).
+    @ViewBuilder private func group(_ mac: PairedMac, layout: Layout, in size: CGSize) -> some View {
+        let offset = model.offset(of: mac)
+        let connected = model.connected.contains(mac.id)
+        let moving = dragging == mac.id ? drag : .zero
+        let settling = model.placing.contains(mac.id)
+        ForEach(Array(mac.knownScreens.enumerated()), id: \.offset) { index, screen in
+            let placed = screen.offsetBy(dx: offset.x, dy: offset.y)
+            let center = layout.center(placed)
+            Tile(title: index == 0 ? mac.name : nil, main: index == 0, tint: connected ? Theme.emerald : Theme.textFaint,
+                 pointer: index == 0 && model.controlling == mac.id, faded: !connected)
+                .overlay {
+                    if settling {
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(Theme.canvas.opacity(0.55))
+                            .overlay(ProgressView().controlSize(.small))
+                    }
+                }
+                .frame(width: layout.size(placed).width, height: layout.size(placed).height)
+                .position(x: min(max(center.x + moving.width, 0), size.width), y: min(max(center.y + moving.height, 0), size.height))
+                .shadow(color: .black.opacity(dragging == mac.id ? 0.3 : 0), radius: 10, y: 5)
+                .zIndex(dragging == mac.id ? 2 : 1)
+                .gesture(DragGesture(minimumDistance: 1)
+                    .onChanged { value in
+                        if dragging != mac.id {
+                            frozen = layout
+                            dragging = mac.id
+                        }
+                        drag = value.translation
+                        let moved = CGPoint(x: offset.x + value.translation.width / layout.scale,
+                                            y: offset.y + value.translation.height / layout.scale)
+                        landing = Screens.snap(mac.knownScreens, at: moved, to: model.localScreens)
+                    }
+                    .onEnded { _ in
+                        let target = landing ?? offset
+                        // Into place smoothly, from where it was let go.
+                        withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
+                            model.place(mac, at: target)
+                            dragging = nil
+                            drag = .zero
+                            landing = nil
+                        }
+                        // The view settles at its new scale once the move is done.
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            withAnimation(.easeInOut(duration: 0.25)) { frozen = nil }
+                        }
+                    })
+                .help(L("Drag to where %@ sits", mac.name))
         }
     }
 

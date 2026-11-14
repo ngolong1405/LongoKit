@@ -31,6 +31,8 @@ enum Kind: UInt8 {
     case ping
     /// The sender's displays, in its own global coordinates.
     case screens
+    /// The arrangement the receiver sent is in place here.
+    case placed
 }
 
 struct Hello: Codable {

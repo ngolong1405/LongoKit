@@ -136,6 +136,7 @@ final class AppModel: ObservableObject, HostableModel {
         node.pairingEnded = { name, ok in Task { @MainActor [weak self] in self?.pairingEnded(name, ok) } }
         // Events go straight to the bridge, off the main thread; the clipboard goes through the main one.
         node.localScreens = { Screens.all() }
+        node.placedThere = { mac in Task { @MainActor [weak self] in self?.placing.remove(mac) } }
         let bridge = self.bridge
         node.received = { [weak self] mac, message in
             if message.kind == .clipboard {
@@ -271,10 +272,17 @@ final class AppModel: ObservableObject, HostableModel {
         if ok { lastPaired = name }
     }
 
+    /// Macs just moved in the arrangement, until they say they have it.
+    @Published private(set) var placing: Set<String> = []
+
     /// Puts a Mac's screens at `offset` here (dragged in the arrangement), here and there.
     func place(_ mac: PairedMac, at offset: CGPoint) {
         if let index = paired.firstIndex(where: { $0.id == mac.id }) { paired[index].offset = offset }
         node?.place(mac.id, at: offset)
+        // Connected, it confirms; if it doesn't within a few seconds, it'll get the arrangement when it next connects.
+        guard connected.contains(mac.id) else { return }
+        placing.insert(mac.id)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in self?.placing.remove(mac.id) }
     }
 
     /// Where a Mac sits here: as placed, or by its side until it is.

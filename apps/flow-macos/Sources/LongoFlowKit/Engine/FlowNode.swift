@@ -101,6 +101,8 @@ final class FlowNode: @unchecked Sendable {
     var codeRejected: (_ from: String) -> Void = { _ in }
     /// Pairing ended: paired, or not (cancelled, or the other Mac went away).
     var pairingEnded: (_ name: String, _ ok: Bool) -> Void = { _, _ in }
+    /// A Mac took the arrangement this one sent.
+    var placedThere: (_ mac: String) -> Void = { _ in }
     /// A message from a paired, connected Mac.
     var received: (_ from: String, _ message: Message) -> Void = { _, _ in }
 
@@ -459,6 +461,10 @@ final class FlowNode: @unchecked Sendable {
             guard let offset = reader.point(), paired[mac] != nil else { return }
             paired[mac]!.offset = offset
             pairedChanged(Array(paired.values))
+            links[mac]?.send(Message(.placed))
+            return
+        case .placed:
+            placedThere(mac)
             return
         case .screens:
             guard let count = reader.u8(), paired[mac] != nil else { return }
