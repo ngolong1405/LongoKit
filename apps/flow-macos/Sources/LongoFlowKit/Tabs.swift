@@ -150,13 +150,13 @@ private struct Arrangement: View {
                 ZStack(alignment: .topLeading) {
                     Desk()
                     // This Mac.
-                    MacFrame(rects: model.localScreens.map(layout.frame), tint: Theme.violet)
-                    let biggest = Self.biggest(model.localScreens)
+                    // The Mac's name goes on its own display (a laptop's), or its main one.
+                    let own = model.localBuiltin ?? 0
                     ForEach(Array(model.localScreens.enumerated()), id: \.offset) { index, screen in
                         let frame = layout.frame(screen)
                         Display(label: model.screenNames[Screens.key(screen)] ?? "\(Int(screen.width)) × \(Int(screen.height))",
-                                badge: index == biggest ? MacBadge(name: model.name, status: L("This Mac"), tint: Theme.violet, live: true) : nil,
-                                main: index == 0,
+                                badge: index == own ? MacBadge(name: model.name, status: L("This Mac"), tint: Theme.violet, live: true, laptop: model.localBuiltin != nil) : nil,
+                                main: index == 0, laptop: index == model.localBuiltin,
                                 tint: Theme.violet, pointer: index == 0 && model.controlling == nil, faded: false, small: frame.width < 90)
                             .frame(width: frame.width, height: frame.height)
                             .position(x: frame.midX, y: frame.midY)
@@ -210,11 +210,6 @@ private struct Arrangement: View {
         }
     }
 
-    /// The biggest display's index: its name goes there, where there's room.
-    static func biggest(_ screens: [CGRect]) -> Int {
-        screens.indices.max { screens[$0].width * screens[$0].height < screens[$1].width * screens[$1].height } ?? 0
-    }
-
     /// A paired Mac: its frame and screens, dragged together, then settled (dimmed, with a spinner, until it confirms).
     @ViewBuilder private func group(_ mac: PairedMac, layout: Layout, in size: CGSize) -> some View {
         let offset = model.offset(of: mac)
@@ -248,11 +243,11 @@ private struct Arrangement: View {
                 }
             }
         Group {
-            MacFrame(rects: frames, tint: tint)
             ForEach(Array(frames.enumerated()), id: \.offset) { index, frame in
                 Display(label: mac.knownScreens.count > 1 ? L("Display %d", index + 1) : "\(Int(mac.knownScreens[index].width)) × \(Int(mac.knownScreens[index].height))",
-                        badge: index == Self.biggest(mac.knownScreens) ? MacBadge(name: mac.name, status: connected ? L("Connected") : L("Away"), tint: tint, live: connected) : nil,
-                        main: index == 0, tint: tint, pointer: index == 0 && model.controlling == mac.id, faded: !connected, small: frame.width < 90)
+                        badge: index == (mac.builtin ?? 0) ? MacBadge(name: mac.name, status: connected ? L("Connected") : L("Away"), tint: tint, live: connected,
+                                         laptop: mac.builtin != nil || mac.screens.isEmpty) : nil,
+                        main: index == 0, laptop: index == mac.builtin || (mac.screens.isEmpty && index == 0), tint: tint, pointer: index == 0 && model.controlling == mac.id, faded: !connected, small: frame.width < 90)
                     .overlay {
                         if settling {
                             RoundedRectangle(cornerRadius: 6, style: .continuous)
@@ -319,34 +314,18 @@ private struct Desk: View {
     }
 }
 
-/// A Mac's screens, framed together.
-private struct MacFrame: View {
-    let rects: [CGRect]
-    let tint: Color
-
-    var body: some View {
-        let box = rects.reduce(CGRect.null) { $0.union($1) }.insetBy(dx: -4, dy: -4)
-        if !box.isNull {
-            RoundedRectangle(cornerRadius: 9, style: .continuous)
-                .strokeBorder(tint.opacity(0.45), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
-                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(tint.opacity(0.05)))
-                .frame(width: box.width, height: box.height)
-                .position(x: box.midX, y: box.midY)
-                .allowsHitTesting(false)
-        }
-    }
-}
-
 /// A Mac's name and state, on its main display.
 private struct MacBadge: View {
     let name: String
     let status: String
     let tint: Color
     let live: Bool
+    /// A laptop, or a desktop Mac (no display of its own).
+    var laptop = true
 
     var body: some View {
         HStack(spacing: 4) {
-            Image(systemName: "laptopcomputer").font(.system(size: 8.5, weight: .semibold))
+            Image(systemName: laptop ? "laptopcomputer" : "desktopcomputer").font(.system(size: 8.5, weight: .semibold))
             Text(name).font(.ui(10, .semibold)).lineLimit(1)
             Circle().fill(live ? tint : Theme.textFaint).frame(width: 6, height: 6)
         }
@@ -359,51 +338,120 @@ private struct MacBadge: View {
     }
 }
 
-/// One display: a lit screen in its Mac's colour, its menu bar on the main one, its name, and the pointer where it is.
+/// One display, drawn as one: a black bezel round a wallpaper of hills in its Mac's colour, the menu bar and Dock on
+/// the main display, the notch on a laptop's, its name, and the pointer where the mouse is.
 private struct Display: View {
     let label: String
     var badge: MacBadge? = nil
     let main: Bool
+    var laptop = false
     let tint: Color
     let pointer: Bool
     let faded: Bool
     let small: Bool
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 5, style: .continuous)
-        ZStack(alignment: .topLeading) {
-            shape.fill(LinearGradient(colors: [tint.opacity(0.85), tint.opacity(0.45)], startPoint: .topLeading, endPoint: .bottomTrailing))
-            // A soft light across the "wallpaper".
-            shape.fill(RadialGradient(colors: [Color.white.opacity(0.28), .clear], center: .topTrailing, startRadius: 0, endRadius: 140))
-            if main {
-                Rectangle().fill(Color.white.opacity(0.55)).frame(height: 4)
-            }
-            if let badge {
-                badge.padding(.top, main ? 8 : 5).padding(.horizontal, 5)
-            }
-            if pointer {
-                Image(systemName: "cursorarrow")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.5), radius: 1.5)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            if !small {
-                Text(label)
-                    .font(.ui(9.5, .medium))
-                    .foregroundStyle(.white.opacity(0.9))
-                    .lineLimit(1)
-                    .padding(.horizontal, 5)
-                    .padding(.bottom, 4)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+        GeometryReader { geometry in
+            let size = geometry.size
+            let bezel = max(2, min(size.width, size.height) * 0.035)
+            let outer = RoundedRectangle(cornerRadius: max(4, size.height * 0.07), style: .continuous)
+            let inner = RoundedRectangle(cornerRadius: max(2, size.height * 0.05), style: .continuous)
+            ZStack {
+                outer.fill(Color(hex: 0x111216))
+                ZStack(alignment: .top) {
+                    Wallpaper(tint: tint)
+                    if main {
+                        // The menu bar: the Apple and a few menus left, the clock right.
+                        HStack(spacing: 3) {
+                            Circle().fill(Color.white.opacity(0.85)).frame(width: 3, height: 3)
+                            ForEach(0..<3, id: \.self) { _ in Capsule().fill(Color.white.opacity(0.55)).frame(width: 6, height: 2) }
+                            Spacer(minLength: 0)
+                            Capsule().fill(Color.white.opacity(0.7)).frame(width: 10, height: 2)
+                        }
+                        .padding(.horizontal, 5)
+                        .frame(height: max(5, size.height * 0.06))
+                        .background(Color.white.opacity(0.22))
+                    }
+                    if laptop {
+                        UnevenRoundedRectangle(bottomLeadingRadius: 2, bottomTrailingRadius: 2)
+                            .fill(Color(hex: 0x111216))
+                            .frame(width: max(10, size.width * 0.13), height: max(4, size.height * 0.06))
+                    }
+                    if main {
+                        // The Dock.
+                        Capsule()
+                            .fill(Color.white.opacity(0.35))
+                            .overlay(Capsule().strokeBorder(Color.white.opacity(0.4), lineWidth: 0.5))
+                            .frame(width: size.width * 0.34, height: max(3, size.height * 0.07))
+                            .frame(maxHeight: .infinity, alignment: .bottom)
+                            .padding(.bottom, max(2, size.height * 0.04))
+                    }
+                    if pointer {
+                        Image(systemName: "cursorarrow")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.6), radius: 1.5)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                    if let badge {
+                        badge
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                            .padding(.top, max(7, size.height * 0.1))
+                            .padding(.horizontal, 5)
+                    }
+                    if !small {
+                        Text(label)
+                            .font(.ui(9.5, .semibold))
+                            .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.5), radius: 1.5)
+                            .lineLimit(1)
+                            .padding(.horizontal, 6)
+                            .padding(.bottom, main ? max(7, size.height * 0.13) : 5)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                    }
+                }
+                .clipShape(inner)
+                .padding(bezel)
             }
         }
-        .clipShape(shape)
-        .overlay(shape.strokeBorder(Color.white.opacity(0.22), lineWidth: 1))
-        .overlay(shape.strokeBorder(tint.opacity(0.9), lineWidth: 0.5).padding(-0.5))
-        .saturation(faded ? 0.2 : 1)
+        .saturation(faded ? 0.15 : 1)
         .opacity(faded ? 0.6 : 1)
-        .contentShape(shape)
+        .contentShape(Rectangle())
+    }
+}
+
+/// A wallpaper of soft hills under a sky, in a Mac's colour (so each Mac's displays read as one).
+private struct Wallpaper: View {
+    let tint: Color
+
+    var body: some View {
+        Canvas { context, size in
+            let w = size.width, h = size.height
+            context.fill(Path(CGRect(origin: .zero, size: size)),
+                         with: .linearGradient(Gradient(colors: [tint.opacity(0.55), tint.opacity(0.9)]),
+                                               startPoint: .zero, endPoint: CGPoint(x: 0, y: h)))
+            // A glow, high on the right.
+            context.fill(Path(ellipseIn: CGRect(x: w * 0.55, y: -h * 0.35, width: w * 0.8, height: h * 0.9)),
+                         with: .radialGradient(Gradient(colors: [Color.white.opacity(0.35), .clear]),
+                                               center: CGPoint(x: w * 0.95, y: h * 0.1), startRadius: 0, endRadius: w * 0.5))
+            // Hills, far to near, darker as they come closer.
+            for (index, (top, shade)) in [(0.55, 0.25), (0.68, 0.4), (0.8, 0.55)].enumerated() {
+                var hill = Path()
+                hill.move(to: CGPoint(x: 0, y: h * top))
+                let bumps = 3 + index
+                for step in 1...bumps {
+                    let x = w * CGFloat(step) / CGFloat(bumps)
+                    let peak = h * (top - 0.08 * (step % 2 == 0 ? 1 : -0.4))
+                    hill.addQuadCurve(to: CGPoint(x: x, y: h * top + (step % 2 == 0 ? -h * 0.02 : h * 0.03)),
+                                      control: CGPoint(x: x - w / CGFloat(bumps) / 2, y: peak))
+                }
+                hill.addLine(to: CGPoint(x: w, y: h))
+                hill.addLine(to: CGPoint(x: 0, y: h))
+                hill.closeSubpath()
+                context.fill(hill, with: .color(Color.black.opacity(shade)))
+                context.fill(hill, with: .color(tint.opacity(0.35)))
+            }
+        }
     }
 }
 

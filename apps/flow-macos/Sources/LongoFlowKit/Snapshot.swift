@@ -23,8 +23,9 @@ enum Snapshot {
         // This Mac: a laptop with a monitor on its left; the Air on the right, the Studio's two displays above.
         let laptop = CGRect(x: 0, y: 0, width: 1512, height: 982)
         let monitor = CGRect(x: -2560, y: -458, width: 2560, height: 1440)
-        let air = PairedMac(id: "air", name: "Logan's MacBook Air", key: Data(), side: .right,
+        var air = PairedMac(id: "air", name: "Logan's MacBook Air", key: Data(), side: .right,
                             screens: [CGRect(x: 0, y: 0, width: 1470, height: 956)], offset: CGPoint(x: 1512, y: 13))
+        air.builtin = 0
         let studio = PairedMac(id: "studio", name: "Mac Studio", key: Data(), side: .top,
                                screens: [CGRect(x: 0, y: 0, width: 1920, height: 1080), CGRect(x: 1920, y: 0, width: 1920, height: 1080)],
                                offset: CGPoint(x: -2600, y: -1538))

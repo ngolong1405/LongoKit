@@ -11,6 +11,8 @@ public struct PairedMac: Codable, Hashable, Identifiable, Sendable {
     public var side: Side
     /// Its displays, in its own coordinates (as it last said).
     public var screens: [CGRect] = []
+    /// Which of them is a laptop's own display, if one is.
+    public var builtin: Int?
     /// Where its coordinates sit in this Mac's: its point + offset = here. Nil until it's placed.
     public var offset: CGPoint?
 
@@ -31,6 +33,7 @@ public struct PairedMac: Codable, Hashable, Identifiable, Sendable {
         side = try c.decodeIfPresent(Side.self, forKey: .side) ?? .right
         screens = try c.decodeIfPresent([CGRect].self, forKey: .screens) ?? []
         offset = try c.decodeIfPresent(CGPoint.self, forKey: .offset)
+        builtin = try c.decodeIfPresent(Int.self, forKey: .builtin)
     }
 
     /// Its screens, or a laptop's when it hasn't said yet.
@@ -349,6 +352,8 @@ final class FlowNode: @unchecked Sendable {
             writer.point(screen.origin)
             writer.point(CGPoint(x: screen.width, y: screen.height))
         }
+        // After the displays (earlier versions stop reading before it): the laptop's own, or 255.
+        writer.u8(UInt8(clamping: Screens.builtin(in: screens) ?? 255))
         links[mac]?.send(Message(.screens, writer.data))
     }
 
@@ -474,6 +479,7 @@ final class FlowNode: @unchecked Sendable {
                 screens.append(CGRect(origin: origin, size: CGSize(width: size.x, height: size.y)))
             }
             paired[mac]!.screens = screens
+            if let index = reader.u8() { paired[mac]!.builtin = index == 255 ? nil : Int(index) }
             // Not placed yet: the Mac with the smaller id places the two, from the side chosen when pairing.
             if paired[mac]!.offset == nil && id < mac {
                 let offset = paired[mac]!.placed(next: localScreens())

@@ -55,6 +55,17 @@ enum Screens {
         return CGPoint(x: offset.x + move.x, y: offset.y + move.y)
     }
 
+    /// Which of these displays is the laptop's own (nil on a desktop Mac, or with the lid closed).
+    static func builtin(in screens: [CGRect]) -> Int? {
+        var count: UInt32 = 0
+        CGGetActiveDisplayList(0, nil, &count)
+        var ids = [CGDirectDisplayID](repeating: 0, count: Int(count))
+        CGGetActiveDisplayList(count, &ids, &count)
+        guard let id = ids.prefix(Int(count)).first(where: { CGDisplayIsBuiltin($0) != 0 }) else { return nil }
+        let bounds = CGDisplayBounds(id)
+        return screens.firstIndex { abs($0.minX - bounds.minX) < 1 && abs($0.minY - bounds.minY) < 1 }
+    }
+
     /// This Mac's displays by name ("Built-in Retina Display", "DELL U2723QE"), keyed by their place.
     @MainActor static func names() -> [String: String] {
         guard let main = NSScreen.screens.first else { return [:] }

@@ -160,6 +160,7 @@ final class AppModel: ObservableObject, HostableModel {
                 self?.node?.sendScreens()
                 self?.localScreens = Screens.all()
                 self?.screenNames = Screens.names()
+                self?.localBuiltin = Screens.builtin(in: Screens.all())
             }
         }
     }
@@ -169,6 +170,8 @@ final class AppModel: ObservableObject, HostableModel {
     @Published private(set) var localScreens = Screens.all()
     /// Their names, for the arrangement.
     @Published private(set) var screenNames: [String: String] = [:]
+    /// Which of this Mac's displays is its own (a laptop's).
+    @Published private(set) var localBuiltin = Screens.builtin(in: Screens.all())
 
     private func stop() {
         bridge.stop()
@@ -327,7 +330,10 @@ final class AppModel: ObservableObject, HostableModel {
     /// Macs, for snapshots.
     func simulate(nearby: [NearbyMac], paired: [PairedMac], connected: Set<String>, pairing: Pairing = .none, access: Bool = true,
                   screens: [CGRect]? = nil) {
-        if let screens { localScreens = screens }
+        if let screens {
+            localScreens = screens
+            localBuiltin = screens.firstIndex { $0.minX == 0 && $0.minY == 0 }
+        }
         screenNames = [:]
         self.nearby = nearby
         self.paired = paired
