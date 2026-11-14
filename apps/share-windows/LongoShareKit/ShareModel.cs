@@ -51,7 +51,8 @@ public sealed class ShareModel
         // Its own folder in Downloads, made now (Downloads itself, the old default, moves there).
         if (!isSample) state.Folder = AppFolder.Resolve(state.Folder, "Longo Share");
         // What was under way when the app quit didn't finish.
-        foreach (var item in state.Conversations.Values.SelectMany(c => c.Items).Where(i => i.IsOpen)) item.State = ChatState.Failed;
+        if (!isSample)
+            foreach (var item in state.Conversations.Values.SelectMany(c => c.Items).Where(i => i.IsOpen)) item.State = ChatState.Failed;
     }
 
     // MARK: - Settings

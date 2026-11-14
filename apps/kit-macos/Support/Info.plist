@@ -2,29 +2,29 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleName</key>
-    <string>LongoKit</string>
-    <key>CFBundleDisplayName</key>
-    <string>LongoKit</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.longokit.kit</string>
-    <key>CFBundleExecutable</key>
-    <string>LongoKit</string>
-    <key>CFBundleIconFile</key>
-    <string>AppIcon</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleShortVersionString</key>
-    <string>0.1.8</string>
-    <key>CFBundleVersion</key>
-    <string>9</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>14.0</string>
-    <key>NSPrincipalClass</key>
-    <string>NSApplication</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>LongoKit records your microphone into screen recordings when you turn it on in Shot.</string>
-    <key>NSHighResolutionCapable</key>
-    <true/>
+	<key>CFBundleDisplayName</key>
+	<string>LongoKit</string>
+	<key>CFBundleExecutable</key>
+	<string>LongoKit</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.longokit.kit</string>
+	<key>CFBundleName</key>
+	<string>LongoKit</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.9</string>
+	<key>CFBundleVersion</key>
+	<string>10</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>14.0</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>LongoKit records your microphone into screen recordings when you turn it on in Shot.</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
 </dict>
 </plist>
