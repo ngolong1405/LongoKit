@@ -238,6 +238,14 @@ final class InputBridge: @unchecked Sendable {
     private var lastClick: (button: Int, at: Date, point: CGPoint, count: Int64)?
     private var modifiers: CGEventFlags = []
     private let source = CGEventSource(stateID: .hidSystemState)
+    /// Controlling: pointer moves gathered for a few milliseconds (a 1000 Hz mouse would send a thousand messages a
+    /// second), and a keep-awake while the pointer is over.
+    private let timing = DispatchQueue(label: "LongoFlow.timing", qos: .userInteractive)
+    private var pending = CGPoint.zero
+    private var lastMove: UInt64 = 0
+    private var flushArmed = false
+    private var awake: DispatchSourceTimer?
+    private static let gather: UInt64 = 4_000_000
 
     /// Sends a message to a Mac.
     var send: (Message, String) -> Void = { _, _ in }
@@ -360,6 +368,7 @@ final class InputBridge: @unchecked Sendable {
         var writer = Writer()
         writer.point(there)
         send(Message(.enter, writer.data), mac)
+        keepAwake(mac)
         // Parked where it left, hidden, while the other Mac has it.
         Cursor.park(at: Screens.clamp(here, screens: local))
         controlling(mac)
@@ -369,9 +378,13 @@ final class InputBridge: @unchecked Sendable {
         var writer = Writer()
         switch type {
         case .mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged:
-            writer.f32(Float(event.getDoubleValueField(.mouseEventDeltaX)))
-            writer.f32(Float(event.getDoubleValueField(.mouseEventDeltaY)))
-            send(Message(.move, writer.data), mac)
+            gather(dx: event.getDoubleValueField(.mouseEventDeltaX), dy: event.getDoubleValueField(.mouseEventDeltaY), to: mac)
+            return
+        default:
+            // Moves gathered so far go first, so a click lands where the pointer is.
+            flush(to: mac)
+        }
+        switch type {
         case .leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp, .otherMouseDown, .otherMouseUp:
             writer.u8(UInt8(clamping: event.getIntegerValueField(.mouseEventButtonNumber)))
             writer.u8(type == .leftMouseDown || type == .rightMouseDown || type == .otherMouseDown ? 1 : 0)
@@ -418,6 +431,54 @@ final class InputBridge: @unchecked Sendable {
         }
     }
 
+    private func gather(dx: Double, dy: Double, to mac: String) {
+        let now = DispatchTime.now().uptimeNanoseconds
+        lock.lock()
+        pending.x += dx
+        pending.y += dy
+        let due = now - lastMove >= Self.gather
+        let arm = !due && !flushArmed
+        if arm { flushArmed = true }
+        lock.unlock()
+        if due {
+            flush(to: mac)
+        } else if arm {
+            timing.asyncAfter(deadline: .now() + .nanoseconds(Int(Self.gather))) { [weak self] in self?.flush(to: mac) }
+        }
+    }
+
+    private func flush(to mac: String) {
+        lock.lock()
+        let move = pending
+        pending = .zero
+        flushArmed = false
+        lastMove = DispatchTime.now().uptimeNanoseconds
+        let over: Bool
+        if case .controlling(let current) = state { over = current == mac } else { over = false }
+        lock.unlock()
+        guard over, move != .zero else { return }
+        var writer = Writer()
+        writer.f32(Float(move.x))
+        writer.f32(Float(move.y))
+        send(Message(.move, writer.data), mac)
+    }
+
+    /// While the pointer is over (either way): a tiny message every 30 ms, so neither Mac's Wi-Fi dozes off between
+    /// moves and holds them back.
+    private func keepAwake(_ mac: String?) {
+        // On its own queue: it's started and stopped from the tap's thread and the links'.
+        timing.async { [self] in
+            awake?.cancel()
+            awake = nil
+            guard let mac else { return }
+            let timer = DispatchSource.makeTimerSource(queue: timing)
+            timer.schedule(deadline: .now() + .milliseconds(30), repeating: .milliseconds(30), leeway: .milliseconds(5))
+            timer.setEventHandler { [weak self] in self?.send(Message(.awake), mac) }
+            timer.resume()
+            awake = timer
+        }
+    }
+
     /// The pointer is back here (the other Mac sent it back to `point`, or it's taken back where it left).
     func comeBack(at point: CGPoint?) {
         lock.lock()
@@ -426,8 +487,10 @@ final class InputBridge: @unchecked Sendable {
             return
         }
         state = .idle
+        pending = .zero
         let local = screens
         lock.unlock()
+        keepAwake(nil)
         Cursor.release(at: point.map { Screens.clamp($0, screens: local) })
         controlling(nil)
     }
@@ -448,6 +511,7 @@ final class InputBridge: @unchecked Sendable {
             lock.unlock()
             CGWarpMouseCursorPosition(pointer)
             post(mouse: .mouseMoved, button: .left)
+            keepAwake(mac)
             controlledBy(mac)
         case .leave:
             guard let point = reader.point() else { return }
@@ -575,6 +639,7 @@ final class InputBridge: @unchecked Sendable {
         held = []
         modifiers = []
         lock.unlock()
+        keepAwake(nil)
         for button in buttons {
             let type: CGEventType = button == 0 ? .leftMouseUp : button == 1 ? .rightMouseUp : .otherMouseUp
             post(mouse: type, button: CGMouseButton(rawValue: UInt32(button)) ?? .left, force: true)

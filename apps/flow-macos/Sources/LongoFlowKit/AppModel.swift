@@ -302,14 +302,14 @@ final class AppModel: ObservableObject, HostableModel {
     private func controllingChanged(_ mac: String?) {
         controlling = mac
         // What's copied here goes over with the pointer.
-        if let mac, sharesClipboard, let payload = clipboard.changed() { node?.send(Message(.clipboard, payload), to: mac) }
+        if let mac, sharesClipboard, let payload = clipboard.changed() { node?.sendBulk(Message(.clipboard, payload), to: mac) }
     }
 
     private func controlledByChanged(_ mac: String?) {
         let was = controlledBy
         controlledBy = mac
         // ...and what was copied over there comes back with it.
-        if mac == nil, let was, sharesClipboard, let payload = clipboard.changed() { node?.send(Message(.clipboard, payload), to: was) }
+        if mac == nil, let was, sharesClipboard, let payload = clipboard.changed() { node?.sendBulk(Message(.clipboard, payload), to: was) }
     }
 
     private func clipboardArrived(_ payload: Data) {
@@ -426,9 +426,9 @@ final class Clipboard {
         let board = NSPasteboard.general
         guard board.changeCount != synced else { return nil }
         synced = board.changeCount
-        if let png = board.data(forType: .png) ?? board.data(forType: .tiff).flatMap(Self.png), png.count < 16 << 20 {
-            return Data([1]) + png
-        }
+        // As it is (no converting a big picture on the way over, which would hold the app up).
+        if let png = board.data(forType: .png), png.count < 32 << 20 { return Data([1]) + png }
+        if let tiff = board.data(forType: .tiff), tiff.count < 32 << 20 { return Data([2]) + tiff }
         if let text = board.string(forType: .string) {
             return Data([0]) + Data(text.utf8)
         }
@@ -443,14 +443,12 @@ final class Clipboard {
         switch kind {
         case 0: board.setString(String(decoding: body, as: UTF8.self), forType: .string)
         case 1: board.setData(Data(body), forType: .png)
+        case 2: board.setData(Data(body), forType: .tiff)
         default: break
         }
         synced = board.changeCount
     }
 
-    private static func png(_ tiff: Data) -> Data? {
-        NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:])
-    }
 }
 
 extension Side {

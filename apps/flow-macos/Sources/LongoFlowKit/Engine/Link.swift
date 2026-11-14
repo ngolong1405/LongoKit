@@ -29,6 +29,8 @@ final class Link: @unchecked Sendable {
         tcp.connectionTimeout = 4
         let parameters = NWParameters(tls: nil, tcp: tcp)
         parameters.includePeerToPeer = false
+        // Wi-Fi sends these first, as it does a call's voice.
+        parameters.serviceClass = .interactiveVoice
         return parameters
     }
 
@@ -72,6 +74,10 @@ final class Link: @unchecked Sendable {
     }
 
     func send(_ message: Message) {
+        send(message) { }
+    }
+
+    private func send(_ message: Message, then done: @escaping () -> Void) {
         lock.lock()
         let body: Data?
         if sending != nil { body = sending!.seal(message.bytes) } else { body = message.bytes }
@@ -81,7 +87,72 @@ final class Link: @unchecked Sendable {
         let length = UInt32(body.count).bigEndian
         withUnsafeBytes(of: length) { frame.replaceSubrange(0..<4, with: $0) }
         frame.append(body)
-        connection.send(content: frame, completion: .contentProcessed { _ in })
+        connection.send(content: frame, completion: .contentProcessed { _ in done() })
+    }
+
+    // MARK: - Big messages
+
+    private static let chunkSize = 32 << 10
+    private var bulk: [Message] = []
+    private var pumping = false
+    private var nextBulk: UInt32 = 0
+    private var arriving: [UInt32: Data] = [:]
+
+    /// Sends a big message in pieces, one at a time: the pointer's messages go in between, so a picture on the
+    /// clipboard never holds the mouse up for more than one piece.
+    func sendBulk(_ message: Message) {
+        let bytes = message.bytes
+        lock.lock()
+        let id = nextBulk
+        nextBulk &+= 1
+        var at = 0
+        repeat {
+            let piece = bytes[at..<min(at + Self.chunkSize, bytes.count)]
+            var writer = Writer()
+            writer.u64(UInt64(id) << 32 | UInt64(bytes.count))
+            writer.u64(UInt64(at))
+            writer.data.append(piece)
+            bulk.append(Message(.chunk, writer.data))
+            at += Self.chunkSize
+        } while at < bytes.count
+        let start = !pumping
+        pumping = true
+        lock.unlock()
+        if start { pump() }
+    }
+
+    /// The next piece, once the last one is on its way.
+    private func pump() {
+        lock.lock()
+        guard !bulk.isEmpty, !closed else {
+            pumping = false
+            lock.unlock()
+            return
+        }
+        let piece = bulk.removeFirst()
+        lock.unlock()
+        send(piece) { [weak self] in self?.queue.async { self?.pump() } }
+    }
+
+    /// A piece in; the whole message once its last piece is.
+    private func arrived(_ piece: Message) -> Message? {
+        var reader = Reader(piece.payload)
+        guard let head = reader.u64(), let at = reader.u64() else { return nil }
+        let id = UInt32(head >> 32), total = Int(head & 0xFFFF_FFFF)
+        guard total <= 64 << 20 else { return nil }
+        let data = reader.rest
+        var whole = arriving[id] ?? Data()
+        guard Int(at) == whole.count else {
+            arriving[id] = nil
+            return nil
+        }
+        whole.append(data)
+        if whole.count >= total {
+            arriving[id] = nil
+            return Message(bytes: whole)
+        }
+        arriving[id] = whole
+        return nil
     }
 
     private func read() {
@@ -108,7 +179,11 @@ final class Link: @unchecked Sendable {
             if receiving != nil { plain = receiving!.open(body) } else { plain = body }
             lock.unlock()
             guard let plain, let message = Message(bytes: plain) else { return end() }
-            received(message)
+            if message.kind == .chunk {
+                if let whole = arrived(message) { received(whole) }
+            } else {
+                received(message)
+            }
         }
     }
 

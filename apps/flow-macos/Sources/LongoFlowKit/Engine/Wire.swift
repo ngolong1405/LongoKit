@@ -35,6 +35,11 @@ enum Kind: UInt8 {
     case placed
     /// One of the sender's wallpapers, small: its display's place in the list, then a JPEG.
     case wallpaper
+    /// A piece of a big message (a clipboard picture, a wallpaper), sent between the pointer's so it never waits.
+    case chunk
+    /// Nothing: sent now and then while the pointer is over, so Wi-Fi on both Macs stays awake (asleep, it holds
+    /// packets back for tens of milliseconds).
+    case awake
 }
 
 struct Hello: Codable {

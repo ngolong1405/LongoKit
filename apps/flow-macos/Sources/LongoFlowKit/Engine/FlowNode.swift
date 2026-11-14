@@ -370,7 +370,7 @@ final class FlowNode: @unchecked Sendable {
         links[mac]?.send(Message(.screens, writer.data))
         for (index, picture) in localWallpapers.enumerated() {
             guard let picture else { continue }
-            links[mac]?.send(Message(.wallpaper, Data([UInt8(clamping: index)]) + picture))
+            links[mac]?.sendBulk(Message(.wallpaper, Data([UInt8(clamping: index)]) + picture))
         }
     }
 
@@ -391,6 +391,8 @@ final class FlowNode: @unchecked Sendable {
         let nonce = Keys.random(16)
         link.received = { [weak self, weak link] message in
             guard let self, let link else { return }
+            // The pointer and keys go straight on, from the link's own queue: no wait behind anything else here.
+            if Self.isInput(message.kind) { return self.input(mac.id, message) }
             self.queue.async {
                 if message.kind == .hello, let hello = message.decode(Hello.self), hello.id == mac.id, let current = self.paired[mac.id] {
                     link.encrypt(key: SymmetricKeyData(key: Keys.session(current.key, dialer: nonce, listener: hello.nonce)), dialer: true)
@@ -424,6 +426,7 @@ final class FlowNode: @unchecked Sendable {
         var macId: String?
         link.received = { [weak self, weak link] message in
             guard let self, let link else { return }
+            if Self.isInput(message.kind), let mac = macId { return self.input(mac, message) }
             self.queue.async {
                 if let mac = macId {
                     if message.kind == .ping {
@@ -517,6 +520,26 @@ final class FlowNode: @unchecked Sendable {
             break
         }
         received(mac, message)
+    }
+
+    /// The pointer's, the keyboard's, and the keep-awake: handled as they come.
+    private static func isInput(_ kind: Kind) -> Bool {
+        switch kind {
+        case .enter, .leave, .move, .button, .scroll, .key, .flags, .release, .awake: return true
+        default: return false
+        }
+    }
+
+    private func input(_ mac: String, _ message: Message) {
+        if message.kind != .awake { received(mac, message) }
+    }
+
+    /// Sends a big message (a clipboard picture) to a connected Mac, in pieces between the pointer's.
+    func sendBulk(_ message: Message, to mac: String) {
+        linksLock.lock()
+        let link = live[mac]
+        linksLock.unlock()
+        link?.sendBulk(message)
     }
 
     /// Sends to a connected Mac (any thread; nothing when it isn't connected).

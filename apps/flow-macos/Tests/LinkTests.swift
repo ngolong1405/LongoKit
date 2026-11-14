@@ -69,6 +69,24 @@ final class LinkTests: XCTestCase {
         await fulfillment(of: [got], timeout: 5)
         XCTAssertEqual(dx, 12.5)
 
+        // A big clipboard doesn't hold the pointer up: a move sent after it arrives first, and the picture whole.
+        let big = Data((0..<3_000_000).map { UInt8($0 % 253) })
+        let both = expectation(description: "both")
+        both.expectedFulfillmentCount = 2
+        var order: [Kind] = []
+        var clipboard = Data()
+        b.received = { _, message in
+            guard message.kind == .clipboard || message.kind == .move else { return }
+            order.append(message.kind)
+            if message.kind == .clipboard { clipboard = message.payload }
+            both.fulfill()
+        }
+        a.sendBulk(Message(.clipboard, big), to: "b-mac")
+        a.send(Message(.move, writer.data), to: "b-mac")
+        await fulfillment(of: [both], timeout: 10)
+        XCTAssertEqual(order, [.move, .clipboard])
+        XCTAssertEqual(clipboard, big)
+
         // Moving B in A's arrangement: B takes the inverse, and says so.
         let confirmed = expectation(description: "placed")
         a.placedThere = { if $0 == "b-mac" { confirmed.fulfill() } }
