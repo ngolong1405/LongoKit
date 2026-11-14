@@ -30,7 +30,7 @@ export const coffeeURL: string | null = null;
 export const licenseURL = `${repo}/blob/main/LICENSE.md`;
 export const buildFromSource = "git clone https://github.com/ngolong1405/LongoKit && cd LongoKit/apps/mouse-macos && ./scripts/build-app.sh";
 // The Windows apps (beta): one .exe per app and processor, at tag <app>-windows/v<windowsVersion>.
-export const windowsVersion = "0.1.1";
+export const windowsVersion = "0.1.2";
 const windowsApp = (app: string, name: string) => ({
   x64: `${repo}/releases/download/${app}-windows/v${windowsVersion}/${name}-${windowsVersion}-x64.exe`,
   arm64: `${repo}/releases/download/${app}-windows/v${windowsVersion}/${name}-${windowsVersion}-arm64.exe`,
