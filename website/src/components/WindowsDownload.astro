@@ -1,10 +1,9 @@
 ---
-import { windowsVersion } from "../data/site";
 import { pick, type Lang } from "../i18n";
 
 interface Props {
   lang: Lang;
-  links: { x64: string; arm64: string; notes: string };
+  links: { version: string; x64: string; arm64: string; notes: string };
   /** The card's accent: Tailwind text color class. */
   tint?: string;
 }
@@ -28,7 +27,7 @@ const t = pick(lang, {
   <div class="flex items-center gap-space-sm">
     <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-tertiary/15"><span class:list={["material-symbols-outlined text-[28px]", tint]}>desktop_windows</span></div>
     <div>
-      <h3 class="text-headline-sm">{t.title} <span class="rounded bg-secondary-container/30 px-1.5 align-middle font-code text-[11px] text-secondary">beta · v{windowsVersion}</span></h3>
+      <h3 class="text-headline-sm">{t.title} <span class="rounded bg-secondary-container/30 px-1.5 align-middle font-code text-[11px] text-secondary">beta · v{links.version}</span></h3>
       <span class:list={["font-code text-xs", tint]}>{t.body}</span>
     </div>
   </div>
@@ -40,6 +39,6 @@ const t = pick(lang, {
     <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">download</span>{t.arm64}</span>
     <span class="font-code text-[11px] text-on-surface-variant">.exe</span>
   </a>
-  <a href={links.notes} class="text-center font-code text-xs text-on-surface-variant hover:text-tertiary">{t.notes} · v{windowsVersion}</a>
+  <a href={links.notes} class="text-center font-code text-xs text-on-surface-variant hover:text-tertiary">{t.notes} · v{links.version}</a>
   <p class="font-code text-[11px] text-on-surface-variant">{t.beta}</p>
 </div>

@@ -1,0 +1,82 @@
+---
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "How it works", title: "Open It, Pick a Device, Send",
+    lead: "Longo Share waits in the menu bar (or the notification area on Windows). Devices on the same network show up by themselves.",
+    cards: [
+      ["devices", "Finds your devices", "Macs and PCs with Longo Share, and phones, tablets and computers with LocalSend, on the same Wi-Fi or cable network. Not showing up? Add one by its IP address."],
+      ["upload_file", "Send in one move", "Drop files or whole folders on a device, or click it to pick some. Text too: what's on your clipboard, ready to send."],
+      ["verified_user", "You say yes first", "Nothing comes in without asking: a window shows who's sending what, and how big. Always accept turns a device you trust into one that sends straight in."],
+      ["lan", "Straight across the room", "Files go directly from one device to the other at your network's speed, never through a server. No account, no sign-in, nothing kept anywhere else."],
+    ],
+    compat: "Works with LocalSend",
+    compatBody: "Longo Share speaks LocalSend's open protocol, so it sends to and receives from the LocalSend app on iPhone, Android, Linux and others. Install LocalSend there, Longo Share here.",
+    more: [
+      ["pin", "Optional PIN", "Senders type it before their files are offered to you."],
+      ["history", "History", "What came in and went out, with a click to show it in Finder or Explorer."],
+      ["apps", "In LongoKit", "On Windows, Share is also a module of LongoKit, beside Mouse, Display and Shot."],
+    ],
+  },
+  vi: {
+    badge: "Cách dùng", title: "Mở App, Chọn Máy, Gửi",
+    lead: "Longo Share chờ sẵn trên thanh menu (hoặc khay hệ thống trên Windows). Các máy cùng mạng tự hiện ra.",
+    cards: [
+      ["devices", "Tự tìm máy", "Mac và máy Windows có Longo Share, điện thoại, máy tính bảng và máy tính có LocalSend, trong cùng Wi-Fi hoặc mạng dây. Không thấy? Thêm bằng địa chỉ IP."],
+      ["upload_file", "Gửi bằng một thao tác", "Thả file hoặc cả thư mục vào một máy, hoặc bấm vào máy đó để chọn file. Gửi được cả văn bản: những gì đang trong clipboard, sẵn sàng để gửi."],
+      ["verified_user", "Bạn đồng ý trước", "Không gì vào máy mà không hỏi: một cửa sổ cho biết ai gửi gì, nặng bao nhiêu. Bật Luôn nhận cho máy bạn tin, lần sau file vào thẳng."],
+      ["lan", "Đi thẳng trong phòng", "File đi thẳng từ máy này sang máy kia với tốc độ mạng nội bộ, không qua server nào. Không tài khoản, không đăng nhập, không lưu ở đâu khác."],
+    ],
+    compat: "Dùng được với LocalSend",
+    compatBody: "Longo Share dùng giao thức mở của LocalSend, nên gửi và nhận được với app LocalSend trên iPhone, Android, Linux và nhiều nơi khác. Cài LocalSend ở máy đó, Longo Share ở máy này.",
+    more: [
+      ["pin", "Mã PIN (tuỳ chọn)", "Người gửi phải nhập mã thì file mới được gửi tới bạn."],
+      ["history", "Lịch sử", "Những gì đã nhận và đã gửi, bấm một cái để mở trong Finder hay Explorer."],
+      ["apps", "Có trong LongoKit", "Trên Windows, Share còn là một module của LongoKit, cạnh Mouse, Display và Shot."],
+    ],
+  },
+});
+---
+
+<section id="how" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto mb-space-xl max-w-2xl text-center">
+    <span class="inline-flex rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-tertiary">{t.badge}</span>
+    <h2 class="mt-space-sm text-headline-xl tracking-tight">{t.title}</h2>
+    <p class="mt-space-xs text-body-lg text-on-surface-variant">{t.lead}</p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-gutter sm:grid-cols-2 lg:grid-cols-4">
+    {t.cards.map(([icon, title, body]) => (
+      <div class="flex flex-col gap-space-xs rounded-2xl bg-surface-container-low p-space-lg shadow-xl">
+        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-tertiary/15"><span class="material-symbols-outlined text-[24px] text-tertiary">{icon}</span></div>
+        <span class="mt-space-xs font-display text-headline-sm text-on-surface">{title}</span>
+        <p class="text-body-md text-on-surface-variant">{body}</p>
+      </div>
+    ))}
+  </div>
+
+  <div class="mt-gutter grid grid-cols-1 gap-gutter lg:grid-cols-12">
+    <div class="flex flex-col gap-space-sm rounded-2xl border border-tertiary/30 bg-surface-container-low p-space-lg lg:col-span-5">
+      <span class="flex items-center gap-space-xs font-display text-headline-sm"><span class="material-symbols-outlined text-[24px] text-tertiary">sync_alt</span>{t.compat}</span>
+      <p class="text-body-md text-on-surface-variant">{t.compatBody}</p>
+      <div class="flex flex-wrap gap-2 pt-space-xs font-code text-[11px]">
+        {["macOS", "Windows", "iOS", "Android", "Linux"].map((os) => <span class="rounded-full bg-surface-container-high px-3 py-1 text-on-surface-variant">{os}</span>)}
+      </div>
+    </div>
+    <div class="grid grid-cols-1 gap-gutter sm:grid-cols-3 lg:col-span-7">
+      {t.more.map(([icon, title, body]) => (
+        <div class="flex flex-col gap-space-xs rounded-2xl bg-surface-container-lowest p-space-md">
+          <span class="material-symbols-outlined text-[22px] text-secondary">{icon}</span>
+          <span class="text-sm font-semibold">{title}</span>
+          <p class="text-body-sm text-on-surface-variant">{body}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

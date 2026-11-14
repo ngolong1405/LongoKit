@@ -1,0 +1,178 @@
+---
+import ProductIcon from "../ProductIcon.astro";
+import { shareDownload, shareVersion } from "../../data/site";
+import { pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Local network · LocalSend-compatible",
+    title: ["Your Devices,", "One Drop Apart"],
+    lead: "Send files, folders and text between your Mac, your PC and your phone on the same Wi-Fi. Straight from one to the other: no cloud, no account, no cable.",
+    download: "Download for macOS (.dmg)", windows: "Windows (.exe)",
+    facts: [["0", "Cloud / account"], ["Wi-Fi", "Full local speed"], ["LocalSend", "Phones & Linux too"]],
+    nearby: "Nearby", thisMac: "This Mac: Long's MacBook",
+    devices: [["laptop_windows", "Long's PC", "Windows"], ["smartphone", "Pixel 8", "Android · LocalSend"], ["tablet_mac", "iPad", "iPadOS · LocalSend"]],
+    hint: "Click a device to send it a photo.",
+    sending: "Sending to", sent: "Sent to",
+    incoming: "wants to send you 3 photos · 7.2 MB", accept: "Accept", decline: "Decline",
+    received: "Saved to Downloads.", declined: "Declined: nothing was sent.",
+    note: "Demo: click a device, or answer the phone's request.",
+  },
+  vi: {
+    badge: "Mạng nội bộ · Tương thích LocalSend",
+    title: ["Các Thiết Bị Của Bạn,", "Chỉ Cách Một Cú Thả"],
+    lead: "Gửi file, thư mục và văn bản giữa Mac, máy Windows và điện thoại trong cùng Wi-Fi. Đi thẳng từ máy này sang máy kia: không cloud, không tài khoản, không dây cáp.",
+    download: "Tải cho macOS (.dmg)", windows: "Windows (.exe)",
+    facts: [["0", "Cloud / tài khoản"], ["Wi-Fi", "Tốc độ mạng nội bộ"], ["LocalSend", "Cả điện thoại & Linux"]],
+    nearby: "Ở gần", thisMac: "Máy này: Long's MacBook",
+    devices: [["laptop_windows", "Long's PC", "Windows"], ["smartphone", "Pixel 8", "Android · LocalSend"], ["tablet_mac", "iPad", "iPadOS · LocalSend"]],
+    hint: "Bấm vào một máy để gửi ảnh cho nó.",
+    sending: "Đang gửi tới", sent: "Đã gửi tới",
+    incoming: "muốn gửi bạn 3 ảnh · 7,2 MB", accept: "Nhận", decline: "Từ chối",
+    received: "Đã lưu vào Downloads.", declined: "Đã từ chối: không có gì được gửi.",
+    note: "Minh hoạ: bấm vào một máy, hoặc trả lời yêu cầu từ điện thoại.",
+  },
+});
+---
+
+<section id="top" class="relative w-full overflow-hidden px-margin-mobile pt-space-xl pb-space-3xl md:px-margin-desktop">
+  <div class="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-gradient-to-b from-tertiary/20 via-primary-container/10 to-transparent blur-[130px]"></div>
+
+  <div class="relative mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-gutter-lg lg:grid-cols-12">
+    <div class="relative z-10 flex flex-col gap-space-lg lg:col-span-6">
+      <div class="inline-flex w-fit items-center gap-space-xs rounded-full bg-surface-container-low px-3 py-1.5 shadow-sm">
+        <ProductIcon product="share" class="h-5 w-5" />
+        <span class="font-code text-label-badge uppercase tracking-wider text-tertiary">{t.badge}</span>
+      </div>
+      <h1 class="text-display-hero tracking-tight">
+        {t.title[0]}{" "}
+        <span class="bg-gradient-to-r from-tertiary via-secondary to-primary-container bg-clip-text text-transparent">{t.title[1]}</span>
+      </h1>
+      <p class="max-w-xl text-body-lg text-on-surface-variant">{t.lead}</p>
+      <div class="flex flex-wrap items-center gap-space-sm">
+        <a href={shareDownload} class="flex items-center gap-space-xs rounded-xl bg-gradient-to-r from-primary-container to-secondary-container px-6 py-3.5 font-display text-sm font-semibold text-white shadow-[0_8px_28px_rgba(255,107,53,0.35)] transition-all hover:opacity-95">
+          <span class="material-symbols-outlined text-[20px]">laptop_mac</span>
+          {t.download}
+          <span class="rounded bg-white/20 px-1.5 font-code text-[11px]">v{shareVersion}</span>
+        </a>
+        <a href="#downloads" class="flex items-center gap-space-xs rounded-xl bg-surface-container-high px-5 py-3.5 text-sm font-semibold transition-colors hover:bg-surface-bright">
+          <span class="material-symbols-outlined text-[20px] text-tertiary">desktop_windows</span>{t.windows}
+        </a>
+      </div>
+      <div class="flex flex-wrap gap-gutter pt-space-sm">
+        {t.facts.map(([value, label]) => (
+          <div class="flex flex-col">
+            <span class="font-display text-headline-sm text-on-surface">{value}</span>
+            <span class="font-code text-[11px] text-on-surface-variant">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- The menu bar popover: devices nearby, a transfer, and a request coming in. -->
+    <div class="relative lg:col-span-6" id="hero-share">
+      <div class="absolute -inset-4 -z-10 rounded-3xl bg-gradient-to-r from-tertiary/20 to-primary-container/20 blur-2xl"></div>
+      <div class="mx-auto max-w-md rounded-2xl bg-surface-container-low p-space-md shadow-[0_12px_40px_var(--c-shadow)]">
+        <div class="mb-space-sm flex items-center gap-space-sm border-b border-outline-variant/20 pb-space-sm">
+          <ProductIcon product="share" class="h-9 w-9" />
+          <div class="flex flex-col">
+            <span class="font-display text-sm font-semibold">Longo Share</span>
+            <span class="flex items-center gap-1 font-code text-[11px] text-tertiary"><span class="h-1.5 w-1.5 rounded-full bg-tertiary"></span><span data-count>3</span> · {t.nearby}</span>
+          </div>
+        </div>
+
+        <div class="mb-space-sm hidden rounded-xl bg-surface-container p-3" data-transfer>
+          <div class="mb-2 flex items-center justify-between text-xs font-semibold">
+            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-primary-container" data-arrow>upload</span><span data-label></span></span>
+            <span class="font-code text-[11px] text-on-surface-variant" data-percent>0%</span>
+          </div>
+          <div class="h-1.5 overflow-hidden rounded-full bg-surface-container-highest">
+            <div class="h-full w-0 rounded-full bg-gradient-to-r from-primary-container to-secondary transition-[width] duration-100" data-bar></div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          {t.devices.map(([icon, name, kind]) => (
+            <button type="button" data-device={name} class="flex items-center gap-3 rounded-xl border border-outline-variant/20 bg-surface-container px-3 py-2.5 text-left transition-colors hover:border-secondary hover:bg-surface-container-high">
+              <span class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-highest"><span class="material-symbols-outlined text-[20px] text-secondary">{icon}</span></span>
+              <span class="flex flex-1 flex-col">
+                <span class="text-sm font-semibold">{name}</span>
+                <span class="font-code text-[11px] text-on-surface-variant">{kind}</span>
+              </span>
+              <span class="material-symbols-outlined text-[18px] text-on-surface-variant">send</span>
+            </button>
+          ))}
+        </div>
+
+        <div class="mt-space-sm rounded-xl border border-tertiary/40 bg-tertiary/10 p-3" data-incoming>
+          <div class="flex items-center gap-3">
+            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-highest"><span class="material-symbols-outlined text-[20px] text-secondary">smartphone</span></span>
+            <span class="flex flex-1 flex-col">
+              <span class="text-sm font-semibold">Pixel 8</span>
+              <span class="font-code text-[11px] text-on-surface-variant">{t.incoming}</span>
+            </span>
+          </div>
+          <div class="mt-2 flex justify-end gap-2">
+            <button type="button" data-decline class="rounded-lg bg-surface-container-high px-3 py-1.5 text-xs font-semibold">{t.decline}</button>
+            <button type="button" data-accept class="rounded-lg bg-gradient-to-r from-primary-container to-secondary-container px-3 py-1.5 text-xs font-semibold text-white">{t.accept}</button>
+          </div>
+        </div>
+
+        <div class="mt-space-sm flex items-center justify-between border-t border-outline-variant/20 pt-space-sm font-code text-[11px] text-on-surface-variant">
+          <span data-log>{t.hint}</span>
+          <span class="material-symbols-outlined text-[16px]">folder</span>
+        </div>
+        <div class="mt-1 font-code text-[10px] text-on-surface-variant/70">{t.thisMac}</div>
+      </div>
+      <p class="mt-space-sm text-center font-code text-[11px] text-on-surface-variant">{t.note}</p>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ t }}>
+  const root = document.getElementById("hero-share");
+  const $ = (s) => root.querySelector(s);
+  const transfer = $("[data-transfer]"), bar = $("[data-bar]"), percent = $("[data-percent]"), label = $("[data-label]");
+  const log = $("[data-log]"), incoming = $("[data-incoming]"), arrow = $("[data-arrow]");
+  let timer = null;
+
+  // A transfer: the bar fills over about two seconds, then says where it went.
+  const run = (text, up, done) => {
+    if (timer) return;
+    let value = 0;
+    transfer.classList.remove("hidden");
+    label.textContent = text;
+    arrow.textContent = up ? "upload" : "download";
+    timer = setInterval(() => {
+      value = Math.min(100, value + 4 + Math.random() * 6);
+      bar.style.width = value + "%";
+      percent.textContent = Math.round(value) + "%";
+      if (value >= 100) {
+        clearInterval(timer);
+        timer = null;
+        setTimeout(() => transfer.classList.add("hidden"), 900);
+        log.textContent = done;
+      }
+    }, 80);
+  };
+
+  root.querySelectorAll("[data-device]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const name = button.dataset.device;
+      run(`${t.sending} ${name}`, true, `✓ ${t.sent} ${name}: IMG_2041.jpg`);
+    });
+  });
+  $("[data-accept]").addEventListener("click", () => {
+    incoming.classList.add("hidden");
+    run("Pixel 8 → Long's MacBook", false, `✓ ${t.received}`);
+  });
+  $("[data-decline]").addEventListener("click", () => {
+    incoming.classList.add("hidden");
+    log.textContent = t.declined;
+  });
+</script>

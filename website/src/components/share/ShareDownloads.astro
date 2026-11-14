@@ -1,0 +1,81 @@
+---
+import ProductIcon from "../ProductIcon.astro";
+import WindowsDownload from "../WindowsDownload.astro";
+import { shareDownload, shareReleaseNotes, shareVersion, shareWindows } from "../../data/site";
+import { localize, pick, type Lang } from "../../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pick(lang, {
+  en: {
+    badge: "Free · Beta", title: "Get Longo Share",
+    lead: "No ads, no account, no data collection. Install it on each Mac and PC; on phones, use LocalSend.",
+    macTitle: "macOS", macBody: "Apple Silicon & Intel · macOS 13 or later",
+    download: "Download the installer (.dmg)", notes: "Release notes",
+    network: "Allow Local Network when macOS asks: that's how it finds your other devices. This beta receives over plain HTTP; encrypted receiving comes next.",
+    notarize: "Opened from the disk image, it offers to move itself to Applications. This beta isn't notarized yet. If macOS blocks it: System Settings › Privacy & Security › Open Anyway.",
+    phones: "Phones & tablets", phonesBody: "Install LocalSend (free) from the App Store or Google Play.",
+    more: "More from LongoKit:",
+  },
+  vi: {
+    badge: "Miễn phí · Beta", title: "Tải Longo Share",
+    lead: "Không quảng cáo, không tài khoản, không thu thập dữ liệu. Cài trên từng máy Mac và Windows; điện thoại thì dùng LocalSend.",
+    macTitle: "macOS", macBody: "Apple Silicon & Intel · macOS 13 trở lên",
+    download: "Tải bản cài đặt (.dmg)", notes: "Ghi chú phát hành",
+    network: "Cho phép Mạng cục bộ khi macOS hỏi: app cần quyền này để tìm các máy khác. Bản beta nhận file qua HTTP thường; nhận có mã hoá sẽ có ở bản sau.",
+    notarize: "Mở ngay trong file cài đặt, app tự đề nghị chuyển vào Applications. Bản beta chưa notarize. Nếu macOS chặn: Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Vẫn mở.",
+    phones: "Điện thoại & máy tính bảng", phonesBody: "Cài LocalSend (miễn phí) từ App Store hoặc Google Play.",
+    more: "Khám phá thêm trong LongoKit:",
+  },
+});
+---
+
+<section id="downloads" class="mx-auto w-full max-w-[1440px] px-margin-mobile py-space-3xl md:px-margin-desktop">
+  <div class="mx-auto mb-space-xl max-w-2xl text-center">
+    <span class="inline-flex items-center gap-space-xs rounded-full bg-surface-container-high px-3 py-1 font-code text-label-badge uppercase tracking-wider text-primary">
+      <span class="material-symbols-outlined text-[16px]">download</span>{t.badge} · v{shareVersion}
+    </span>
+    <h2 class="mt-space-sm text-headline-xl tracking-tight">{t.title}</h2>
+    <p class="mt-space-xs text-body-lg text-on-surface-variant">{t.lead}</p>
+  </div>
+
+  <div class="mx-auto grid max-w-4xl grid-cols-1 gap-gutter md:grid-cols-2">
+    <div class="flex flex-col gap-space-md rounded-2xl border-2 border-primary/40 bg-surface-container-low p-space-lg shadow-xl">
+      <div class="flex items-center gap-space-sm">
+        <ProductIcon product="share" class="h-12 w-12" />
+        <div>
+          <h3 class="text-headline-sm">{t.macTitle}</h3>
+          <span class="font-code text-xs text-primary">{t.macBody}</span>
+        </div>
+      </div>
+      <a href={shareDownload} class="flex items-center justify-center gap-space-xs rounded-xl bg-gradient-to-r from-primary-container to-secondary-container py-3 font-display text-sm font-semibold text-white shadow-md transition-all hover:opacity-95">
+        <span class="material-symbols-outlined text-[18px]">download</span>{t.download}
+      </a>
+      <a href={shareReleaseNotes} class="text-center font-code text-xs text-on-surface-variant hover:text-primary">{t.notes} · v{shareVersion}</a>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.network}</p>
+      <p class="font-code text-[11px] text-on-surface-variant">{t.notarize}</p>
+    </div>
+    <WindowsDownload lang={lang} links={shareWindows} />
+  </div>
+
+  <div class="mx-auto mt-gutter flex max-w-4xl items-center gap-space-sm rounded-xl bg-surface-container-low p-space-md">
+    <span class="material-symbols-outlined text-[24px] text-tertiary">smartphone</span>
+    <div class="flex flex-col">
+      <span class="text-sm font-semibold">{t.phones}</span>
+      <span class="font-code text-[11px] text-on-surface-variant">{t.phonesBody} <a href="https://localsend.org" class="text-tertiary hover:underline">localsend.org</a></span>
+    </div>
+  </div>
+
+  <div class="mx-auto mt-space-xl flex max-w-4xl flex-wrap items-center justify-between gap-space-sm rounded-xl bg-surface-container-lowest p-space-md">
+    <span class="flex items-center gap-space-xs font-code text-xs text-on-surface-variant"><span class="material-symbols-outlined text-[18px] text-primary">apps</span>{t.more}</span>
+    <div class="flex flex-wrap gap-space-xs">
+      <a href={localize(lang, "/kit")} class="rounded-lg bg-surface-container px-3 py-1.5 text-xs hover:text-secondary">LongoKit</a>
+      <a href={localize(lang, "/mouse")} class="rounded-lg bg-surface-container px-3 py-1.5 text-xs hover:text-primary">LongoMouse</a>
+      <a href={localize(lang, "/display")} class="rounded-lg bg-surface-container px-3 py-1.5 text-xs hover:text-tertiary">LongoDisplay</a>
+      <a href={localize(lang, "/shot")} class="rounded-lg bg-surface-container px-3 py-1.5 text-xs hover:text-tertiary">LongoShot</a>
+    </div>
+  </div>
+</section>

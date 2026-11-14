@@ -20,6 +20,10 @@ export const shotVersion = "0.2.8";
 export const shotDownload = `${repo}/releases/download/shot-macos/v${shotVersion}/LongoShot-${shotVersion}.dmg`;
 export const shotReleaseNotes = `${repo}/releases/tag/shot-macos/v${shotVersion}`;
 export const shotBuildFromSource = "git clone https://github.com/ngolong1405/LongoKit && cd LongoKit/apps/shot-macos && ./scripts/build-app.sh";
+export const shareVersion = "0.1.0";
+// Longo Share: bump shareVersion and upload LongoShare-<version>.dmg to tag share-macos/v<version>.
+export const shareDownload = `${repo}/releases/download/share-macos/v${shareVersion}/LongoShare-${shareVersion}.dmg`;
+export const shareReleaseNotes = `${repo}/releases/tag/share-macos/v${shareVersion}`;
 export const kitVersion = "0.1.8";
 // LongoKit, the four apps as modules of one: bump kitVersion and upload LongoKit-<version>.dmg to tag kit-macos/v<version>.
 export const kitDownload = `${repo}/releases/download/kit-macos/v${kitVersion}/LongoKit-${kitVersion}.dmg`;
@@ -31,12 +35,16 @@ export const licenseURL = `${repo}/blob/main/LICENSE.md`;
 export const buildFromSource = "git clone https://github.com/ngolong1405/LongoKit && cd LongoKit/apps/mouse-macos && ./scripts/build-app.sh";
 // The Windows apps (beta): one .exe per app and processor, at tag <app>-windows/v<windowsVersion>.
 export const windowsVersion = "0.1.2";
-const windowsApp = (app: string, name: string) => ({
-  x64: `${repo}/releases/download/${app}-windows/v${windowsVersion}/${name}-${windowsVersion}-x64.exe`,
-  arm64: `${repo}/releases/download/${app}-windows/v${windowsVersion}/${name}-${windowsVersion}-arm64.exe`,
-  notes: `${repo}/releases/tag/${app}-windows/v${windowsVersion}`,
+const windowsApp = (app: string, name: string, version = windowsVersion) => ({
+  version,
+  x64: `${repo}/releases/download/${app}-windows/v${version}/${name}-${version}-x64.exe`,
+  arm64: `${repo}/releases/download/${app}-windows/v${version}/${name}-${version}-arm64.exe`,
+  notes: `${repo}/releases/tag/${app}-windows/v${version}`,
 });
 export const mouseWindows = windowsApp("mouse", "LongoMouse");
 export const displayWindows = windowsApp("display", "LongoDisplay");
 export const shotWindows = windowsApp("shot", "LongoShot");
 export const kitWindows = windowsApp("kit", "LongoKit");
+// Longo Share has its own Windows version.
+export const shareWindowsVersion = "0.1.0";
+export const shareWindows = windowsApp("share", "LongoShare", shareWindowsVersion);

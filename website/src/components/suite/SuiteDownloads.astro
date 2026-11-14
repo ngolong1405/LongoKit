@@ -1,6 +1,6 @@
 ---
 import ProductIcon from "../ProductIcon.astro";
-import { mouseWindows, displayWindows, shotWindows } from "../../data/site";
+import { mouseWindows, displayWindows, shotWindows, shareWindows, shareDownload, shareVersion } from "../../data/site";
 import { repo, mouseDownload, mouseVersion, displayDownload, displayVersion, licenseURL, keysVersion, keysDownload, shotDownload, shotVersion, kitDownload, kitVersion } from "../../data/site";
 import { localize, pick, type Lang } from "../../i18n";
 
@@ -19,6 +19,7 @@ const t = pick(lang, {
     keys: "Remap keys and build shortcut layers.",
     display: "Brightness and volume for every display, with Sync to your MacBook.",
     shot: "Screenshots, screen recordings and on-screen text from your shortcuts.",
+    share: "Files and text between your Macs, PCs and phones nearby. Works with LocalSend.",
     suiteTitle: "LongoKit: All Four in One App",
     suiteBody: "LongoKit runs all four as modules of one menu bar app: one window, one menu bar icon, and about a quarter of the memory. Turn on just the ones you need.",
     getKit: "Download LongoKit for macOS", aboutKit: "What's in LongoKit", follow: "Follow on GitHub",
@@ -33,6 +34,7 @@ const t = pick(lang, {
     keys: "Đổi phím và tạo lớp phím tắt.",
     display: "Độ sáng và âm lượng cho mọi màn hình, đồng bộ theo MacBook.",
     shot: "Chụp màn hình, quay màn hình và copy chữ trên màn hình bằng phím tắt.",
+    share: "Gửi file và văn bản giữa Mac, máy Windows và điện thoại ở gần. Dùng được với LocalSend.",
     suiteTitle: "LongoKit: Cả Bốn Trong Một App",
     suiteBody: "LongoKit chạy cả bốn như các module của một app trên thanh menu: một cửa sổ, một icon trên thanh menu, và chỉ tốn khoảng một phần tư RAM. Chỉ bật module bạn cần.",
     getKit: "Tải LongoKit cho macOS", aboutKit: "LongoKit có gì", follow: "Theo dõi trên GitHub",
@@ -62,6 +64,11 @@ const kits = [
     name: "LongoShot", product: "shot" as const, version: `v${shotVersion}`, available: true, download: shotDownload, windows: shotWindows.x64,
     tint: "text-primary-container", badgeBg: "bg-primary-container/15",
     mac: "bg-primary-container/15 text-primary-container hover:bg-primary-container/30", tagline: "Capture, Record & On-Device OCR", body: t.shot,
+  },
+  {
+    name: "LongoShare", product: "share" as const, version: `v${shareVersion}`, available: true, download: shareDownload, windows: shareWindows.x64,
+    tint: "text-tertiary", badgeBg: "bg-tertiary/20",
+    mac: "bg-tertiary/15 text-tertiary hover:bg-tertiary/30", tagline: "LocalSend-Compatible Sharing", body: t.share,
   },
 ];
 ---
@@ -107,7 +114,7 @@ const kits = [
     </div>
   </div>
   <h3 class="mt-16 mb-8 text-center font-display text-headline-md tracking-tight">{t.single}</h3>
-  <div class="grid grid-cols-1 gap-gutter-lg md:grid-cols-2 xl:grid-cols-4">
+  <div class="grid grid-cols-1 gap-gutter-lg md:grid-cols-2 xl:grid-cols-3">
     {
       kits.map((k) => (
         <div class="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-surface-container-low p-8 shadow-xl transition-all hover:bg-surface-container">

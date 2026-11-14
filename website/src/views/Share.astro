@@ -1,0 +1,35 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import ShareHero from "../components/share/ShareHero.astro";
+import ShareFeatures from "../components/share/ShareFeatures.astro";
+import ShareDownloads from "../components/share/ShareDownloads.astro";
+import Footer from "../components/Footer.astro";
+import { pick, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const meta = pick(lang, {
+  en: {
+    title: "LongoShare · LongoKit",
+    description: "LongoShare: send files and text between your Macs, PCs and phones on the same Wi-Fi, no cloud, no account. Compatible with LocalSend.",
+  },
+  vi: {
+    title: "LongoShare · LongoKit",
+    description: "LongoShare: gửi file và văn bản giữa Mac, máy Windows và điện thoại trong cùng Wi-Fi, không qua cloud, không tài khoản. Tương thích LocalSend.",
+  },
+});
+---
+
+<Base lang={lang} title={meta.title} description={meta.description}>
+  <Header lang={lang} active="share" />
+  <main class="relative w-full overflow-x-hidden pt-20">
+    <ShareHero lang={lang} />
+    <ShareFeatures lang={lang} />
+    <ShareDownloads lang={lang} />
+  </main>
+  <Footer lang={lang} />
+</Base>

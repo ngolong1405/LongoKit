@@ -6,7 +6,7 @@ import { keysVersion } from "../data/site";
 interface Props {
   lang: Lang;
   /** Which product page is open, to highlight it in the nav. */
-  active?: "kit" | "mouse" | "display" | "keys" | "shot";
+  active?: "kit" | "mouse" | "display" | "keys" | "shot" | "share";
 }
 
 const { lang, active } = Astro.props;
@@ -22,6 +22,7 @@ const products = [
   { id: "keys", href: localize(lang, "/keys"), icon: "keyboard", tint: "text-secondary", name: "LongoKeys", soon: !keysVersion },
   { id: "display", href: localize(lang, "/display"), icon: "desktop_windows", tint: "text-tertiary", name: "LongoDisplay", soon: false },
   { id: "shot", href: localize(lang, "/shot"), icon: "screenshot_region", tint: "text-primary-container", name: "LongoShot", soon: false },
+  { id: "share", href: localize(lang, "/share"), icon: "devices", tint: "text-tertiary", name: "LongoShare", soon: false },
 ];
 ---
 
