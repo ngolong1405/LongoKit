@@ -7,6 +7,14 @@ on:
   pull_request:
     paths: ["apps/*-windows/**", "packages/ui-windows/**", ".github/workflows/windows.yml"]
   workflow_dispatch:
+    inputs:
+      release:
+        description: "Release every Windows app at this version (like 0.1.1), with packages/ui-windows/release-notes/<version>.md"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
 
 env:
   # Each app: its project, and the .exe it makes.
@@ -60,3 +68,22 @@ jobs:
         with:
           name: windows-apps
           path: out/*/*.exe
+      - name: Release (only when asked, with a version)
+        if: github.event.inputs.release != ''
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.event.inputs.release }}
+        run: |
+          $notes = "packages/ui-windows/release-notes/$env:VERSION.md"
+          $apps = @{ "mouse" = @("LongoMouse", "Longo Mouse"); "display" = @("LongoDisplay", "Longo Display");
+                     "shot" = @("LongoShot", "Longo Shot"); "kit" = @("LongoKit", "LongoKit") }
+          New-Item -ItemType Directory -Force release | Out-Null
+          foreach ($key in $apps.Keys) {
+            $file, $name = $apps[$key]
+            Copy-Item "out/win-x64/$file.exe" "release/$file-$env:VERSION-x64.exe"
+            Copy-Item "out/win-arm64/$file.exe" "release/$file-$env:VERSION-arm64.exe"
+            gh release create "$key-windows/v$env:VERSION" "release/$file-$env:VERSION-x64.exe" "release/$file-$env:VERSION-arm64.exe" `
+              --target $env:GITHUB_SHA --title "$name for Windows $env:VERSION beta" --notes-file $notes --prerelease --latest=false
+            if ($LASTEXITCODE) { exit 1 }
+          }
