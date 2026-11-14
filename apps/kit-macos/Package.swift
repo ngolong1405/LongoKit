@@ -1,7 +1,7 @@
 // swift-tools-version:5.9
 import PackageDescription
 
-// LongoKit: Longo Mouse, Display, Keys, Shot and Share in one menu bar app, each a module to turn on or off.
+// LongoKit: Longo Mouse, Display, Keys, Shot, Share and Flow in one menu bar app, each a module to turn on or off.
 let package = Package(
     name: "LongoKit",
     // Longo Shot's screenshots (SCScreenshotManager) need macOS 14.
@@ -13,6 +13,7 @@ let package = Package(
         .package(path: "../keys-macos"),
         .package(path: "../shot-macos"),
         .package(path: "../share-macos"),
+        .package(path: "../flow-macos"),
     ],
     targets: [
         .executableTarget(
@@ -24,6 +25,7 @@ let package = Package(
                 .product(name: "LongoKeysKit", package: "keys-macos"),
                 .product(name: "LongoShotKit", package: "shot-macos"),
                 .product(name: "LongoShareKit", package: "share-macos"),
+                .product(name: "LongoFlowKit", package: "flow-macos"),
             ],
             path: "Sources/LongoKit"
         )

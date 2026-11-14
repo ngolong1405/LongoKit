@@ -18,9 +18,9 @@ enum SelfTest {
         func settle() { RunLoop.main.run(until: Date().addingTimeInterval(0.15)) }
 
         let ids = ModuleInfo.all.map(\.id)
-        check("five modules, each once", ids == ["mouse", "display", "keys", "shot", "share"])
+        check("six modules, each once", ids == ["mouse", "display", "keys", "shot", "share", "flow"])
         check("each module knows its own app", ModuleInfo.all.map { $0.type.bundleIdentifier }
-            == ["com.longngo.MouseMapper", "com.longokit.display", "com.longokit.keys", "com.longokit.shot", "com.longokit.share"])
+            == ["com.longngo.MouseMapper", "com.longokit.display", "com.longokit.keys", "com.longokit.shot", "com.longokit.share", "com.longokit.flow"])
         check("each module has its logo", ModuleInfo.all.allSatisfy { $0.logo(dark: true) != nil && $0.logo(dark: false) != nil })
 
         let suiteName = "LongoKit.selftest"
@@ -128,8 +128,8 @@ enum SelfTest {
         check("a module's own switch turns it off in LongoKit too", suite.status("shot") == .off)
         let menu = StatusMenu.make(suite)
         let titles = menu.items.map(\.title)
-        check("the right-click menu has Settings, the five modules, About and Quit",
-              menu.items.count == 10 && titles.first == "Settings…" && titles.last == "Quit")
+        check("the right-click menu has Settings, the six modules, About and Quit",
+              menu.items.count == 11 && titles.first == "Settings…" && titles.last == "Quit")
         check("…a module that's on ticked, one that's off not", menu.items[2].state == .off && menu.items[5].state == .off
               && menu.items[3].state == .on)
         menu.items[5].target.map { _ = ($0 as AnyObject).perform(menu.items[5].action) }

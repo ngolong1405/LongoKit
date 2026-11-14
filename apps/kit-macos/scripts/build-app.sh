@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds build/LongoKit.app (Longo Mouse, Display, Keys, Shot and Share as modules of one app) and an installer disk image
+# Builds build/LongoKit.app (Longo Mouse, Display, Keys, Shot, Share and Flow as modules of one app) and an installer disk image
 # build/LongoKit.dmg.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -22,7 +22,7 @@ cp -RL Support/Fonts "$APP/Contents/Resources/Fonts"
 # Small marks for the sidebar and title bar.
 cp -R Support/Marks "$APP/Contents/Resources/Marks"
 # Each module's own images, in a folder named after it (the modules' resourceFolder).
-for module in Mouse Display Keys Shot Share; do
+for module in Mouse Display Keys Shot Share Flow; do
     mkdir -p "$APP/Contents/Resources/$module"
     cp -L "Support/$module/Logo.png" "Support/$module/LogoLight.png" "$APP/Contents/Resources/$module/"
 done

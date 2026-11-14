@@ -23,7 +23,7 @@ enum Snapshot {
         clean()
         let defaults = UserDefaults(suiteName: suiteName)!
         // Three on, Keys waiting for its own app to quit.
-        defaults.set(["mouse", "display", "shot", "keys", "share"], forKey: "modules")
+        defaults.set(["mouse", "display", "shot", "keys", "share", "flow"], forKey: "modules")
         let suite = Suite(live: false, defaults: defaults, storeName: { storePrefix + $0 }, runsElsewhere: { $0.id == "keys" })
         suite.start()
         RunLoop.main.run(until: Date().addingTimeInterval(0.2))
@@ -34,13 +34,13 @@ enum Snapshot {
                 suite.language = language
                 let name = "\(scheme)-\(language.rawValue)"
                 let pages: [(String, Suite.Page)] = [("1-general", .general), ("2-mouse", .module("mouse")), ("3-display", .module("display")),
-                                                    ("4-keys-elsewhere", .module("keys")), ("5-shot", .module("shot")), ("6-share", .module("share")),
+                                                    ("4-keys-elsewhere", .module("keys")), ("5-shot", .module("shot")), ("6-share", .module("share")), ("6-flow", .module("flow")),
                                                     ("7-about", .about)]
                 for (file, page) in pages {
                     suite.page = page
                     render(KitWindow(forSnapshot: true), suite, scheme, to: directory.appendingPathComponent("\(name)-\(file).png"))
                 }
-                for id in ["mouse", "display", "shot", "share"] {
+                for id in ["mouse", "display", "shot", "share", "flow"] {
                     suite.menuModule = id
                     render(KitMenu(), suite, scheme, to: directory.appendingPathComponent("\(name)-menu-\(id).png"))
                 }
@@ -52,7 +52,7 @@ enum Snapshot {
         suite.page = .module("display")
         NSApp.appearance = NSAppearance(named: .darkAqua)
         render(KitWindow(forSnapshot: true), suite, "dark", to: directory.appendingPathComponent("dark-en-8-display-off.png"))
-        for id in ["mouse", "shot", "share"] { suite.setEnabled(ModuleInfo.named(id)!, false) }
+        for id in ["mouse", "shot", "share", "flow"] { suite.setEnabled(ModuleInfo.named(id)!, false) }
         render(KitMenu(), suite, "dark", to: directory.appendingPathComponent("dark-en-menu-all-off.png"))
         clean()
         exit(0)

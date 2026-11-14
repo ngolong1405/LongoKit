@@ -4,6 +4,7 @@ import LongoKeysKit
 import LongoKitUI
 import LongoMouseKit
 import LongoShareKit
+import LongoFlowKit
 import LongoShotKit
 
 /// One of the modules LongoKit holds, and what the app shows about it.
@@ -28,6 +29,7 @@ struct ModuleInfo: Identifiable {
         ModuleInfo(type: KeysModule.self, blurb: "Key remapping & the Hyper layer"),
         ModuleInfo(type: ShotModule.self, blurb: "Screenshots, recording & copying text on screen"),
         ModuleInfo(type: ShareModule.self, blurb: "Files between your devices, nearby"),
+        ModuleInfo(type: FlowModule.self, blurb: "One keyboard and mouse for your Macs"),
     ]
 
     static func named(_ id: String) -> ModuleInfo? {

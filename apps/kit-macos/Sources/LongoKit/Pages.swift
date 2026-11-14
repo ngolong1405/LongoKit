@@ -102,7 +102,7 @@ struct AboutPage: View {
                     KitLogo(size: 72)
                     Text(AppInfo.name).font(.display(22, .bold)).foregroundStyle(Theme.text)
                     Chip("v\(AppInfo.version) beta", tone: .solar)
-                    Text(L("Longo Mouse, Display, Keys, Shot and Share in one menu bar app. Turn on the ones you need: the others take no memory and ask for nothing."))
+                    Text(L("Longo Mouse, Display, Keys, Shot, Share and Flow in one menu bar app. Turn on the ones you need: the others take no memory and ask for nothing."))
                         .font(.ui(12))
                         .foregroundStyle(Theme.textMuted)
                         .multilineTextAlignment(.center)
